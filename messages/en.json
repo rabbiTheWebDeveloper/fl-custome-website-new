@@ -1,0 +1,95 @@
+{
+  "HomePage": {
+    "title": "Hello"
+  },
+  "Theme2": {
+    "banner": {
+      "slide1": {
+        "title": "Fit that speaks before you do",
+        "subtitle": "Unlock fresh drops, premium fabrics, and everyday fits that never miss. Dress bold, feel iconic.",
+        "buttonText": "Shop Now"
+      },
+      "slide2": {
+        "title": "Elevate Your Style",
+        "subtitle": "Discover the latest trends and timeless classics that define your unique fashion statement.",
+        "buttonText": "Explore Now"
+      },
+      "slide3": {
+        "title": "Dress to Impress",
+        "subtitle": "Premium quality meets affordable luxury. Your wardrobe upgrade starts here.",
+        "buttonText": "Shop Collection"
+      }
+    },
+    "header": {
+      "home": "Home",
+      "shop": "Shop",
+      "category": "Category",
+      "about": "About",
+      "search": "Search",
+      "brandLogo": "BRAND LOGO"
+    },
+    "features": {
+      "quality": {
+        "title": "Quality",
+        "description": "We're committed to providing the highest quality products and services."
+      },
+      "moneyBack": {
+        "title": "Money-Back Guarantee",
+        "description": "Return your item for a full refund if it doesn't meet your expectations."
+      },
+      "support": {
+        "title": "24/7 Customer Support",
+        "description": "Our team is available 24/7 to address your inquiries."
+      },
+      "reliability": {
+        "title": "Reliability",
+        "description": "Count on us for timely delivery and consistent service excellence ever..."
+      }
+    },
+    "categories": {
+      "title": "Categories",
+      "tshirt": "T-shirt",
+      "others": "Others",
+      "borka": "Borka",
+      "saree": "Saree"
+    },
+    "featured": {
+      "title": "Featured",
+      "seeAll": "SEE ALL",
+      "productName": "Essential Hoodie",
+      "slidePrevious": "Slide previous",
+      "slideNext": "Slider next"
+    },
+    "footer": {
+      "brandDescription": "Your trusted fashion company",
+      "navigation": "Navigation",
+      "categories": "Categories",
+      "legals": "Legals",
+      "home": "Home",
+      "shop": "Shop",
+      "about": "About",
+      "contact": "Contact",
+      "men": "Men",
+      "women": "Women",
+      "kids": "Kids",
+      "privacy": "Privacy Policy",
+      "terms": "Terms & Conditions",
+      "other": "Other",
+      "copyright": "© Brand Name {year} | All rights reserved.",
+      "madeIn": "Made in"
+    },
+    "headerFooter": {
+      "home": "Home",
+      "shop": "Shop",
+      "category": "Category",
+      "about": "About",
+      "contact": "Contact",
+      "men": "Men",
+      "women": "Women",
+      "kids": "Kids",
+      "privacy": "Privacy Policy",
+      "terms": "Terms & Conditions",
+      "other": "Other"
+    }
+  }
+}

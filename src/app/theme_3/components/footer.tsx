@@ -1,0 +1,129 @@
+import {
+  MapPin,
+  Phone,
+  Facebook,
+  Instagram,
+  Youtube,
+  // Whatsapp,
+} from "lucide-react"
+import Link from "next/link"
+
+export default function FooterUI() {
+  return (
+    <footer className="relative bg-gradient-to-br from-gray-100 to-gray-200 border-t border-green-500 mt-6">
+      {/* top gradient line */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-green-500 to-transparent" />
+
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        {/* main grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+          {/* logo section */}
+          <div className="bg-white rounded-2xl shadow-lg border p-8 text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-green-400" />
+
+            <img
+              src="/logo.png"
+              alt="Shop Logo"
+              className="w-36 h-36 object-contain mx-auto rounded-xl transition-transform duration-300 hover:scale-110"
+            />
+
+            <h4 className="mt-4 text-xl font-bold text-gray-900">
+              Your Shop Name
+            </h4>
+            <p className="text-sm text-gray-500 italic">
+              Your trusted online shopping destination
+            </p>
+          </div>
+
+          {/* info cards */}
+          <div className="md:col-span-2 space-y-6">
+            {/* address */}
+            <div className="bg-white p-6 rounded-2xl shadow border flex items-start gap-4 hover:shadow-xl transition">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-400 flex items-center justify-center text-white">
+                <MapPin size={20} />
+              </div>
+              <div>
+                <h5 className="text-lg font-semibold text-gray-900">
+                  Store Address
+                </h5>
+                <p className="text-sm text-gray-600">
+                  123 Main Street, Dhaka, Bangladesh
+                </p>
+              </div>
+            </div>
+
+            {/* contact */}
+            <div className="bg-white p-6 rounded-2xl shadow border flex items-start gap-4 hover:shadow-xl transition">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-400 flex items-center justify-center text-white">
+                <Phone size={20} />
+              </div>
+              <div>
+                <h5 className="text-lg font-semibold text-gray-900">
+                  Contact Number
+                </h5>
+                <p className="text-sm text-gray-600">+880 17xxxxxxx</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent my-10" />
+
+        {/* Social Media Section */}
+        <div className="bg-gray-200 py-8 text-center">
+          <div className="flex justify-center gap-4 mb-6 flex-wrap">
+            <Link
+              href="/privacy"
+              className="text-gray-600 hover:text-green-500"
+            >
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="text-gray-600 hover:text-green-500">
+              Terms & Conditions
+            </Link>
+          </div>
+          <h2 className="text-lg font-bold mb-4">Join Us On Social Media</h2>
+          <div className="flex justify-center gap-4 flex-wrap">
+            <a
+              href="#"
+              className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center"
+            >
+              F
+            </a>
+            <a
+              href="#"
+              className="w-10 h-10 bg-pink-500 text-white rounded-full flex items-center justify-center"
+            >
+              I
+            </a>
+            <a
+              href="#"
+              className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center"
+            >
+              Y
+            </a>
+            <a
+              href="#"
+              className="w-10 h-10 bg-blue-400 text-white rounded-full flex items-center justify-center"
+            >
+              T
+            </a>
+          </div>
+        </div>
+
+        {/* tiny footer */}
+        <div className="text-center text-sm text-gray-500 mt-8">
+          © 2026 Shop Name. All Rights Reserved. <br />
+          System developed by{" "}
+          <Link
+            href="https://funnelliner.com/"
+            className="text-green-500 hover:underline"
+          >
+            Funnel Liner
+          </Link>
+        </div>
+      </div>
+    </footer>
+  )
+}
