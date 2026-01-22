@@ -164,7 +164,7 @@ export default function Header() {
             {/* Search Bar */}
             <div className="flex-1 max-w-2xl mx-8">
               <div className="relative dropdown">
-                <div className="flex border-2 border-green-600 rounded-full overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex border-2 border-[#3bb77e] rounded-full overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                   <input
                     type="text"
                     placeholder="Search for products, brands, and categories..."
@@ -173,7 +173,7 @@ export default function Header() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setIsSearchOpen(true)}
                   />
-                  <button className="bg-green-600 hover:bg-green-700 px-6 text-white transition-colors">
+                  <button className="bg-[#3bb77e] px-6 text-white transition-colors">
                     <Search size={20} />
                   </button>
                 </div>
@@ -217,7 +217,7 @@ export default function Header() {
                       ${cartTotal.toLocaleString()}
                     </div>
                   </div>
-                  <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-[#3bb77e] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                     {totalCartItems}
                   </span>
                 </button>
@@ -287,13 +287,13 @@ export default function Header() {
                       <div className="flex gap-2">
                         <Link
                           href="/cart"
-                          className="flex-1 border-2 border-green-600 text-green-600 hover:bg-green-50 py-3 rounded-lg text-center font-semibold transition-colors"
+                          className="flex-1 border-2 border-[#3bb77e] text-[#3bb77e] hover:bg-green-50 py-3 rounded-lg text-center font-semibold transition-colors"
                         >
                           View Cart
                         </Link>
                         <Link
                           href="/checkout"
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-center font-semibold transition-colors"
+                          className="flex-1 bg-[#3bb77e] text-white py-3 rounded-lg text-center font-semibold transition-colors"
                         >
                           Checkout
                         </Link>

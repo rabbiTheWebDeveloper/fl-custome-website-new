@@ -213,7 +213,7 @@ const AllProduct = () => {
 
                 <span
                   className={`text-xs font-semibold px-2 py-1 rounded ${
-                    product.qty > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    product.qty > 0 ? "bg-green-100 text-[#3bb77e]" : "bg-red-100 text-red-700"
                   } mb-3`}
                 >
                   {product.qty > 0 ? "In Stock" : "Out of Stock"}
@@ -223,7 +223,7 @@ const AllProduct = () => {
                   <button
                     className={`flex-1 border-2 rounded-md py-1 text-sm font-semibold transition ${
                       product.qty > 0
-                        ? "border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
+                        ? "border-[#3bb77e] text-[#3bb77e] hover:bg-[#3bb77e] hover:text-white"
                         : "border-gray-300 text-gray-400 cursor-not-allowed"
                     }`}
                     disabled={product.qty === 0}
@@ -232,7 +232,7 @@ const AllProduct = () => {
                   </button>
                   <button
                     className={`flex-1 rounded-md py-1 text-sm font-semibold text-white transition ${
-                      product.qty > 0 ? "bg-green-600 hover:bg-green-700" : "bg-gray-300 cursor-not-allowed"
+                      product.qty > 0 ? "bg-[#3bb77e] hover:bg-[#3bb77e]" : "bg-gray-300 cursor-not-allowed"
                     }`}
                     disabled={product.qty === 0}
                   >
