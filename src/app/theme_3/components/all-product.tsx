@@ -177,74 +177,91 @@ const sampleProducts = [
 
 const AllProduct = () => {
   return (
-    <section className="py-8 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
-          All Products
-        </h2>
+<section className="py-8 bg-gray-50">
+  <div className="container mx-auto px-4">
+    <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
+      All Products
+    </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {sampleProducts.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"
-            >
-              <Link href={`/details/${product.slug}`} className="relative w-full aspect-square">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  style={{ objectFit: "contain" }}
-                  className="transition-transform duration-300 hover:scale-105"
-                />
-              </Link>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+      {sampleProducts.map((product) => (
+        <div
+          key={product.id}
+          className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col 
+                     hover:shadow-xl hover:-translate-y-1 transition-all 
+                     [transition-timing-function:cubic-bezier(.4,0,.2,1)] duration-300"
+        >
+          <Link href={`/details/${product.slug}`} className="relative w-full aspect-square">
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              style={{ objectFit: "contain" }}
+              className="transition-all [transition-timing-function:cubic-bezier(.4,0,.2,1)] duration-300 hover:scale-105"
+            />
+          </Link>
 
-              <div className="p-4 flex flex-col flex-1">
-                <h4 className="text-sm sm:text-base font-semibold mb-1 truncate">
-                  <Link href={`/details/${product.slug}`}>{product.name}</Link>
-                </h4>
+          <div className="p-4 flex flex-col flex-1">
+            <h4 className="text-sm sm:text-base font-semibold mb-1 truncate">
+              <Link href={`/details/${product.slug}`}>{product.name}</Link>
+            </h4>
 
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-green-600 font-bold">৳{product.discounted_price}</span>
-                  {product.price > product.discounted_price && (
-                    <span className="text-gray-400 line-through text-sm">৳{product.price}</span>
-                  )}
-                </div>
-
-                <span
-                  className={`text-xs font-semibold px-2 py-1 rounded ${
-                    product.qty > 0 ? "bg-green-100 text-[#3bb77e]" : "bg-red-100 text-red-700"
-                  } mb-3`}
-                >
-                  {product.qty > 0 ? "In Stock" : "Out of Stock"}
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-green-600 font-bold">
+                ৳{product.discounted_price}
+              </span>
+              {product.price > product.discounted_price && (
+                <span className="text-gray-400 line-through text-sm">
+                  ৳{product.price}
                 </span>
-
-                <div className="mt-auto flex gap-2">
-                  <button
-                    className={`flex-1 border-2 rounded-md py-1 text-sm font-semibold transition ${
-                      product.qty > 0
-                        ? "border-[#3bb77e] text-[#3bb77e] hover:bg-[#3bb77e] hover:text-white"
-                        : "border-gray-300 text-gray-400 cursor-not-allowed"
-                    }`}
-                    disabled={product.qty === 0}
-                  >
-                    Add to Cart
-                  </button>
-                  <button
-                    className={`flex-1 rounded-md py-1 text-sm font-semibold text-white transition ${
-                      product.qty > 0 ? "bg-[#3bb77e] hover:bg-[#3bb77e]" : "bg-gray-300 cursor-not-allowed"
-                    }`}
-                    disabled={product.qty === 0}
-                  >
-                    Order Now
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
-          ))}
+
+            <span
+              className={`text-xs font-semibold px-2 py-1 rounded ${
+                product.qty > 0
+                  ? "bg-green-100 text-[#3bb77e]"
+                  : "bg-red-100 text-red-700"
+              } mb-3`}
+            >
+              {product.qty > 0 ? "In Stock" : "Out of Stock"}
+            </span>
+
+            <div className="mt-auto flex gap-2">
+              <button
+                className={`flex-1 border-2 rounded-md py-1 text-sm font-semibold 
+                            transition-all [transition-timing-function:cubic-bezier(.4,0,.2,1)] duration-300
+                            ${
+                              product.qty > 0
+                                ? "border-[#3bb77e] text-[#3bb77e] hover:bg-[#3bb77e] hover:text-white"
+                                : "border-gray-300 text-gray-400 cursor-not-allowed"
+                            }`}
+                disabled={product.qty === 0}
+              >
+                Add to Cart
+              </button>
+
+              <button
+                className={`flex-1 rounded-md py-1 text-sm font-semibold text-white
+                            transition-all [transition-timing-function:cubic-bezier(.4,0,.2,1)] duration-300
+                            ${
+                              product.qty > 0
+                                ? "bg-[#3bb77e] hover:bg-[#3bb77e] hover:brightness-90"
+                                : "bg-gray-300 cursor-not-allowed"
+                            }`}
+                disabled={product.qty === 0}
+              >
+                Order Now
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
+      ))}
+    </div>
+  </div>
+</section>
+
+
   );
 };
 
