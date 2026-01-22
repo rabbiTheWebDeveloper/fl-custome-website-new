@@ -331,18 +331,9 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Shipping Address */}
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6">
-              <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                  Shipping Address
-                </h2>
-              </div>
-
-              <div className="mb-4">
+                  <div className="grid md:grid-cols-1 gap-3 sm:gap-4 mb-6">
+               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Address *
                 </label>
@@ -359,8 +350,9 @@ const Checkout = () => {
                   />
                 </div>
               </div>
-
-              <div>
+              </div>
+       <div className="grid md:grid-cols-1 gap-3 sm:gap-4 mb-6">
+                <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Order Notes (Optional)
                 </label>
@@ -373,7 +365,10 @@ const Checkout = () => {
                   className="w-full border border-gray-300 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base resize-none"
                 />
               </div>
+              </div>
             </div>
+
+     
 
             {/* Payment Method */}
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6">
@@ -648,31 +643,6 @@ const Checkout = () => {
                   <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
                   30-Day Return Policy
                 </Link>
-              </div>
-            </div>
-
-            {/* Trust Badges */}
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6">
-              <h3 className="font-bold text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">
-                Shop with Confidence
-              </h3>
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">Secure Payment</span>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                  <Package className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">Free Returns</span>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                  <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">Fast Delivery</span>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm">24/7 Support</span>
-                </div>
               </div>
             </div>
           </div>
