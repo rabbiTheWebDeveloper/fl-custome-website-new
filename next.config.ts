@@ -11,10 +11,13 @@ const nextConfig: NextConfig = {
         hostname: "cdn-s3.funnelliner.com",
         pathname: "/**",
       },
-      
+      {
+        protocol: "https",
+        hostname: "zadwah.com",
+        pathname: "/**",
+      },
     ],
-      domains: ["via.placeholder.com" ,"images.unsplash.com"],
-       //
+    domains: ["eiclgroup.com", "via.placeholder.com", "images.unsplash.com"],
   },
   logging: {
     fetches: {

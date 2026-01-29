@@ -23,7 +23,7 @@
     "header": {
       "home": "হোম",
       "shop": "দোকান",
-      "category": "বিভাগ",
+      "category": "ক্যাটাগরি",
       "about": "আমাদের সম্পর্কে",
       "search": "অনুসন্ধান",
       "brandLogo": "ব্র্যান্ড লোগো"
@@ -47,14 +47,14 @@
       }
     },
     "categories": {
-      "title": "বিভাগ",
+      "title": "ক্যাটাগরি",
       "tshirt": "টি-শার্ট",
       "others": "অন্যান্য",
       "borka": "বোরকা",
       "saree": "শাড়ি"
     },
     "featured": {
-      "title": "বৈশিষ্ট্যযুক্ত",
+      "title": "ফিচার প্রডাক্ট ",
       "seeAll": "সব দেখুন",
       "productName": "অপরিহার্য হুডি",
       "slidePrevious": "পূর্ববর্তী স্লাইড",
@@ -63,7 +63,7 @@
     "footer": {
       "brandDescription": "আপনার বিশ্বস্ত ফ্যাশন কোম্পানি",
       "navigation": "নেভিগেশন",
-      "categories": "বিভাগ",
+      "categories": "ক্যাটাগরি",
       "legals": "আইনি",
       "home": "হোম",
       "shop": "দোকান",
@@ -81,7 +81,7 @@
     "headerFooter": {
       "home": "হোম",
       "shop": "দোকান",
-      "category": "বিভাগ",
+      "category": "ক্যাটাগরি",
       "about": "আমাদের সম্পর্কে",
       "contact": "যোগাযোগ",
       "men": "পুরুষ",
@@ -90,6 +90,59 @@
       "privacy": "গোপনীয়তা নীতি",
       "terms": "শর্তাবলী",
       "other": "অন্যান্য"
+    },
+    "buttons": {
+      "addToCart": "কার্টে যোগ করুন",
+      "maxQuantity": "সর্বোচ্চ পরিমাণ",
+      "buyNow": "এখনই কিনুন",
+      "shopNow": "এখনই কিনুন",
+      "filters": "ফিল্টার",
+      "viewAllProducts": "সব পণ্য দেখুন",
+      "seeMore": "আরও",
+      "loading": "লোড হচ্ছে...",
+      "placeOrder": "অর্ডার করুন",
+      "placingOrder": "অর্ডার করা হচ্ছে...",
+      "continueShopping": "কেনাকাটা চালিয়ে যান"
+    },
+    "checkout": {
+      "title": "চেকআউট",
+      "subtitle": "প্রায় শেষ — নিরাপদে আপনার অর্ডার সম্পূর্ণ করুন।",
+      "yourOrder": "আপনার অর্ডার",
+      "subtotal": "উপমোট",
+      "discount": "ছাড়",
+      "tax": "কর",
+      "shipping": "শিপিং",
+      "total": "মোট",
+      "checkout": "চেকআউট",
+      "billingDetails": "বিলিং বিবরণ",
+      "fullName": "পূর্ণ নাম",
+      "fullNamePlaceholder": "জন ডো",
+      "phoneNumber": "ফোন নম্বর",
+      "phoneNumberPlaceholder": "+880123456789",
+      "deliveryAddress": "ডেলিভারি ঠিকানা",
+      "deliveryAddressPlaceholder": "এখানে লিখুন",
+      "orderNote": "অর্ডার নোট (ঐচ্ছিক)",
+      "orderNotePlaceholder": "এখানে লিখুন",
+      "shippingMethod": "শিপিং পদ্ধতি",
+      "insideDhaka": "ঢাকার ভিতরে",
+      "aroundDhaka": "ঢাকার আশেপাশে",
+      "outsideDhaka": "ঢাকার বাইরে",
+      "paymentMethod": "পেমেন্ট পদ্ধতি",
+      "sslcommerz": "SSLCOMMERZ (ফ্রি ডেলিভারি)",
+      "cashOnDelivery": "ক্যাশ অন ডেলিভারি",
+      "bkash": "bKash (ফ্রি ডেলিভারি)",
+      "validation": {
+        "fullNameMin": "পূর্ণ নাম কমপক্ষে ২ অক্ষর হতে হবে",
+        "fullNameMax": "পূর্ণ নাম ১০০ অক্ষরের কম হতে হবে",
+        "fullNameRegex": "পূর্ণ নামে শুধুমাত্র অক্ষর, স্পেস, হাইফেন এবং অ্যাপোস্ট্রফি থাকতে পারে",
+        "phoneRequired": "ফোন নম্বর প্রয়োজন",
+        "phoneInvalid": "অনুগ্রহ করে একটি বৈধ বাংলাদেশ ফোন নম্বর লিখুন (যেমন: 01712345678 বা +8801712345678)",
+        "deliveryAddressMin": "ডেলিভারি ঠিকানা কমপক্ষে ১০ অক্ষর হতে হবে",
+        "deliveryAddressMax": "ডেলিভারি ঠিকানা ৫০০ অক্ষরের কম হতে হবে",
+        "orderNoteMax": "অর্ডার নোট ১০০০ অক্ষরের কম হতে হবে",
+        "shippingMethodRequired": "অনুগ্রহ করে একটি শিপিং পদ্ধতি নির্বাচন করুন",
+        "paymentMethodRequired": "অনুগ্রহ করে একটি পেমেন্ট পদ্ধতি নির্বাচন করুন"
+      }
     }
   }
 }

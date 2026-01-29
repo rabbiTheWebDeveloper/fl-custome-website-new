@@ -19,8 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
-    }
+      "@/*": ["./src/*"],
+      "@/messages/*": ["./messages/*"]
+    },
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",

@@ -33,8 +33,10 @@ class ApiClient {
     this.config = {
       baseUrl: config.baseUrl || "",
       defaultHeaders: {
-        "Content-Type": "application/json",
+        // "Content-Type": "application/json",
         "X-Requested-With": "XMLHttpRequest",
+        ipaddress: "103.102.15.162",
+        browsername: "Google Chrome",
         ...config.defaultHeaders,
       },
       timeout: config.timeout || 10000,
@@ -45,6 +47,10 @@ class ApiClient {
       tokenPrefix: "Bearer",
       ...authConfig,
     }
+  }
+
+  private isFormData(body: unknown): body is FormData {
+    return typeof FormData !== "undefined" && body instanceof FormData
   }
 
   private async makeRequest<T>(
@@ -71,11 +77,20 @@ class ApiClient {
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        throw new ApiError(
-          `HTTP ${response.status}: ${response.statusText}`,
-          response.status,
-          response
-        )
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let errorData: any = null
+
+        try {
+          errorData = await response.clone().json()
+          errorMessage = errorData?.message ?? errorMessage
+        } catch {
+          try {
+            errorMessage = await response.clone().text()
+          } catch {}
+        }
+
+        // throw new ApiError(errorMessage, response.status, response)
       }
 
       const data = await this.parseResponse<T>(response)
@@ -167,44 +182,81 @@ class ApiClient {
   async post<T>(
     endpoint: string,
     data?: unknown,
-    options?: RequestInit
+    options?: RequestInit,
+    context?: RequestContext
   ): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>(endpoint, {
-      ...options,
-      method: "POST",
-      body: data ? JSON.stringify(data) : undefined,
-    })
+    const isForm = this.isFormData(data)
+    return this.makeRequest<T>(
+      endpoint,
+      {
+        ...options,
+        method: "POST",
+        body: isForm ? data : data ? JSON.stringify(data) : undefined,
+        headers: {
+          ...(options?.headers ?? {}),
+          ...(isForm ? {} : { "Content-Type": "application/json" }),
+        },
+      },
+      context
+    )
   }
 
   async put<T>(
     endpoint: string,
     data?: unknown,
-    options?: RequestInit
+    options?: RequestInit,
+    context?: RequestContext
   ): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>(endpoint, {
-      ...options,
-      method: "PUT",
-      body: data ? JSON.stringify(data) : undefined,
-    })
+    const isForm = this.isFormData(data)
+
+    return this.makeRequest<T>(
+      endpoint,
+      {
+        ...options,
+        method: "PUT",
+        body: isForm ? data : data ? JSON.stringify(data) : undefined,
+        headers: {
+          ...(options?.headers ?? {}),
+          ...(isForm ? {} : { "Content-Type": "application/json" }),
+        },
+      },
+      context
+    )
   }
 
   async delete<T>(
     endpoint: string,
-    options?: RequestInit
+    options?: RequestInit,
+    context?: RequestContext
   ): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>(endpoint, { ...options, method: "DELETE" })
+    return this.makeRequest<T>(
+      endpoint,
+      { ...options, method: "DELETE" },
+      context
+    )
   }
 
   async patch<T>(
     endpoint: string,
     data?: unknown,
-    options?: RequestInit
+    options?: RequestInit,
+    context?: RequestContext
   ): Promise<ApiResponse<T>> {
-    return this.makeRequest<T>(endpoint, {
-      ...options,
-      method: "PATCH",
-      body: data ? JSON.stringify(data) : undefined,
-    })
+    const isForm = this.isFormData(data)
+
+    return this.makeRequest<T>(
+      endpoint,
+      {
+        ...options,
+        method: "PATCH",
+        body: isForm ? data : data ? JSON.stringify(data) : undefined,
+        headers: {
+          ...(options?.headers ?? {}),
+          ...(isForm ? {} : { "Content-Type": "application/json" }),
+        },
+      },
+      context
+    )
   }
 }
 
@@ -223,47 +275,66 @@ export class TypedApiClient extends ApiClient {
   }
 
   // -------- POST --------
-  async postTyped<T extends EndpointsWithMethod<"POST">>(
-    endpoint: T,
-    body: ApiRequestBody<T, "POST">
-  ): Promise<ApiResponseData<T, "POST">> {
-    const response = await this.post<ApiResponseData<T, "POST">>(
+  async postTyped<
+    TEndpoint extends EndpointsWithMethod<"POST">,
+    TResponse = ApiResponseData<TEndpoint, "POST">,
+  >(
+    endpoint: TEndpoint,
+    body: ApiRequestBody<TEndpoint, "POST">,
+    context?: RequestContext
+  ): Promise<TResponse> {
+    const response = await this.post<TResponse>(
       endpoint as string,
-      body
+      body,
+      undefined,
+      context
     )
     return response.data
   }
-
   // -------- PUT --------
-  async putTyped<T extends EndpointsWithMethod<"PUT">>(
-    endpoint: T,
-    body: ApiRequestBody<T, "PUT">
-  ): Promise<ApiResponseData<T, "PUT">> {
-    const response = await this.put<ApiResponseData<T, "PUT">>(
+  async putTyped<
+    TEndpoint extends EndpointsWithMethod<"PUT">,
+    TResponse = ApiResponseData<TEndpoint, "PUT">,
+  >(
+    endpoint: TEndpoint,
+    body: ApiRequestBody<TEndpoint, "PUT">,
+    context?: RequestContext
+  ): Promise<TResponse> {
+    const response = await this.put<TResponse>(
       endpoint as string,
-      body
+      body,
+      undefined,
+      context
     )
     return response.data
   }
 
   // -------- PATCH --------
-  async patchTyped<T extends EndpointsWithMethod<"PATCH">>(
-    endpoint: T,
-    body: ApiRequestBody<T, "PATCH">
-  ): Promise<ApiResponseData<T, "PATCH">> {
-    const response = await this.patch<ApiResponseData<T, "PATCH">>(
+  async patchTyped<
+    TEndpoint extends EndpointsWithMethod<"PATCH">,
+    TResponse = ApiResponseData<TEndpoint, "PATCH">,
+  >(
+    endpoint: TEndpoint,
+    body: ApiRequestBody<TEndpoint, "PATCH">,
+    context?: RequestContext
+  ): Promise<TResponse> {
+    const response = await this.patch<TResponse>(
       endpoint as string,
-      body
+      body,
+      undefined,
+      context
     )
     return response.data
   }
-
   // -------- DELETE --------
-  async deleteTyped<T extends EndpointsWithMethod<"DELETE">>(
-    endpoint: T
-  ): Promise<ApiResponseData<T, "DELETE">> {
-    const response = await this.delete<ApiResponseData<T, "DELETE">>(
-      endpoint as string
+  async deleteTyped<
+    TEndpoint extends EndpointsWithMethod<"DELETE">,
+    TResponse = ApiResponseData<TEndpoint, "DELETE">,
+  >(endpoint: TEndpoint, context?: RequestContext): Promise<TResponse> {
+    const response = await this.delete<TResponse>(
+      endpoint as string,
+      undefined,
+      context
     )
     return response.data
   }
