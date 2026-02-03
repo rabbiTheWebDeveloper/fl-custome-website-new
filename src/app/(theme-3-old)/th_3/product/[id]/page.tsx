@@ -8,15 +8,16 @@ const Details = async ({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ query: string }>
+  searchParams: Promise<{ id: string }>
 }) => {
   // const productId = params.slug
+  // const { id } = await params
   const { id } = await params
-  const { query } = await searchParams
-  console.log("Product ID:", id, "Query:", query)
+  const productId = Number(searchParams?.id)
+  console.log("Product ID:", productId)
   const headers = await getDomainHeaders()
 
-  const response = await api.get(`/customer/products/${id}`, {
+  const response = await api.get(`/customer/products/${productId}`, {
     headers,
   })
   const product: IProduct = (response.data as { data: IProduct }).data
