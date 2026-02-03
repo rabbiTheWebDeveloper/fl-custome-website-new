@@ -311,15 +311,17 @@ const sortOptions = [
 ]
 interface ShopProps {
   products: IProduct[]
+  totalPages: number
 }
 
-const Shop = ({ products }: ShopProps) => {
+const Shop = ({ products, totalPages }: ShopProps) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [filteredProducts, setFilteredProducts] = useState(products)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("default")
   const [showMobileFilter, setShowMobileFilter] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [wishlist, setWishlist] = useState<number[]>([])
+  // const [wishlist, setWishlist] = useState<number[]>([])
   const [expandedFilters, setExpandedFilters] = useState({
     categories: true,
     price: true,
@@ -493,11 +495,11 @@ const Shop = ({ products }: ShopProps) => {
   }
 
   // Toggle wishlist
-  const toggleWishlist = (id: number) => {
-    setWishlist((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    )
-  }
+  // const toggleWishlist = (id: number) => {
+  //   setWishlist((prev) =>
+  //     prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  //   )
+  // }
 
   // Get active filter count
   const activeFilterCount = [
@@ -824,7 +826,7 @@ const Shop = ({ products }: ShopProps) => {
             </div>
 
             {/* Products Grid/List */}
-            <AllProduct products={products} />
+            <AllProduct products={products} totalPages={totalPages} />
           </div>
         </div>
       </div>

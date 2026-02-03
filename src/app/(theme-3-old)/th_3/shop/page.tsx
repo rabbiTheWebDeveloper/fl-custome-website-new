@@ -22,7 +22,7 @@ const ShopPage = async () => {
 
   return (
     <>
-      <Shop products={products} />
+      <Shop products={products} totalPages={response.last_page} />
     </>
   )
 }
