@@ -5,21 +5,24 @@ import AllProduct from "./_components/all-product"
 import Scroll from "./_components/Scroll"
 import { getDomainHeaders } from "@/lib/domain"
 import { api } from "@/lib/api-client"
-import { IProductsApiResponse } from "@/type"
-export const dynamic = 'force-dynamic';
+import { IProductsApiResponse, IProduct } from "./types/product"
+export const dynamic = "force-dynamic"
 
-
-export default async function Home({ searchParams }: { searchParams?: { page?: string } }) {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: { page?: string }
+}) {
   const currentPage = Number(searchParams?.page ?? 1)
   const headers = await getDomainHeaders()
-  const response = await api.getTyped<IProductsApiResponse>(
+  const { data: response } = await api.get<IProductsApiResponse>(
     `/customer/products?page=${currentPage}`,
     { headers }
   )
 
-  console.log('response', response);
- const products = response.data as Product[];
- const totalPages = response.last_page as number;
+  console.log("response", response)
+  const products = response.data
+  const totalPages = response.last_page
 
   return (
     <div className="relative min-h-screen bg-[#fafafa] text-[#111] overflow-x-hidden">
