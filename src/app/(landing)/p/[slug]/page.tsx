@@ -1,16 +1,20 @@
 import { API_ENDPOINTS } from "@/config/ApiEndpoints"
-import {getDomainAndShopInfoOrderSuccess,getLandingPageData} from "@/utils/api-helpers"
+import {
+  getDomainAndShopInfoOrderSuccess,
+  getLandingPageData,
+} from "@/utils/api-helpers"
 import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import LandingRenderer from "../../_component/LandingRenderer"
 import LandingOrder from "../../_component/LandingOrder"
-const page = async ({ params }: { params: string }) => {
+const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
   const headerList = await headers()
-  const host: any = headerList.get("host")
-  const { slug } =await params
+  const host = headerList.get("host") as string
+  const { slug } = await params
   const cleanDomain = host.replace(/^www\./, "")
-  const { domainInfo, domain_verify, domain, fb_pixel, shopId } =
-    await getDomainAndShopInfoOrderSuccess(cleanDomain)
+  const domainData = await getDomainAndShopInfoOrderSuccess(cleanDomain)
+  if (!domainData) return notFound()
+  const { domainInfo, shopId } = domainData
   const { landingPageInfo } = await getLandingPageData(shopId, slug)
   const {
     checkout_b_color,
@@ -41,7 +45,7 @@ const page = async ({ params }: { params: string }) => {
       }
       console.log("Fetching template from:", templateData)
       htmlContent = await templateData.text()
-    } catch (error) {
+    } catch {
       notFound()
     }
   }
