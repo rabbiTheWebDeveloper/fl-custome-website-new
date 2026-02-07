@@ -29,6 +29,7 @@ import { api } from "@/lib/api-client"
 import { IShopResponse } from "../types/shop"
 import { prepareDomain } from "@/lib/utils"
 import { ICategoriesApiResponse, ICategory } from "../types/categories"
+import { CartPopover } from "./carts/cart-popover"
 
 const cartItems = [
   {
@@ -219,104 +220,10 @@ export default function Header() {
 
             {/* Right Actions */}
             <div className="flex items-center gap-6">
-              {/* Cart */}
-              <div className="relative dropdown">
-                <button
-                  onClick={() => setIsCartOpen(!isCartOpen)}
-                  className="relative group flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <ShoppingCart className="w-6 h-6 text-gray-600 group-hover:text-green-600 transition-colors" />
-                  <div className="text-left">
-                    <div className="text-sm text-gray-500">Shopping Cart</div>
-                    <div className="font-semibold text-gray-900">
-                      ${cartTotal.toLocaleString()}
-                    </div>
-                  </div>
-                  <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                    {totalCartItems}
-                  </span>
-                </button>
-
-                {/* Cart Dropdown */}
-                {isCartOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border z-50">
-                    <div className="p-4 border-b">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-bold text-lg">
-                          Shopping Cart ({totalCartItems})
-                        </h3>
-                        <button onClick={() => setIsCartOpen(false)}>
-                          <X className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Cart Items */}
-                    <div className="max-h-96 overflow-y-auto">
-                      {cartItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className="p-4 border-b hover:bg-gray-50"
-                        >
-                          <div className="flex gap-4">
-                            <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-900">
-                                {item.name}
-                              </h4>
-                              <div className="flex items-center justify-between mt-2">
-                                <div className="text-lg font-bold text-green-600">
-                                  ${item.price.toLocaleString()}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <button className="w-6 h-6 rounded-full border flex items-center justify-center">
-                                    -
-                                  </button>
-                                  <span>{item.quantity}</span>
-                                  <button className="w-6 h-6 rounded-full border flex items-center justify-center">
-                                    +
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Cart Footer */}
-                    <div className="p-4">
-                      <div className="flex justify-between mb-4">
-                        <span className="text-gray-600">Total:</span>
-                        <span className="text-2xl font-bold text-gray-900">
-                          ${cartTotal.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <Link
-                          href="/cart"
-                          className="flex-1 border-2 border-green-600 text-green-600 hover:bg-green-50 py-3 rounded-lg text-center font-semibold transition-colors"
-                        >
-                          View Cart
-                        </Link>
-                        <Link
-                          href="/checkout"
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-center font-semibold transition-colors"
-                        >
-                          Checkout
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <CartPopover
+                isCartOpen={isCartOpen}
+                setIsCartOpen={setIsCartOpen}
+              />
             </div>
           </div>
 
@@ -442,15 +349,6 @@ export default function Header() {
               <button onClick={() => setIsSearchOpen(!isSearchOpen)}>
                 <Search className="w-6 h-6 text-gray-600" />
               </button>
-              <button
-                className="relative"
-                onClick={() => setIsCartOpen(!isCartOpen)}
-              >
-                <ShoppingCart className="w-6 h-6 text-gray-600" />
-                <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {totalCartItems}
-                </span>
-              </button>
             </div>
           </div>
 
@@ -544,7 +442,7 @@ export default function Header() {
                 <span className="text-xs mt-1">Categories</span>
               </button>
               <Link
-                href="/cart"
+                href="/checkout"
                 className="flex flex-col items-center text-gray-600 relative"
               >
                 <ShoppingCart className="w-6 h-6" />
@@ -557,75 +455,6 @@ export default function Header() {
           </div>
         </div>
       </header>
-
-      {/* Cart Sidebar for Mobile */}
-      {isCartOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden">
-          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h2 className="text-xl font-bold">
-                Shopping Cart ({totalCartItems})
-              </h2>
-              <button onClick={() => setIsCartOpen(false)}>
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-4 overflow-y-auto h-[calc(100vh-200px)]">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex gap-3 p-3 border-b">
-                  <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium">{item.name}</h4>
-                    <div className="flex justify-between items-center mt-2">
-                      <div className="font-bold text-green-600">
-                        ${item.price}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button className="w-6 h-6 rounded-full border">
-                          -
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button className="w-6 h-6 rounded-full border">
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-white">
-              <div className="flex justify-between mb-4">
-                <span className="text-lg font-semibold">Total:</span>
-                <span className="text-2xl font-bold text-green-600">
-                  ${cartTotal}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <Link
-                  href="/cart"
-                  className="flex-1 border-2 border-green-600 text-green-600 py-3 rounded-lg text-center font-semibold"
-                >
-                  View Cart
-                </Link>
-                <Link
-                  href="/checkout"
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg text-center font-semibold"
-                >
-                  Checkout
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }
