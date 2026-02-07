@@ -38,10 +38,8 @@ export const Header = () => {
         },
       })
       if (res.message === "success") {
-        if (getCookie("domain") === undefined) {
-          setDomain(res.data)
-          setDomainAddress(window.location.origin)
-        }
+        setDomain(res.data)
+        setDomainAddress(window.location.origin)
       }
     }
 

@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { IProduct } from "../types/product"
 import { ProductCartControls } from "./product/product-cart-controls"
+import { ProductImageCarousel } from "./product/product-image-carousel"
 const swatches = [
   {
     type: "color" as const,
@@ -51,21 +52,10 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
     <section className="max-w-7xl mx-auto px-4 py-10">
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Product Image */}
-        <div className="bg-gray-100 rounded-xl p-4 flex justify-center items-center">
-          {product.main_image ? (
-            <Image
-              src={product.main_image}
-              alt={product.product_name}
-              width={400}
-              height={400}
-              className="object-contain"
-            />
-          ) : (
-            <div className="w-[400px] h-[400px] bg-gray-200 flex items-center justify-center text-gray-500">
-              No Image
-            </div>
-          )}
-        </div>
+
+        <ProductImageCarousel
+          images={[product.main_image ?? "", ...product.other_images]}
+        />
 
         {/* Product Details */}
         <div className="space-y-4">

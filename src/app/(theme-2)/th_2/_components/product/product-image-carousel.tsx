@@ -11,10 +11,6 @@ interface ProductImage {
   alt: string
 }
 
-interface ProductImageCarouselProps {
-  images: ProductImage[]
-}
-
 export function ProductImageCarousel({ images }: { images: string[] }) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [mainViewportRef, emblaMainApi] = useEmblaCarousel()
@@ -90,7 +86,7 @@ export function ProductImageCarousel({ images }: { images: string[] }) {
                   "relative min-w-0 flex-[0_0_20%] aspect-square rounded-xl overflow-hidden transition-all",
                   "border-2 cursor-pointer",
                   index === selectedIndex
-                    ? "border-primary opacity-100"
+                    ? "border-[#3BB77E] opacity-100"
                     : "border-transparent opacity-60 hover:opacity-100"
                 )}
                 type="button"

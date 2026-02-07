@@ -62,21 +62,21 @@ function AddToCartButton({
       : false
 
   return (
-    // <Button
-    //   size="lg"
-    //   className="h-13 rounded-xl text-base font-medium bg-black md:flex-1 min-w-0 max-md:w-full"
-    //   onClick={handleAddToCart}
-    //   disabled={isAtMax}
-    // >
-    //   {isAtMax ? t("maxQuantity") : t("addToCart")}
-    // </Button>
-
     <button
       onClick={handleAddToCart}
       disabled={isAtMax}
-      className="flex items-center gap-2 px-6 py-2 bg-[#3BB77E] text-white rounded-lg hover:bg-green-600 transition"
+      className="
+    flex h-11 w-full sm:w-auto items-center justify-center gap-2
+    rounded-lg bg-[#3BB77E] px-6
+    text-sm font-semibold text-white
+    transition-all
+    hover:bg-[#2fa36b]
+    focus:outline-none focus:ring-2 focus:ring-[#3BB77E]/50
+    disabled:cursor-not-allowed disabled:opacity-50
+  "
     >
-      <ShoppingCart size={20} /> ADD TO CART
+      <ShoppingCart className="h-5 w-5" />
+      Add To Cart
     </button>
   )
 }

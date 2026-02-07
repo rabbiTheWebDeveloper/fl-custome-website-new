@@ -39,6 +39,26 @@ export interface IShopResponse {
   shop_favicon: string
   addons_info: AddonsInfo[]
   other_script: OtherScript
+  theme_settings?: ThemeSettings
+}
+
+export interface ThemeSettingsBannerSlide {
+  image: string
+  image_link: string
+  image_text: string
+  button_link: string
+  button_text: string
+  image_title: string
+  image_subtitle: string
+}
+
+export interface ThemeSettings {
+  id?: number
+  shop_id?: number
+  theme_id?: number
+  banner_slides?: ThemeSettingsBannerSlide[]
+  brand_color?: string
+  secondary_color?: string
 }
 
 export interface AddonsInfo {

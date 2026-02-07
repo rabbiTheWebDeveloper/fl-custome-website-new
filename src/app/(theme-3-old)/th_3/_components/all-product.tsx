@@ -70,8 +70,8 @@ const AllProduct = ({
                   <button
                     className={`flex-1 border-2 rounded-md py-1 text-sm font-semibold transition ${
                       product?.product_qty > 0
-                        ? "border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
-                        : "border-gray-300 text-gray-400 cursor-not-allowed"
+                        ? "border-[#3BB77E] text-[#3BB77E] hover:bg-[#3BB77E] hover:text-white"
+                        : "border-[#3BB77E] text-[#3BB77E] cursor-not-allowed"
                     }`}
                     disabled={product?.product_qty === 0}
                   >
@@ -80,8 +80,8 @@ const AllProduct = ({
                   <button
                     className={`flex-1 rounded-md py-1 text-sm font-semibold text-white transition ${
                       product?.product_qty > 0
-                        ? "bg-green-600 hover:bg-green-700"
-                        : "bg-gray-300 cursor-not-allowed"
+                        ? "bg-[#3BB77E] hover:bg-[#3BB77E]"
+                        : "bg-[#3BB77E] cursor-not-allowed"
                     }`}
                     disabled={product?.product_qty === 0}
                   >

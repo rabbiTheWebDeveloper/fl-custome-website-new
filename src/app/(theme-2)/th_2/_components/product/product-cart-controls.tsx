@@ -122,13 +122,13 @@ export function ProductCartControls({
       )}
       <div className="mt-8 w-full">
         <div className="flex items-center gap-5 flex-wrap">
-          {/* <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
             <CartInputConnected
               product={product}
               variants={cartVariants}
               maxQuantity={product.product_qty}
             />
-          </div> */}
+          </div>
           <Button
             size="lg"
             className="h-13 rounded-xl text-base font-medium md:flex-1 min-w-0"

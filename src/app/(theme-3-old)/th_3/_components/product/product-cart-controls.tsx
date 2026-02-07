@@ -9,6 +9,7 @@ import type { IProduct } from "../../types/product"
 import { useTranslations } from "next-intl"
 import { CreditCard, ShoppingCart } from "lucide-react"
 import AddToCartButton from "../carts/add-to-cart-button"
+import { CartInputConnected } from "../carts/cart-input-connected"
 
 interface ProductCartControlsProps {
   product: IProduct
@@ -120,20 +121,30 @@ export function ProductCartControls({
         </div>
       )}
 
-      <div className="flex flex-wrap gap-4 mt-6">
-        {/* <button className="flex items-center gap-2 px-6 py-2 bg-[#3BB77E] text-white rounded-lg hover:bg-green-600 transition">
-                    <ShoppingCart size={20} /> ADD TO CART
-                  </button> */}
+      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+        {/* Quantity Input */}
+        <div className="sm:w-36">
+          <CartInputConnected
+            product={product}
+            variants={cartVariants}
+            maxQuantity={product.product_qty}
+          />
+        </div>
+
+        {/* Add to Cart */}
         <AddToCartButton
           product={product}
           variants={cartVariants}
           maxQuantity={product.product_qty}
         />
+
+        {/* Buy Now */}
         <button
           onClick={handleBuyNow}
-          className="flex items-center gap-2 px-6 py-2 border-2 border-[#3BB77E] text-[#3BB77E] rounded-lg hover:bg-[#3BB77E] hover:text-white transition"
+          className="flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-lg border-2 border-[#3BB77E] px-6 font-medium text-[#3BB77E] transition hover:bg-[#3BB77E] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#3BB77E]/50"
         >
-          <CreditCard size={20} /> Buy Now
+          <CreditCard size={18} />
+          Buy Now
         </button>
       </div>
     </>

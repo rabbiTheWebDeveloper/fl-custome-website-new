@@ -6,6 +6,7 @@ import { cookies } from "next/headers"
 import "./globals.css"
 import { Header } from "./th_2/_components/header/header"
 import { Footer } from "./th_2/_components/footer/footer"
+import { ThemeBrandProvider } from "./th_2/_components/theme/theme-brand-provider"
 
 const inter = Inter({
   variable: "--font-sans",
@@ -42,12 +43,14 @@ export default async function RootLayout({
       className={`${inter.variable} ${geistMono.variable} antialiased`}
     >
       <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <div style={{ display: "contents" }}>
-            <Header />
-            {children}
-            <Footer />
-          </div>
+        <NextIntlClientProvider>
+          <ThemeBrandProvider>
+            <div style={{ display: "contents" }}>
+              <Header />
+              {children}
+              <Footer />
+            </div>
+          </ThemeBrandProvider>
         </NextIntlClientProvider>
       </body>
     </html>
