@@ -3,7 +3,13 @@ import Link from "next/link"
 import { IProduct } from "../types/product"
 import Pagination from "./pagination"
 
-const AllProduct = ({ products = [] , totalPages }: { products: IProduct[] , totalPages: number }) => {
+const AllProduct = ({
+  products = [],
+  totalPages,
+}: {
+  products: IProduct[]
+  totalPages: number
+}) => {
   return (
     <section className="py-8 bg-gray-50">
       <div className="container mx-auto px-4">
@@ -34,7 +40,7 @@ const AllProduct = ({ products = [] , totalPages }: { products: IProduct[] , tot
 
               <div className="p-4 flex flex-col flex-1">
                 <h4 className="text-sm sm:text-base font-semibold mb-1 truncate">
-                  <Link href={`/product/${product?.slug}?id=${product?.id}`}>
+                  <Link href={`/product/${product?.id}?name=${product?.slug}`}>
                     {product?.product_name}
                   </Link>
                 </h4>

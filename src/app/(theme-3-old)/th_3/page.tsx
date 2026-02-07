@@ -20,7 +20,7 @@ export default async function Home({
     { headers }
   )
 
-  console.log("response", response)
+  // console.log("response", response)
   const products = response.data
   const totalPages = response.last_page
 

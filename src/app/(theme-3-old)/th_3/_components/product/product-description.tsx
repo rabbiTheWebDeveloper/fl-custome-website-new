@@ -9,34 +9,9 @@ import {
   Twitter,
   Smartphone,
 } from "lucide-react"
-import { IProduct } from "../types/product"
-import { ProductCartControls } from "./product/product-cart-controls"
-const swatches = [
-  {
-    type: "color" as const,
-    key: "colors",
-    label: "Colors",
-    options: [
-      { label: "Black", color: "#000000", selected: true },
-      { label: "Blue", color: "#ADD8E6" },
-      { label: "Green", color: "#90EE90" },
-      { label: "Pink", color: "#FFB6C1" },
-      { label: "Yellow", color: "#FFFFE0" },
-    ],
-  },
-  {
-    type: "size" as const,
-    key: "sizes",
-    label: "Size",
-    options: [
-      { label: "XS", selected: true },
-      { label: "S" },
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
-  },
-]
+import { IProduct } from "../../types/product"
+import { ProductCartControls } from "./product-cart-controls"
+
 const ProductDescription = ({ product }: { product: IProduct | null }) => {
   const colorFromAPI = "#3BB77E" // sample theme color
 
@@ -108,7 +83,55 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
               }}
             />
           )}
-          <ProductCartControls product={product} swatches={swatches} />
+
+          {/* Variations */}
+
+          <ProductCartControls product={product} />
+
+          {Array.isArray(product.variations) &&
+            product.variations.length > 0 && (
+              <div className="space-y-4">
+                {product.variations.map(
+                  (attr: {
+                    id: number
+                    key?: string
+                    name?: string
+                    values: (string | { label: string })[]
+                  }) => (
+                    <div key={attr.id}>
+                      <h5 className="font-semibold mb-2">
+                        {attr.key || attr.name}
+                      </h5>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.isArray(attr.values) &&
+                          attr.values.map(
+                            (val: string | { label: string }, idx: number) => (
+                              <span
+                                key={idx}
+                                className="cursor-pointer px-3 py-1 rounded-lg border border-gray-300 hover:bg-green-500 hover:text-white transition"
+                              >
+                                {typeof val === "string"
+                                  ? val
+                                  : val.label || JSON.stringify(val)}
+                              </span>
+                            )
+                          )}
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+
+          {/* Add to Cart Buttons */}
+          <div className="flex flex-wrap gap-4 mt-6">
+            <button className="flex items-center gap-2 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+              <ShoppingCart size={20} /> ADD TO CART
+            </button>
+            <button className="flex items-center gap-2 px-6 py-2 border-2 border-green-500 text-green-500 rounded-lg hover:bg-green-500 hover:text-white transition">
+              <CreditCard size={20} /> Buy Now
+            </button>
+          </div>
 
           {/* Social Share */}
           <div className="flex gap-4 mt-4">

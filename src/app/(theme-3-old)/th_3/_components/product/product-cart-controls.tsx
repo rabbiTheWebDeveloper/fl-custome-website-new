@@ -2,14 +2,13 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { CartInputConnected } from "../carts/cart-input-connected"
-import AddToCartButton from "../carts/add-to-cart-button"
-import { Button } from "../ui/button"
 import { VariantSelector } from "./variant-selector"
 import { useCart, generateCartItemId } from "@/lib/cart"
 import { useCartStore } from "@/lib/cart"
 import type { IProduct } from "../../types/product"
 import { useTranslations } from "next-intl"
+import { CreditCard, ShoppingCart } from "lucide-react"
+import AddToCartButton from "../carts/add-to-cart-button"
 
 interface ProductCartControlsProps {
   product: IProduct
@@ -120,28 +119,22 @@ export function ProductCartControls({
           />
         </div>
       )}
-      <div className="mt-8 w-full">
-        <div className="flex items-center gap-5 flex-wrap">
-          {/* <div className="flex-1 min-w-0">
-            <CartInputConnected
-              product={product}
-              variants={cartVariants}
-              maxQuantity={product.product_qty}
-            />
-          </div> */}
-          <Button
-            size="lg"
-            className="h-13 rounded-xl text-base font-medium md:flex-1 min-w-0"
-            onClick={handleBuyNow}
-          >
-            {t("buyNow")}
-          </Button>
-          <AddToCartButton
-            product={product}
-            variants={cartVariants}
-            maxQuantity={product.product_qty}
-          />
-        </div>
+
+      <div className="flex flex-wrap gap-4 mt-6">
+        {/* <button className="flex items-center gap-2 px-6 py-2 bg-[#3BB77E] text-white rounded-lg hover:bg-green-600 transition">
+                    <ShoppingCart size={20} /> ADD TO CART
+                  </button> */}
+        <AddToCartButton
+          product={product}
+          variants={cartVariants}
+          maxQuantity={product.product_qty}
+        />
+        <button
+          onClick={handleBuyNow}
+          className="flex items-center gap-2 px-6 py-2 border-2 border-[#3BB77E] text-[#3BB77E] rounded-lg hover:bg-[#3BB77E] hover:text-white transition"
+        >
+          <CreditCard size={20} /> Buy Now
+        </button>
       </div>
     </>
   )
