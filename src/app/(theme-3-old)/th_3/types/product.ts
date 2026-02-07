@@ -18,6 +18,13 @@ export interface IProductsApiResponse {
   total: number
 }
 
+export interface IProductVariation {
+  id: number
+  key?: string
+  name?: string
+  values: (string | { label: string })[]
+}
+
 export interface IProduct {
   id: number
   category_id: number
@@ -40,7 +47,7 @@ export interface IProduct {
   default_delivery_location: string | null
   attributes: boolean
   variation_price_range: number[]
-  variations: boolean | []
+  variations: boolean | IProductVariation[]
   created_at: string // ISO date string
   main_image: string | null
   wp_product_image_url: string | null

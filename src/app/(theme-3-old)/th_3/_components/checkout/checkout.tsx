@@ -9,13 +9,7 @@ import {
   Banknote,
   CreditCard,
   Smartphone,
-  Shield,
-  Truck,
-  Package,
-  Clock,
-  MapPin,
   User,
-  CheckCircle,
   Lock,
   AlertCircle,
   Check,
@@ -27,74 +21,33 @@ import {
   Home,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-
-// Sample cart data
-const initialCart = [
-  {
-    id: 1,
-    product_name: "Premium Wireless Noise Cancelling Headphones",
-    cartQuantity: 2,
-    discounted_price: 1999,
-    price: 2999,
-    main_image:
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
-    variant: "Matte Black / Pro Edition",
-    sku: "SB-2024-PRO",
-    brand: "SonicBeats",
-    max_quantity: 10,
-  },
-  {
-    id: 2,
-    product_name: "Ultra Slim Laptop Pro",
-    cartQuantity: 1,
-    discounted_price: 74999,
-    price: 89999,
-    main_image:
-      "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop",
-    variant: "Space Gray / 512GB",
-    sku: "TN-ULTRA-512",
-    brand: "TechNova",
-    max_quantity: 5,
-  },
-  {
-    id: 3,
-    product_name: "Smart Fitness Watch",
-    cartQuantity: 1,
-    discounted_price: 5499,
-    price: 6999,
-    main_image:
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-    variant: "Black / Standard",
-    sku: "FT-WATCH-BLK",
-    brand: "FitTrack",
-    max_quantity: 20,
-  },
-]
+import { useCart, useCartStore } from "@/lib/cart"
+import type { CartItem as StoreCartItem } from "@/lib/cart"
 
 // Shipping methods
-const shippingMethods = [
-  {
-    id: "standard",
-    name: "Standard Delivery",
-    description: "3-5 business days",
-    price: 120,
-    icon: Package,
-  },
-  {
-    id: "express",
-    name: "Express Delivery",
-    description: "1-2 business days",
-    price: 300,
-    icon: Truck,
-  },
-  {
-    id: "same-day",
-    name: "Same Day Delivery",
-    description: "Within 24 hours",
-    price: 500,
-    icon: Clock,
-  },
-]
+// const shippingMethods = [
+//   {
+//     id: "standard",
+//     name: "Standard Delivery",
+//     description: "3-5 business days",
+//     price: 120,
+//     icon: Package,
+//   },
+//   {
+//     id: "express",
+//     name: "Express Delivery",
+//     description: "1-2 business days",
+//     price: 300,
+//     icon: Truck,
+//   },
+//   {
+//     id: "same-day",
+//     name: "Same Day Delivery",
+//     description: "Within 24 hours",
+//     price: 500,
+//     icon: Clock,
+//   },
+// ]
 
 // Payment methods
 const paymentMethods = [
@@ -134,12 +87,11 @@ const paymentMethods = [
 
 const Checkout = () => {
   const router = useRouter()
-  const [cart, setCart] = useState(initialCart)
+  const { updateItem, removeItem } = useCart()
+  const items = useCartStore((state) => state.items)
+  const cartTotals = useCartStore((state) => state.totals)
   const [selectedPayment, setSelectedPayment] = useState("cash")
-  const [selectedShipping, setSelectedShipping] = useState("standard")
-  const [couponCode, setCouponCode] = useState("")
-  const [isCouponApplied, setIsCouponApplied] = useState(false)
-  const [discountAmount, setDiscountAmount] = useState(0)
+
   const [formData, setFormData] = useState({
     firstName: "",
     phone: "",
@@ -149,50 +101,13 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false)
 
   // Calculate cart totals
-  const subtotal = cart.reduce(
-    (total, item) => total + item.discounted_price * item.cartQuantity,
+  const subtotal = items.reduce(
+    (total, item) => total + item.discountedPrice * item.quantity,
     0
   )
-  const shippingCost =
-    shippingMethods.find((method) => method.id === selectedShipping)?.price || 0
-  const tax = subtotal * 0.05 // 5% tax
-  const total = subtotal + shippingCost + tax - discountAmount
-
-  // Handle quantity changes
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return
-
-    const item = cart.find((item) => item.id === id)
-    if (item && newQuantity > item.max_quantity) return
-
-    setCart(
-      cart.map((item) =>
-        item.id === id ? { ...item, cartQuantity: newQuantity } : item
-      )
-    )
-  }
-
-  // Remove item from cart
-  const removeItem = (id: number) => {
-    setCart(cart.filter((item) => item.id !== id))
-  }
-
-  // Apply coupon code
-  const applyCoupon = () => {
-    if (couponCode.toUpperCase() === "SHOP10") {
-      setDiscountAmount(subtotal * 0.1) // 10% discount
-      setIsCouponApplied(true)
-    } else {
-      alert("Invalid coupon code")
-    }
-  }
-
-  // Remove coupon
-  const removeCoupon = () => {
-    setCouponCode("")
-    setDiscountAmount(0)
-    setIsCouponApplied(false)
-  }
+  const shippingCost = 0
+  const tax = 0.05 // 5% tax
+  const total = subtotal + shippingCost + tax - cartTotals
 
   // Handle form input changes
   const handleInputChange = (
@@ -238,6 +153,21 @@ const Checkout = () => {
   // Check if form is valid
   const isFormValid = formData.firstName && formData.phone && formData.address
 
+  const formatVariants = (item: StoreCartItem): string | undefined => {
+    if (!item.variants || item.variants.length === 0) {
+      return undefined
+    }
+    return item.variants.map((v) => `${v.key}: ${v.value}`).join(", ")
+  }
+
+  const handleQuantityChange = async (itemId: string, newQuantity: number) => {
+    await updateItem(itemId, { quantity: newQuantity })
+  }
+
+  const handleRemoveProduct = async (itemId: string) => {
+    await removeItem(itemId)
+  }
+  console.log("Cart:", items)
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Progress Bar - Mobile Optimized */}
@@ -445,15 +375,15 @@ const Checkout = () => {
 
               {/* Cart Items */}
               <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6 max-h-64 sm:max-h-80 overflow-y-auto pr-2">
-                {cart.map((item) => (
+                {items.map((item) => (
                   <div
                     key={item.id}
                     className="flex items-start gap-3 sm:gap-4 pb-3 sm:pb-4 border-b"
                   >
                     <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                       <Image
-                        src={item.main_image}
-                        alt={item.product_name}
+                        src={item.metadata?.image || "/placeholder.png"}
+                        alt={item.name}
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 64px, 80px"
@@ -463,14 +393,14 @@ const Checkout = () => {
                       <div className="flex justify-between items-start">
                         <div className="min-w-0 pr-2">
                           <h4 className="font-medium text-gray-900 text-xs sm:text-sm line-clamp-2">
-                            {item.product_name}
+                            {item.name}
                           </h4>
                           <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                            {item.variant}
+                            {formatVariants(item)}
                           </p>
                         </div>
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => handleRemoveProduct(item.id)}
                           className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-1"
                           aria-label="Remove item"
                         >
@@ -481,22 +411,25 @@ const Checkout = () => {
                         <div className="flex items-center border rounded-lg">
                           <button
                             onClick={() =>
-                              updateQuantity(item.id, item.cartQuantity - 1)
+                              handleQuantityChange(item.id, item.quantity - 1)
                             }
                             className="px-2 py-1 sm:px-3 sm:py-1 hover:bg-gray-100 disabled:opacity-50"
-                            disabled={item.cartQuantity <= 1}
+                            disabled={item.quantity <= 1}
                           >
                             <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
                           <span className="px-2 py-1 sm:px-3 sm:py-1 font-medium text-sm">
-                            {item.cartQuantity}
+                            {item.quantity}
                           </span>
                           <button
                             onClick={() =>
-                              updateQuantity(item.id, item.cartQuantity + 1)
+                              handleQuantityChange(item.id, item.quantity + 1)
                             }
                             className="px-2 py-1 sm:px-3 sm:py-1 hover:bg-gray-100 disabled:opacity-50"
-                            disabled={item.cartQuantity >= item.max_quantity}
+                            disabled={
+                              item.quantity >=
+                              (item.metadata?.maxQuantity ?? 10)
+                            }
                           >
                             <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                           </button>
@@ -505,58 +438,21 @@ const Checkout = () => {
                           <div className="font-bold text-gray-900 text-sm sm:text-base">
                             ৳
                             {(
-                              item.discounted_price * item.cartQuantity
+                              (item.discountedPrice ?? item.price) *
+                              item.quantity
                             ).toLocaleString()}
                           </div>
-                          {item.price > item.discounted_price && (
-                            <div className="text-xs sm:text-sm text-gray-400 line-through">
-                              ৳
-                              {(
-                                item.price * item.cartQuantity
-                              ).toLocaleString()}
-                            </div>
-                          )}
+                          {item.discountedPrice &&
+                            item.price > item.discountedPrice && (
+                              <div className="text-xs sm:text-sm text-gray-400 line-through">
+                                ৳{(item.price * item.quantity).toLocaleString()}
+                              </div>
+                            )}
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {/* Coupon Code */}
-              <div className="mb-4 sm:mb-6">
-                {isCouponApplied ? (
-                  <div className="flex items-center justify-between p-2 sm:p-3 bg-green-50 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#3bb77e]" />
-                      <span className="font-medium text-[#3bb77e] text-sm sm:text-base">
-                        Coupon Applied
-                      </span>
-                    </div>
-                    <button
-                      onClick={removeCoupon}
-                      className="text-xs sm:text-sm text-red-600 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Coupon code"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      className="flex-1 border border-gray-300 rounded-lg px-3 sm:px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#3bb77e] text-sm sm:text-base"
-                    />
-                    <button
-                      onClick={applyCoupon}
-                      className="px-3 sm:px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm sm:text-base whitespace-nowrap"
-                    >
-                      Apply
-                    </button>
-                  </div>
-                )}
               </div>
 
               {/* Order Breakdown */}
@@ -582,7 +478,7 @@ const Checkout = () => {
                 <div className="border-t pt-2 sm:pt-3">
                   <div className="flex justify-between font-bold text-gray-900 text-base sm:text-lg">
                     <span>Total</span>
-                    <span>৳{total.toLocaleString()}</span>
+                    <span>৳{cartTotals.toLocaleString()}</span>
                   </div>
                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
                     Including all taxes and fees
