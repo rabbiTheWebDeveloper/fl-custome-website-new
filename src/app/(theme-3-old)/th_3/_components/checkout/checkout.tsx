@@ -129,25 +129,8 @@ const Checkout = () => {
       alert("Please fill in all required fields")
       return
     }
-
     setIsProcessing(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      const orderData = {
-        orderId: `ORD-${Date.now()}`,
-        items: cart,
-        shipping: selectedShipping,
-        payment: selectedPayment,
-        total,
-        customer: formData,
-        timestamp: new Date().toISOString(),
-      }
-
-      console.log("Order placed:", orderData)
-      setIsProcessing(false)
-      router.push(`/order-confirmation/${orderData.orderId}`)
-    }, 2000)
   }
 
   // Check if form is valid
@@ -180,9 +163,8 @@ const Checkout = () => {
                   <div className="flex items-center">
                     <div
                       className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-base
-          ${
-            index < 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
-          }`}
+          ${index < 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
+                        }`}
                     >
                       {index < 2 ? (
                         <Check className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -312,19 +294,17 @@ const Checkout = () => {
                   <div
                     key={method.id}
                     onClick={() => setSelectedPayment(method.id)}
-                    className={`p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl cursor-pointer transition-all ${
-                      selectedPayment === method.id
-                        ? "border-[#3bb77e] bg-[#3bb77e]"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
+                    className={`p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl cursor-pointer transition-all ${selectedPayment === method.id
+                      ? "border-[#3bb77e] bg-[#3bb77e]"
+                      : "border-gray-200 hover:border-gray-300"
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center ${
-                          selectedPayment === method.id
-                            ? "border-[#3bb77e] bg-[#3bb77e]"
-                            : "border-gray-300"
-                        }`}
+                        className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center ${selectedPayment === method.id
+                          ? "border-[#3bb77e] bg-[#3bb77e]"
+                          : "border-gray-300"
+                          }`}
                       >
                         {selectedPayment === method.id && (
                           <div className="w-2 h-2 bg-white rounded-full" />
@@ -366,6 +346,7 @@ const Checkout = () => {
           </div>
 
           {/* Right Column - Order Summary */}
+          {/* Right Column - Order Summary */}
           <div className="space-y-4 sm:space-y-6">
             {/* Order Summary */}
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 sticky top-4 sm:top-6">
@@ -378,9 +359,10 @@ const Checkout = () => {
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-start gap-3 sm:gap-4 pb-3 sm:pb-4 border-b"
+                    className="flex items-start gap-3 sm:gap-4 pb-3 sm:pb-4 border-b border-gray-100"
                   >
-                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    {/* Product Image */}
+                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
                       <Image
                         src={item.metadata?.image || "/placeholder.png"}
                         alt={item.name}
@@ -389,65 +371,68 @@ const Checkout = () => {
                         sizes="(max-width: 640px) 64px, 80px"
                       />
                     </div>
+
+                    {/* Product Details */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start">
+                      {/* Header with Name and Remove Button */}
+                      <div className="flex justify-between items-start mb-2">
                         <div className="min-w-0 pr-2">
-                          <h4 className="font-medium text-gray-900 text-xs sm:text-sm line-clamp-2">
+                          <h4 className="font-medium text-gray-900 text-sm sm:text-base line-clamp-2 leading-tight">
                             {item.name}
                           </h4>
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
                             {formatVariants(item)}
                           </p>
                         </div>
                         <button
                           onClick={() => handleRemoveProduct(item.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-1"
+                          className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-1 p-0.5 rounded-full hover:bg-red-50"
                           aria-label="Remove item"
                         >
-                          <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
                       </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center border rounded-lg">
+
+                      {/* Quantity and Price */}
+                      <div className="flex items-center justify-between">
+                        {/* Quantity Controls */}
+                        <div className="flex items-center border border-gray-300 rounded-lg">
                           <button
                             onClick={() =>
                               handleQuantityChange(item.id, item.quantity - 1)
                             }
-                            className="px-2 py-1 sm:px-3 sm:py-1 hover:bg-gray-100 disabled:opacity-50"
+                            className="px-2.5 py-1.5 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             disabled={item.quantity <= 1}
                           >
-                            <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Minus className="w-3.5 h-3.5 text-gray-600" />
                           </button>
-                          <span className="px-2 py-1 sm:px-3 sm:py-1 font-medium text-sm">
+                          <span className="px-3 py-1.5 font-medium text-sm text-gray-900 min-w-[2rem] text-center">
                             {item.quantity}
                           </span>
                           <button
                             onClick={() =>
                               handleQuantityChange(item.id, item.quantity + 1)
                             }
-                            className="px-2 py-1 sm:px-3 sm:py-1 hover:bg-gray-100 disabled:opacity-50"
+                            className="px-2.5 py-1.5 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                             disabled={
                               item.quantity >=
                               (item.metadata?.maxQuantity ?? 10)
                             }
                           >
-                            <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Plus className="w-3.5 h-3.5 text-gray-600" />
                           </button>
                         </div>
+
+                        {/* Price Display */}
                         <div className="text-right">
-                          <div className="font-bold text-gray-900 text-sm sm:text-base">
-                            ৳
-                            {(
-                              (item.discountedPrice ?? item.price) *
-                              item.quantity
-                            ).toLocaleString()}
+                          <div className="font-semibold text-gray-900 text-sm sm:text-base">
+                            ৳{((item.discountedPrice ?? item.price) * item.quantity).toLocaleString()}
                           </div>
-                          {item.discountedPrice &&
-                            item.price > item.discountedPrice && (
-                              <div className="text-xs sm:text-sm text-gray-400 line-through">
-                                ৳{(item.price * item.quantity).toLocaleString()}
-                              </div>
-                            )}
+                          {item.discountedPrice && item.price > item.discountedPrice && (
+                            <div className="text-xs text-gray-400 line-through">
+                              ৳{(item.price * item.quantity).toLocaleString()}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -456,86 +441,126 @@ const Checkout = () => {
               </div>
 
               {/* Order Breakdown */}
-              <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+              <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                {/* Subtotal */}
                 <div className="flex justify-between text-gray-600 text-sm sm:text-base">
                   <span>Subtotal</span>
-                  <span>৳{subtotal.toLocaleString()}</span>
+                  <span className="font-medium">৳{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                  <span>Shipping</span>
-                  <span>৳{shippingCost.toLocaleString()}</span>
+
+                {/* Shipping Method */}
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">
+                    Shipping Method
+                  </h3>
+                  <div className="space-y-2">
+                    {[
+                      { value: "inside_dhaka", label: "Inside Dhaka", price: 60 },
+                      { value: "outside_dhaka", label: "Outside Dhaka", price: 120 },
+                      { value: "sub_area", label: "Sub Area", price: 150 }
+                    ].map((method) => (
+                      <label
+                        key={method.value}
+                        className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${shippingCost === method.price
+                            ? "border-[#3bb77e] bg-green-50"
+                            : "border-gray-200 hover:border-[#3bb77e]"
+                          }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${shippingCost === method.price
+                              ? "border-[#3bb77e] bg-[#3bb77e]"
+                              : "border-gray-300"
+                            }`}>
+                            {shippingCost === method.price && (
+                              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                            )}
+                          </div>
+                          <span className="text-sm text-gray-700">{method.label}</span>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-900">
+                          ৳{method.price}
+                        </span>
+                        <input
+                          type="radio"
+                          name="shipping"
+                          value={method.value}
+                          className="hidden"
+                          checked={shippingCost === method.price}
+                          onChange={() => setShippingCost(method.price)}
+                        />
+                      </label>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                  <span>Tax (5%)</span>
-                  <span>৳{tax.toLocaleString()}</span>
-                </div>
-                {discountAmount > 0 && (
+
+                {/* Discount */}
+               
                   <div className="flex justify-between text-[#3bb77e] text-sm sm:text-base">
                     <span>Discount</span>
-                    <span>-৳{discountAmount.toLocaleString()}</span>
+                    <span className="font-medium">-৳100</span>
                   </div>
-                )}
-                <div className="border-t pt-2 sm:pt-3">
+              
+
+                {/* Divider and Total */}
+                <div className="border-t border-gray-200 pt-3 sm:pt-4">
                   <div className="flex justify-between font-bold text-gray-900 text-base sm:text-lg">
                     <span>Total</span>
-                    <span>৳{cartTotals.toLocaleString()}</span>
+                    <span>৳{total.toLocaleString()}</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-1">
                     Including all taxes and fees
                   </p>
                 </div>
               </div>
 
               {/* Security Info */}
-              <div className="flex items-center gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg mb-4 sm:mb-6">
-                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-[#3bb77e] flex-shrink-0" />
-                <span className="text-xs sm:text-sm text-gray-600">
-                  <span className="font-medium">Secure checkout</span> • Your
-                  information is protected
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-4 sm:mb-6">
+                <div className="flex-shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-[#3bb77e]" />
+                </div>
+                <span className="text-sm text-gray-600">
+                  <span className="font-medium">Secure checkout</span> • Your information is encrypted and protected
                 </span>
               </div>
 
               {/* Place Order Button */}
-              <Link href="/order-successfull/123456">
+              <Link href="/order-successfull/123456" className="block">
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={!isFormValid || isProcessing || cart.length === 0}
-                  className={`w-full py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg transition-all ${
-                    isFormValid && cart.length > 0
-                      ? "bg-gradient-to-r from-green-600 to-[#3bb77e] hover:from-[#3bb77e] hover:to-[#3bb77e] text-white shadow-lg hover:shadow-xl"
-                      : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  }`}
+                  disabled={!isFormValid || isProcessing || items.length === 0}
+                  className={`w-full py-3.5 sm:py-4 rounded-lg font-semibold text-base transition-all duration-200 ${isFormValid && items.length > 0
+                      ? "bg-gradient-to-r from-[#3bb77e] to-green-600 hover:from-green-600 hover:to-[#3bb77e] text-white shadow-md hover:shadow-lg"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    }`}
                 >
                   {isProcessing ? (
                     <div className="flex items-center justify-center gap-2">
-                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                      <span className="text-sm sm:text-base">
-                        Processing...
-                      </span>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      <span>Processing...</span>
                     </div>
                   ) : (
                     <div className="flex items-center justify-center gap-2">
-                      <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
-                      <span className="text-sm sm:text-base">
-                        {cart.length === 0 ? "Cart is Empty" : "Place Order"}
-                      </span>
-                      {cart.length > 0 && (
-                        <span className="ml-1 sm:ml-2 text-sm sm:text-base">
-                          • ৳{total.toLocaleString()}
+                      <Lock className="w-4 h-4" />
+                      <span>{items.length === 0 ? "Cart is Empty" : "Place Order"}</span>
+                      {items.length > 0 && (
+                        <span className="ml-auto font-bold">
+                          ৳{total.toLocaleString()}
                         </span>
                       )}
                     </div>
                   )}
                 </button>
               </Link>
+
               {/* Return Policy */}
-              <div className="mt-3 sm:mt-4 text-center">
+              <div className="mt-4 pt-4 border-t border-gray-100 text-center">
                 <Link
                   href="/return-policy"
-                  className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-600 hover:text-[#3bb77e] transition-colors"
+                  className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#3bb77e] transition-colors group"
                 >
-                  <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
-                  30-Day Return Policy
+                  <RotateCcw className="w-4 h-4 transition-transform group-hover:-rotate-45" />
+                  <span className="font-medium">30-Day Return Policy</span>
+                  <span className="text-gray-400 group-hover:text-[#3bb77e]">→</span>
                 </Link>
               </div>
             </div>
