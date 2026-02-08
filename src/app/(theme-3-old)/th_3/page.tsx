@@ -6,21 +6,24 @@ import Scroll from "./_components/Scroll"
 import { getDomainHeaders } from "@/lib/domain"
 import { api } from "@/lib/api-client"
 import { IProductsApiResponse, IProduct } from "./types/product"
+
 export const dynamic = "force-dynamic"
 
 export default async function Home({
   searchParams,
 }: {
-  searchParams?: { page?: string }
+  searchParams?: Promise<{ page?: string }> // <-- important: it's a Promise
 }) {
-  const currentPage = Number(searchParams?.page ?? 1)
+  // await searchParams before using it
+  const params = await searchParams
+  const currentPage = Number(params?.page ?? 1)
+
   const headers = await getDomainHeaders()
   const { data: response } = await api.get<IProductsApiResponse>(
     `/customer/products?page=${currentPage}`,
     { headers }
   )
 
-  // console.log("response", response)
   const products = response.data
   const totalPages = response.last_page
 
