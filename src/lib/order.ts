@@ -27,6 +27,8 @@ export interface OrderSubmissionData {
   visitorId?: string
   otpVerified?: number
   incomplete_order_id?: number
+  shipping_method?: string
+  shipping_cost?: number
   /** Optional product data map for variant ID lookup */
   productDataMap?: Map<
     string | number,

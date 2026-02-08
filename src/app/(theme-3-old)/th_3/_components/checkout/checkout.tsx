@@ -175,12 +175,9 @@ const Checkout = () => {
   const items = useCartStore((state) => state.items)
   const cartTotals = useCartStore((state) => state.totals)
   const tValidation = useTranslations("Theme2.checkout.validation")
-  const [selectedPayment, setSelectedPayment] = useState("cash")
-  // Shipping settings state
   const [shippingSettings, setShippingSettings] =
     useState<ShippingSetting | null>(null)
   const [loadingShippingSettings, setLoadingShippingSettings] = useState(true)
-
   // Product data cache for items missing metadata
   const [productDataCache, setProductDataCache] = useState<
     Map<
