@@ -6,15 +6,12 @@ import {
   Minus,
   Plus,
   X,
-  Banknote,
   CreditCard,
   Smartphone,
   User,
   Lock,
-  AlertCircle,
   Check,
   ArrowRight,
-  Wallet,
   ShieldCheck,
   RefreshCw,
   RotateCcw,
@@ -35,10 +32,11 @@ import type { IProduct } from "../../types/product"
 import { ShippingSetting } from "../../types/shipping"
 import { useTranslations } from "next-intl"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-
+import CheckoutOtp from "./checkout-otp"
+import { toast } from "sonner"
 
 // Client-side function to get domain headers from cookies
-function getDomainHeadersFromCookies(): {
+export function getDomainHeadersFromCookies(): {
   "shop-id": string
   "user-id": string
 } {
@@ -143,7 +141,6 @@ function createCheckoutFormSchema(tValidation: (key: string) => string) {
 
 type CheckoutFormData = z.infer<ReturnType<typeof createCheckoutFormSchema>>
 
-
 // Payment methods
 const paymentMethods = [
   {
@@ -166,8 +163,7 @@ const paymentMethods = [
     icon: Smartphone,
     image: "/bkash.png",
   },
-];
-
+]
 
 const Checkout = () => {
   const router = useRouter()
@@ -175,6 +171,7 @@ const Checkout = () => {
   const items = useCartStore((state) => state.items)
   const cartTotals = useCartStore((state) => state.totals)
   const tValidation = useTranslations("Theme2.checkout.validation")
+  const [timeLeft, setTimeLeft] = useState(0)
   const [shippingSettings, setShippingSettings] =
     useState<ShippingSetting | null>(null)
   const [loadingShippingSettings, setLoadingShippingSettings] = useState(true)
@@ -187,6 +184,10 @@ const Checkout = () => {
   >(new Map())
   const fetchedProductIdsRef = useRef<Set<number>>(new Set())
 
+  const [show, setShow] = useState(false)
+  const handleClose = () => setShow(false)
+  const handleShow = () => setShow(true)
+  const [resendLoading, setResendLoading] = useState(false)
   // Incomplete order state
   const [incompleteOrderId, setIncompleteOrderId] = useState<number | null>(
     null
@@ -412,7 +413,6 @@ const Checkout = () => {
     return 0
   }, [shippingSettings, items, productDataCache])
 
-
   // Helper function to get outside Dhaka price
   const getOutsideDhakaPrice = useMemo(() => {
     // Priority 1: Use API settings if available
@@ -482,7 +482,6 @@ const Checkout = () => {
       total,
     }
   }, [cartTotals.subtotal, cartTotals.discount, cartTotals.tax, shippingCost])
-
 
   // Create incomplete order function (uses refs to read latest values without re-creating)
   const itemsRef = useRef(items)
@@ -603,7 +602,6 @@ const Checkout = () => {
     const timeoutId = setTimeout(checkIncompleteOrderStatus, 500)
     return () => clearTimeout(timeoutId)
   }, [customerName, customerPhone, createIncompleteOrder])
-
 
   const onSubmit = async (data: CheckoutFormData) => {
     if (items.length === 0) {
@@ -729,17 +727,40 @@ const Checkout = () => {
         }
       )
 
-      console.log("Order submitted successfully:", response.data)
+      // Type assertion for the response data
+      const responseData = response?.data as {
+        message?: string
+        order?: {
+          id?: number
+          otp_sent?: boolean
+        }
+        data?: {
+          order?: {
+            id?: number
+          }
+          payment_url?: string
+        }
+      }
 
-      // TODO: Handle success (redirect to order confirmation, clear cart, etc.)
-      alert("Order placed successfully!")
+      const { order, data: responseOrderData } = responseData
+      if (response.data && typeof response.data === "object") {
+        if (responseOrderData?.order?.id) {
+          toast.success("Order placed successfully")
+          // router.push(`/order-successfull/${responseOrderData?.order?.id}`)
+        } else if (responseOrderData?.payment_url) {
+          router.push(responseOrderData?.payment_url)
+        } else if (order?.otp_sent) {
+          toast.success("OTP sent successfully")
+          setTimeLeft(120)
+          handleShow()
+          // router.push(`/order-successfull/${order?.id}`)
+        }
+      }
     } catch (error) {
       console.error("Error submitting order:", error)
       throw error // Re-throw to let react-hook-form handle it
     }
   }
-
-
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     await updateItem(itemId, { quantity: newQuantity })
@@ -748,23 +769,6 @@ const Checkout = () => {
   const handleRemoveProduct = async (itemId: string) => {
     await removeItem(itemId)
   }
-
-  // Show empty state if cart is empty
-  if (items.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
-        <p className="text-muted-foreground mb-6">
-          Add some products to your cart to continue checkout.
-        </p>
-        <Button className="bg-primary text-primary-foreground px-4 py-2 rounded-md" asChild>
-          <Link href="/shop">{"continueShopping"}</Link>
-        </Button>
-      </div>
-    )
-  }
-  console.log("Cart:", items)
-
   const shippingMethods = [
     {
       id: "inside-dhaka",
@@ -781,8 +785,64 @@ const Checkout = () => {
       label: "Sub Area",
       price: loadingShippingSettings ? 0 : getSubareaPrice,
     },
-  ];
+  ]
 
+  const handleResendOtp = async () => {
+    setResendLoading(true)
+    const headers = getDomainHeadersFromCookies()
+    const shopId = headers["shop-id"]
+    try {
+      const res = await api.post(
+        "/customer/resend-otp",
+        { phone: customerPhone },
+        undefined,
+        {
+          headers: {
+            ...(shopId && { "shop-id": shopId }),
+          },
+        }
+      )
+      const responseData = res.data as {
+        data: {
+          otp_sent: boolean
+        }
+      }
+      if (responseData.data.otp_sent) {
+        toast.success("OTP sent successfully")
+        setTimeLeft(120)
+      }
+    } catch (error) {
+      console.error("Error resending OTP:", error)
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!timeLeft) return
+    const intervalId = setInterval(() => {
+      setTimeLeft(timeLeft - 1)
+    }, 1000)
+    return () => clearInterval(intervalId)
+  }, [show, timeLeft])
+
+  // Show empty state if cart is empty
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
+        <p className="text-muted-foreground mb-6">
+          Add some products to your cart to continue checkout.
+        </p>
+        <Button
+          className="bg-[#3BB77E] text-primary-foreground px-4 py-2 rounded-md"
+          asChild
+        >
+          <Link href="/shop">{"continueShopping"}</Link>
+        </Button>
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Progress Bar - Mobile Optimized */}
@@ -795,8 +855,9 @@ const Checkout = () => {
                   <div className="flex items-center">
                     <div
                       className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-base
-          ${index < 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
-                        }`}
+          ${
+            index < 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
+          }`}
                     >
                       {index < 2 ? (
                         <Check className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -829,7 +890,6 @@ const Checkout = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-
             {/* Left Column - Forms */}
             <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               {/* Contact Information */}
@@ -894,7 +954,6 @@ const Checkout = () => {
                         className="w-full border border-gray-300 rounded-lg sm:rounded-xl pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base resize-none"
                         placeholder="House #123, Road #456, Mirpur"
                         {...register("deliveryAddress")}
-
                       />
                       {errors.deliveryAddress && (
                         <p className="text-red-500 text-sm mt-1">
@@ -929,7 +988,10 @@ const Checkout = () => {
                   <RadioGroup
                     value={paymentMethod}
                     onValueChange={(value) =>
-                      setValue("paymentMethod", value as CheckoutFormData["paymentMethod"])
+                      setValue(
+                        "paymentMethod",
+                        value as CheckoutFormData["paymentMethod"]
+                      )
                     }
                     className="grid sm:grid-cols-2 gap-4"
                   >
@@ -996,7 +1058,6 @@ const Checkout = () => {
                   )}
                 </div>
               </div>
-
             </div>
 
             {/* Right Column - Order Summary */}
@@ -1080,13 +1141,21 @@ const Checkout = () => {
                           {/* Price Display */}
                           <div className="text-right">
                             <div className="font-semibold text-gray-900 text-sm sm:text-base">
-                              ৳{((item.discountedPrice ?? item.price) * item.quantity).toLocaleString()}
+                              ৳
+                              {(
+                                (item.discountedPrice ?? item.price) *
+                                item.quantity
+                              ).toLocaleString()}
                             </div>
-                            {item.discountedPrice && item.price > item.discountedPrice && (
-                              <div className="text-xs text-gray-400 line-through">
-                                ৳{(item.price * item.quantity).toLocaleString()}
-                              </div>
-                            )}
+                            {item.discountedPrice &&
+                              item.price > item.discountedPrice && (
+                                <div className="text-xs text-gray-400 line-through">
+                                  ৳
+                                  {(
+                                    item.price * item.quantity
+                                  ).toLocaleString()}
+                                </div>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -1099,7 +1168,9 @@ const Checkout = () => {
                   {/* Subtotal */}
                   <div className="flex justify-between text-gray-600 text-sm sm:text-base">
                     <span>Subtotal</span>
-                    <span className="font-medium">৳{finalTotals.subtotal.toLocaleString()}</span>
+                    <span className="font-medium">
+                      ৳{finalTotals.subtotal.toLocaleString()}
+                    </span>
                   </div>
 
                   <div className="space-y-6 bg-white rounded-2xl pb-5">
@@ -1170,14 +1241,12 @@ const Checkout = () => {
                     </div>
                   </div>
 
-
                   {/* Discount */}
 
                   <div className="flex justify-between text-[#3bb77e] text-sm sm:text-base">
                     <span>Discount</span>
                     <span className="font-medium">-৳100</span>
                   </div>
-
 
                   {/* Divider and Total */}
                   <div className="border-t border-gray-200 pt-3 sm:pt-4">
@@ -1197,7 +1266,8 @@ const Checkout = () => {
                     <ShieldCheck className="w-5 h-5 text-[#3bb77e]" />
                   </div>
                   <span className="text-sm text-gray-600">
-                    <span className="font-medium">Secure checkout</span> • Your information is encrypted and protected
+                    <span className="font-medium">Secure checkout</span> • Your
+                    information is encrypted and protected
                   </span>
                 </div>
                 {/* Place Order Button */}
@@ -1205,10 +1275,11 @@ const Checkout = () => {
                 <button
                   type="submit"
                   // disabled={!isValid || isSubmitting || items.length === 0}
-                  className={`w-full py-3.5 sm:py-4 rounded-lg font-semibold text-base transition-all duration-200 ${isValid && items.length > 0
-                    ? "bg-gradient-to-r from-[#3bb77e] to-green-600 hover:from-green-600 hover:to-[#3bb77e] text-white shadow-md hover:shadow-lg"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    }`}
+                  className={`w-full py-3.5 sm:py-4 rounded-lg font-semibold text-base transition-all duration-200 ${
+                    isValid && items.length > 0
+                      ? "bg-gradient-to-r from-[#3bb77e] to-green-600 hover:from-green-600 hover:to-[#3bb77e] text-white shadow-md hover:shadow-lg"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  }`}
                 >
                   {isSubmitting ? (
                     <div className="flex items-center justify-center gap-2">
@@ -1218,7 +1289,9 @@ const Checkout = () => {
                   ) : (
                     <div className="flex items-center justify-center gap-2">
                       <Lock className="w-4 h-4" />
-                      <span>{items.length === 0 ? "Cart is Empty" : "Place Order"}</span>
+                      <span>
+                        {items.length === 0 ? "Cart is Empty" : "Place Order"}
+                      </span>
                       {items.length > 0 && (
                         <span className="ml-auto font-bold">
                           ৳{finalTotals.total.toLocaleString()}
@@ -1228,7 +1301,6 @@ const Checkout = () => {
                   )}
                 </button>
 
-
                 {/* Return Policy */}
                 <div className="mt-4 pt-4 border-t border-gray-100 text-center">
                   <Link
@@ -1237,12 +1309,13 @@ const Checkout = () => {
                   >
                     <RotateCcw className="w-4 h-4 transition-transform group-hover:-rotate-45" />
                     <span className="font-medium">30-Day Return Policy</span>
-                    <span className="text-gray-400 group-hover:text-[#3bb77e]">→</span>
+                    <span className="text-gray-400 group-hover:text-[#3bb77e]">
+                      →
+                    </span>
                   </Link>
                 </div>
               </div>
             </div>
-
           </div>
         </form>
         {/* Continue Shopping */}
@@ -1256,6 +1329,17 @@ const Checkout = () => {
           </Link>
         </div>
       </div>
+
+      {/* OTP Modal */}
+      <CheckoutOtp
+        timeLeft={timeLeft}
+        shopId={shopId}
+        show={show}
+        onClose={handleClose}
+        customerPhone={customerPhone}
+        resendLoading={resendLoading}
+        onResendOtp={handleResendOtp}
+      />
     </div>
   )
 }

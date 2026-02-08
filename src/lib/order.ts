@@ -27,7 +27,6 @@ export interface OrderSubmissionData {
   visitorId?: string
   otpVerified?: number
   incomplete_order_id?: number
-  shipping_method?: string
   shipping_cost?: number
   /** Optional product data map for variant ID lookup */
   productDataMap?: Map<
@@ -109,6 +108,11 @@ export function prepareOrderData(data: OrderSubmissionData): FormData {
   const deliveryLocation =
     data.shippingMethod === "outside_dhaka" ? "outside_dhaka" : "inside_dhaka"
   formData.append("delivery_location", deliveryLocation)
+
+  // Shipping cost
+  if (data.shipping_cost !== undefined) {
+    formData.append("shipping_cost", String(data.shipping_cost))
+  }
 
   // Visitor ID
   if (data.visitorId) {

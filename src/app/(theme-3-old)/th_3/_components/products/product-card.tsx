@@ -11,6 +11,7 @@ export const ProductCard = ({
   price: originalPrice,
   discounted_price: discountedPrice,
   id,
+  ulid,
   main_image,
   product_qty,
   product_code,
@@ -84,7 +85,7 @@ export const ProductCard = ({
 
       <div className="p-4 flex flex-col flex-1">
         <h4 className="text-sm sm:text-base font-semibold mb-1 truncate">
-          <Link href={`/product/${id}?${slug}`}>{name}</Link>
+          <Link href={`/product/${ulid}?${slug}`}>{name}</Link>
         </h4>
 
         <div className="flex justify-between items-center mb-2">

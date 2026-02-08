@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { ABeeZee } from "next/font/google"
 import { NextIntlClientProvider } from "next-intl"
 import "./globals.css"
 import FooterUI from "./th_3/_components/footer"
 import Header from "./th_3/_components/header"
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata: Metadata = {
   title: "My App",
@@ -31,6 +31,7 @@ export default function RootLayout({
             <FooterUI />
           </div>
         </NextIntlClientProvider>
+        <Toaster />
       </body>
     </html>
   )
