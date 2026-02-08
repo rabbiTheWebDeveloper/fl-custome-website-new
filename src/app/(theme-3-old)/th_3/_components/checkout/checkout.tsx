@@ -767,6 +767,25 @@ const Checkout = () => {
     )
   }
   console.log("Cart:", items)
+
+  const shippingMethods = [
+    {
+      id: "inside-dhaka",
+      label: "Inside Dhaka",
+      price: loadingShippingSettings ? 0 : getInsideDhakaPrice,
+    },
+    {
+      id: "outside-dhaka",
+      label: "Outside Dhaka",
+      price: loadingShippingSettings ? 0 : getOutsideDhakaPrice,
+    },
+    {
+      id: "subarea",
+      label: "Sub Area",
+      price: loadingShippingSettings ? 0 : getSubareaPrice,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Progress Bar - Mobile Optimized */}
@@ -811,9 +830,9 @@ const Checkout = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-         <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-         
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+
             {/* Left Column - Forms */}
             <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               {/* Contact Information */}
@@ -904,82 +923,82 @@ const Checkout = () => {
               </div>
 
               {/* Payment Method */}
-          <div className="space-y-6 bg-white rounded-2xl pb-5">
-  <h3 className="text-lg md:text-xl font-bold mb-4 p-5 border-b">
-    Payment Method
-  </h3>
+              <div className="space-y-6 bg-white rounded-2xl pb-5">
+                <h3 className="text-lg md:text-xl font-bold mb-4 p-5 border-b">
+                  Payment Method
+                </h3>
 
-  <div className="px-5">
-    <RadioGroup
-      value={paymentMethod}
-      onValueChange={(value) =>
-        setValue("paymentMethod", value as CheckoutFormData["paymentMethod"])
-      }
-      className="grid sm:grid-cols-2 gap-4"
-    >
-      {paymentMethods.map((method) => (
-        <label
-          key={method.id}
-          htmlFor={method.id}
-          className={cn(
-            "cursor-pointer border-2 rounded-xl p-4 transition-all",
-            paymentMethod === method.id
-              ? "border-[#3bb77e] bg-[#3bb77e] text-white"
-              : "border-gray-200 hover:border-gray-300"
-          )}
-        >
-          <div className="flex items-center gap-3">
-            <RadioGroupItem
-              value={method.id}
-              id={method.id}
-              className="hidden"
-            />
+                <div className="px-5">
+                  <RadioGroup
+                    value={paymentMethod}
+                    onValueChange={(value) =>
+                      setValue("paymentMethod", value as CheckoutFormData["paymentMethod"])
+                    }
+                    className="grid sm:grid-cols-2 gap-4"
+                  >
+                    {paymentMethods.map((method) => (
+                      <label
+                        key={method.id}
+                        htmlFor={method.id}
+                        className={cn(
+                          "cursor-pointer border-2 rounded-xl p-4 transition-all",
+                          paymentMethod === method.id
+                            ? "border-[#3bb77e] bg-[#3bb77e] text-white"
+                            : "border-gray-200 hover:border-gray-300"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <RadioGroupItem
+                            value={method.id}
+                            id={method.id}
+                            className="hidden"
+                          />
 
-            {/* Custom radio */}
-            <div
-              className={cn(
-                "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-                paymentMethod === method.id
-                  ? "border-white"
-                  : "border-gray-400"
-              )}
-            >
-              {paymentMethod === method.id && (
-                <div className="w-2 h-2 bg-white rounded-full" />
-              )}
-            </div>
+                          {/* Custom radio */}
+                          <div
+                            className={cn(
+                              "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                              paymentMethod === method.id
+                                ? "border-white"
+                                : "border-gray-400"
+                            )}
+                          >
+                            {paymentMethod === method.id && (
+                              <div className="w-2 h-2 bg-white rounded-full" />
+                            )}
+                          </div>
 
-            <method.icon className="w-5 h-5" />
+                          <method.icon className="w-5 h-5" />
 
-            <div className="flex-1">
-              <h3 className="font-semibold text-sm sm:text-base">
-                {method.name}
-              </h3>
-              <p className="text-xs sm:text-sm opacity-80">
-                {method.description}
-              </p>
-            </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-sm sm:text-base">
+                              {method.name}
+                            </h3>
+                            <p className="text-xs sm:text-sm opacity-80">
+                              {method.description}
+                            </p>
+                          </div>
 
-            {method.image && (
-              <Image
-                src={method.image}
-                alt={method.name}
-                width={80}
-                height={24}
-              />
-            )}
-          </div>
-        </label>
-      ))}
-    </RadioGroup>
+                          {method.image && (
+                            <Image
+                              src={method.image}
+                              alt={method.name}
+                              width={80}
+                              height={24}
+                            />
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </RadioGroup>
 
-    {errors.paymentMethod && (
-      <p className="text-red-500 text-sm mt-2">
-        {errors.paymentMethod.message}
-      </p>
-    )}
-  </div>
-</div>
+                  {errors.paymentMethod && (
+                    <p className="text-red-500 text-sm mt-2">
+                      {errors.paymentMethod.message}
+                    </p>
+                  )}
+                </div>
+              </div>
 
             </div>
 
@@ -1086,50 +1105,74 @@ const Checkout = () => {
                     <span className="font-medium">৳{finalTotals.subtotal.toLocaleString()}</span>
                   </div>
 
-                  {/* Shipping Method */}
-                  <div className="mb-4 sm:mb-6">
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">
+                  <div className="space-y-6 bg-white rounded-2xl pb-5">
+                    <h3 className="text-lg md:text-xl font-bold mb-4 p-5 border-b">
                       Shipping Method
                     </h3>
-                    <div className="space-y-2">
-                      {[
-                        { value: "inside_dhaka", label: "Inside Dhaka", price: 60 },
-                        { value: "outside_dhaka", label: "Outside Dhaka", price: 120 },
-                        { value: "sub_area", label: "Sub Area", price: 150 }
-                      ].map((method) => (
-                        <label
-                          key={method.value}
-                          className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${shippingCost === method.price
-                            ? "border-[#3bb77e] bg-green-50"
-                            : "border-gray-200 hover:border-[#3bb77e]"
-                            }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${shippingCost === method.price
-                              ? "border-[#3bb77e] bg-[#3bb77e]"
-                              : "border-gray-300"
-                              }`}>
-                              {shippingCost === method.price && (
-                                <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                              )}
+
+                    <div className="px-5">
+                      <RadioGroup
+                        value={shippingMethod}
+                        onValueChange={(value) =>
+                          setValue(
+                            "shippingMethod",
+                            value as CheckoutFormData["shippingMethod"]
+                          )
+                        }
+                        className="space-y-3"
+                      >
+                        {shippingMethods.map((method) => (
+                          <label
+                            key={method.id}
+                            htmlFor={method.id}
+                            className={cn(
+                              "flex items-center justify-between p-3 md:p-4 border rounded-xl cursor-pointer transition-all",
+                              shippingMethod === method.id
+                                ? "border-[#3bb77e] bg-green-50"
+                                : "border-gray-200 hover:border-[#3bb77e]"
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <RadioGroupItem
+                                value={method.id}
+                                id={method.id}
+                                className="hidden"
+                              />
+
+                              {/* Custom radio */}
+                              <div
+                                className={cn(
+                                  "w-4 h-4 rounded-full border flex items-center justify-center",
+                                  shippingMethod === method.id
+                                    ? "border-[#3bb77e] bg-[#3bb77e]"
+                                    : "border-gray-300"
+                                )}
+                              >
+                                {shippingMethod === method.id && (
+                                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                                )}
+                              </div>
+
+                              <span className="text-sm md:text-base text-gray-700">
+                                {method.label}
+                              </span>
                             </div>
-                            <span className="text-sm text-gray-700">{method.label}</span>
-                          </div>
-                          <span className="text-sm font-semibold text-gray-900">
-                            ৳{method.price}
-                          </span>
-                          <input
-                            type="radio"
-                            name="shipping"
-                            value={method.value}
-                            className="hidden"
-                            checked={shippingCost === method.price}
-                            onChange={() => setShippingCost(method.price)}
-                          />
-                        </label>
-                      ))}
+
+                            <span className="text-sm md:text-base font-semibold text-gray-900">
+                              ৳{method.price.toFixed(2)}
+                            </span>
+                          </label>
+                        ))}
+                      </RadioGroup>
+
+                      {errors.shippingMethod && (
+                        <p className="text-red-500 text-sm mt-2">
+                          {errors.shippingMethod.message}
+                        </p>
+                      )}
                     </div>
                   </div>
+
 
                   {/* Discount */}
 
@@ -1164,7 +1207,7 @@ const Checkout = () => {
 
                 <button
                   type="submit"
-                  disabled={!isValid || isSubmitting || items.length === 0}
+                  // disabled={!isValid || isSubmitting || items.length === 0}
                   className={`w-full py-3.5 sm:py-4 rounded-lg font-semibold text-base transition-all duration-200 ${isValid && items.length > 0
                     ? "bg-gradient-to-r from-[#3bb77e] to-green-600 hover:from-green-600 hover:to-[#3bb77e] text-white shadow-md hover:shadow-lg"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -1202,9 +1245,9 @@ const Checkout = () => {
                 </div>
               </div>
             </div>
-        
-        </div>
-  </form>
+
+          </div>
+        </form>
         {/* Continue Shopping */}
         <div className="mt-6 sm:mt-8 text-center">
           <Link
