@@ -1,6 +1,7 @@
 "use client"
 import Image from "next/image"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import {
   Minus,
   Plus,
@@ -18,6 +19,7 @@ import {
   RefreshCw,
   RotateCcw,
   Home,
+  TruckIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -32,6 +34,7 @@ import { prepareOrderData, getStoreUrlFromCookie } from "@/lib/order"
 import type { IProduct } from "../../types/product"
 import { ShippingSetting } from "../../types/shipping"
 import { useTranslations } from "next-intl"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 
 // Client-side function to get domain headers from cookies
@@ -144,38 +147,27 @@ type CheckoutFormData = z.infer<ReturnType<typeof createCheckoutFormSchema>>
 // Payment methods
 const paymentMethods = [
   {
-    id: "cash",
-    name: "Cash on Delivery",
-    description: "Pay when you receive your order",
-    icon: Banknote,
-    fees: 0,
-    available: true,
-  },
-  {
-    id: "card",
-    name: "Credit/Debit Card",
-    description: "Pay securely with your card",
+    id: "sslcommerz",
+    name: "sslcommerz",
+    description: "Pay via cards, mobile banking",
     icon: CreditCard,
-    fees: 0,
-    available: true,
+    image: "/sslcommerz.png",
   },
   {
-    id: "mobile",
-    name: "Mobile Banking",
-    description: "bKash, Nagad, Rocket",
+    id: "cash-on-delivery",
+    name: "cash-on-delivery",
+    description: "Pay when you receive the order",
+    icon: TruckIcon,
+  },
+  {
+    id: "bkash",
+    name: "bkash",
+    description: "bKash mobile payment",
     icon: Smartphone,
-    fees: 0,
-    available: true,
+    image: "/bkash.png",
   },
-  {
-    id: "wallet",
-    name: "Digital Wallet",
-    description: "ShopHub Wallet, PayPal",
-    icon: Wallet,
-    fees: 0,
-    available: true,
-  },
-]
+];
+
 
 const Checkout = () => {
   const router = useRouter()
@@ -912,68 +904,83 @@ const Checkout = () => {
               </div>
 
               {/* Payment Method */}
-              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6">
-                <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                  <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-[#3bb77e]" />
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                    Payment Method
-                  </h2>
-                </div>
+          <div className="space-y-6 bg-white rounded-2xl pb-5">
+  <h3 className="text-lg md:text-xl font-bold mb-4 p-5 border-b">
+    Payment Method
+  </h3>
 
-                <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
-                  {paymentMethods.map((method) => (
-                    <div
-                      key={method.id}
-                      onClick={() => setSelectedPayment(method.id)}
-                      className={`p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl cursor-pointer transition-all ${selectedPayment === method.id
-                        ? "border-[#3bb77e] bg-[#3bb77e]"
-                        : "border-gray-200 hover:border-gray-300"
-                        }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center ${selectedPayment === method.id
-                            ? "border-[#3bb77e] bg-[#3bb77e]"
-                            : "border-gray-300"
-                            }`}
-                        >
-                          {selectedPayment === method.id && (
-                            <div className="w-2 h-2 bg-white rounded-full" />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <method.icon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" />
-                          <div>
-                            <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
-                              {method.name}
-                            </h3>
-                            <p className="text-xs sm:text-sm text-gray-600 line-clamp-1">
-                              {method.description}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+  <div className="px-5">
+    <RadioGroup
+      value={paymentMethod}
+      onValueChange={(value) =>
+        setValue("paymentMethod", value as CheckoutFormData["paymentMethod"])
+      }
+      className="grid sm:grid-cols-2 gap-4"
+    >
+      {paymentMethods.map((method) => (
+        <label
+          key={method.id}
+          htmlFor={method.id}
+          className={cn(
+            "cursor-pointer border-2 rounded-xl p-4 transition-all",
+            paymentMethod === method.id
+              ? "border-[#3bb77e] bg-[#3bb77e] text-white"
+              : "border-gray-200 hover:border-gray-300"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <RadioGroupItem
+              value={method.id}
+              id={method.id}
+              className="hidden"
+            />
 
-                {selectedPayment === "cash" && (
-                  <div className="mt-4 p-3 sm:p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-r">
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-yellow-800 text-sm sm:text-base">
-                          Cash on Delivery Instructions
-                        </p>
-                        <p className="text-xs sm:text-sm text-yellow-700 mt-1">
-                          Please keep exact change ready. Our delivery agent will
-                          collect payment upon delivery.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Custom radio */}
+            <div
+              className={cn(
+                "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                paymentMethod === method.id
+                  ? "border-white"
+                  : "border-gray-400"
+              )}
+            >
+              {paymentMethod === method.id && (
+                <div className="w-2 h-2 bg-white rounded-full" />
+              )}
+            </div>
+
+            <method.icon className="w-5 h-5" />
+
+            <div className="flex-1">
+              <h3 className="font-semibold text-sm sm:text-base">
+                {method.name}
+              </h3>
+              <p className="text-xs sm:text-sm opacity-80">
+                {method.description}
+              </p>
+            </div>
+
+            {method.image && (
+              <Image
+                src={method.image}
+                alt={method.name}
+                width={80}
+                height={24}
+              />
+            )}
+          </div>
+        </label>
+      ))}
+    </RadioGroup>
+
+    {errors.paymentMethod && (
+      <p className="text-red-500 text-sm mt-2">
+        {errors.paymentMethod.message}
+      </p>
+    )}
+  </div>
+</div>
+
             </div>
 
             {/* Right Column - Order Summary */}
