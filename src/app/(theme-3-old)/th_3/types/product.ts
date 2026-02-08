@@ -34,6 +34,7 @@ export interface IProduct {
   product_code: string
   product_qty: number
   slug: string
+  ulid?: string
   price: number
   discount: number
   discounted_price: number
