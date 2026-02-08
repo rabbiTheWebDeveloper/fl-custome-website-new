@@ -30,7 +30,7 @@ export default function Category() {
   const slides = useMemo(() => {
     if (!categories?.length) return []
 
-    return categories.map((item) => {
+    return categories?.map((item) => {
       const slug = (item.name || "category")
         .toLowerCase()
         .replace(/[^\w\s-]/g, "")

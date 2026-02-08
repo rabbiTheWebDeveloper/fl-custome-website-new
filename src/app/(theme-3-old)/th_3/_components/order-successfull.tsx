@@ -98,7 +98,7 @@ const OrderSuccessfull = () => {
                 </tr>
               </thead>
               <tbody>
-                {orderDetails.order_details.map((item) => (
+                {orderDetails?.order_details?.map((item) => (
                   <tr key={item.id} className="border-b last:border-none">
                     <td className="py-4">
                       <div className="flex items-center gap-4">
