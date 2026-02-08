@@ -1333,7 +1333,6 @@ const Checkout = () => {
       {/* OTP Modal */}
       <CheckoutOtp
         timeLeft={timeLeft}
-        shopId={shopId}
         show={show}
         onClose={handleClose}
         customerPhone={customerPhone}
