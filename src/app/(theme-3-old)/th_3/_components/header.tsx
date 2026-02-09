@@ -38,8 +38,8 @@ export default function Header() {
   const categories: ICategory[] | null = useCategories(
     (state) => state.categories
   )
-    const totals = useCartStore((state) => state.totals)
-    
+  const totals = useCartStore((state) => state.totals)
+
   const setCategories = useCategories((state) => state.setCategories)
   const setDomainAddress = useDomain((state) => state.setDomainAddress)
   const getCookie = useGetCookie()
@@ -114,7 +114,7 @@ export default function Header() {
       getCategories()
     }
   }, [domain, setCategories])
-    const totalProducts = totals?.itemCount
+  const totalProducts = totals?.itemCount
   return (
     <>
       {/* ================= MAIN HEADER ================= */}
@@ -413,7 +413,7 @@ export default function Header() {
                 <ShoppingCart className="w-6 h-6" />
                 <span className="text-xs mt-1">Cart</span>
                 <span className="absolute -top-1 -right-2 bg-green-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {totalProducts}
+                  {totals?.itemCount}
                 </span>
               </Link>
             </div>

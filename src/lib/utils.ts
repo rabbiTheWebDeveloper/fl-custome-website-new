@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 const shopDomain = process.env.NEXT_PUBLIC_NEXT_HOST_NAME
 export const prepareDomain = (domain: string) => {
-  if (domain.startsWith("http://localhost:")) {
+  if (domain.startsWith("http://localhost:") && shopDomain) {
     return shopDomain
   }
   return domain.replace(/^https?:\/\//, "").replace(/\/+$/, "")
