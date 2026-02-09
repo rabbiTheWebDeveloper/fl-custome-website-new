@@ -1,7 +1,7 @@
 import { IProduct } from "../types/product"
 import Pagination from "./pagination"
-import { Fragment } from "react/jsx-runtime"
 import { ProductCard } from "./products/product-card"
+import React from "react"
 
 const AllProduct = ({
   products,
@@ -19,9 +19,9 @@ const AllProduct = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {products?.map((product) => (
-            <Fragment key={product.id}>
+            <React.Fragment key={product.id}>
               <ProductCard {...product} />
-            </Fragment>
+            </React.Fragment>
           ))}
         </div>
       </div>
