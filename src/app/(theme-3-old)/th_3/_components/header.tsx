@@ -27,7 +27,7 @@ import { ICategoriesApiResponse, ICategory } from "../types/categories"
 import { CartPopover } from "./carts/cart-popover"
 import { useCartStore } from "@/lib/cart"
 import ThemeToggle from "./ThemeToggle"
-import { LanguageSelector } from "./header/language-selector"
+import { LanguageSelector } from "@/app/(theme-2)/th_2/_components/header/language-selector"
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)

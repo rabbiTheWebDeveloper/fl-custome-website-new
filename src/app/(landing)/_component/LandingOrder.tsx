@@ -30,10 +30,24 @@ const orderFormSchema = z.object({
   phone: z.string().min(11, "Phone number must be at least 11 digits").max(14, "Phone number too long"),
   address: z.string().min(1, "Address is required"),
   note: z.string().optional(),
-  deliveryArea: z.enum(["inside", "outside", "sub_area"]).default("inside"),
+  deliveryArea: z.enum(["inside", "outside", "sub_area"]),
 })
 
 type OrderFormData = z.infer<typeof orderFormSchema>
+
+// This represents the actual product variant options with pricing/stock
+// (different from IProductVariation which is for variation attributes)
+interface ProductVariantOption {
+  id: number
+  variant: string
+  price: number
+  quantity: number
+  media?: string
+}
+
+interface SelectedVariant extends ProductVariantOption {
+  // Inherits all properties from ProductVariantOption
+}
 
 const LandingOrder = ({
   product,
@@ -68,8 +82,9 @@ const LandingOrder = ({
   // For products WITH variants
   const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>(
     () => {
-      if (product.variations && product.variations.length > 0) {
-        return product.variations.map((variant) => ({
+      if (Array.isArray(product.variations) && product.variations.length > 0) {
+        const variants = product.variations as unknown as ProductVariantOption[]
+        return variants.map((variant) => ({
           id: variant.id,
           variant: variant.variant,
           price: variant.price,
@@ -87,8 +102,9 @@ const LandingOrder = ({
   useEffect(() => {
     if (product.id !== prevProductId) {
       setPrevProductId(product.id)
-      if (product.variations && product.variations.length > 0) {
-        const initialVariants = product.variations.map((variant) => ({
+      if (Array.isArray(product.variations) && product.variations.length > 0) {
+        const variants = product.variations as unknown as ProductVariantOption[]
+        const initialVariants = variants.map((variant) => ({
           id: variant.id,
           variant: variant.variant,
           price: variant.price,
@@ -144,7 +160,7 @@ const LandingOrder = ({
 
   // Calculate totals
   const calculateTotals = () => {
-    if (product.variations && product.variations.length > 0) {
+    if (Array.isArray(product.variations) && product.variations.length > 0) {
       // For products WITH variants
       const subtotal = selectedVariants.reduce(
         (sum, item) => sum + item.price * item.quantity,
@@ -176,8 +192,8 @@ const LandingOrder = ({
         if (variant.id === variantId) {
           const newQuantity = variant.quantity + change
           // Check available stock
-          const availableStock =
-            product.variations?.find((v) => v.id === variantId)?.quantity || 0
+          const variants = Array.isArray(product.variations) ? product.variations as unknown as ProductVariantOption[] : []
+          const availableStock = variants.find((v) => v.id === variantId)?.quantity || 0
           if (newQuantity >= 0 && newQuantity <= availableStock) {
             return { ...variant, quantity: newQuantity }
           }
@@ -231,7 +247,7 @@ const LandingOrder = ({
     formDataObj.append("store_url", storeUrlWithProtocol)
 
     // Product arrays
-    if (product.variations && product.variations.length > 0) {
+    if (Array.isArray(product.variations) && product.variations.length > 0) {
       // For variant products
       selectedVariants
         .filter((v) => v.quantity > 0)
@@ -276,7 +292,7 @@ const LandingOrder = ({
     const shopId = headers["shop-id"]
 
     // Validate if any items are selected
-    const hasItems = product.variations && product.variations.length > 0
+    const hasItems = Array.isArray(product.variations) && product.variations.length > 0
       ? hasSelectedVariants
       : simpleProductQuantity > 0
 
@@ -379,7 +395,7 @@ const LandingOrder = ({
   }
   const hasSocialMedia = fb || twitter || linkedin || instagram || youtube
   return (
-     <section className="py-12 min-h-screen" style={{ backgroundColor }}>
+    <section className="py-12 min-h-screen" style={{ backgroundColor }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2
           className="text-3xl md:text-4xl font-bold mb-10 text-center"
@@ -392,9 +408,9 @@ const LandingOrder = ({
           {/* LEFT COLUMN - Product & Payment */}
           <div className="lg:col-span-7 space-y-8">
             {/* Product Summary Card */}
-            <div 
+            <div
               className="p-6 md:p-8 rounded-2xl shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: checkout_b_color || '#ffffff',
                 borderColor: checkout_b_color ? `${checkout_b_color}20` : '#e5e7eb'
               }}
@@ -414,7 +430,7 @@ const LandingOrder = ({
                   >
                     {product.product_name}
                   </h3>
-                  <p 
+                  <p
                     className="text-sm mt-1"
                     style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
                   >
@@ -429,7 +445,7 @@ const LandingOrder = ({
               </div>
 
               {/* PRODUCT WITH VARIANTS */}
-              {product.variations && product.variations.length > 0 ? (
+              {Array.isArray(product.variations) && product.variations.length > 0 ? (
                 <div className="mt-6">
                   <div className="flex items-center justify-between mb-4">
                     <h4
@@ -438,7 +454,7 @@ const LandingOrder = ({
                     >
                       Select Variants
                     </h4>
-                    <span 
+                    <span
                       className="text-sm"
                       style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
                     >
@@ -449,9 +465,8 @@ const LandingOrder = ({
 
                   <div className="space-y-4">
                     {selectedVariants.map((variant) => {
-                      const availableStock =
-                        product.variations?.find((v) => v.id === variant.id)
-                          ?.quantity || 0
+                      const variants = Array.isArray(product.variations) ? product.variations as unknown as ProductVariantOption[] : []
+                      const availableStock = variants.find((v) => v.id === variant.id)?.quantity || 0
                       return (
                         <div
                           key={variant.id}
@@ -475,7 +490,7 @@ const LandingOrder = ({
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <p 
+                                  <p
                                     className="font-bold"
                                     style={{ color: checkout_text_color || fontColor }}
                                   >
@@ -494,7 +509,7 @@ const LandingOrder = ({
                                 >
                                   ৳ {variant.price}
                                 </p>
-                                <p 
+                                <p
                                   className="text-sm mt-1"
                                   style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
                                 >
@@ -519,7 +534,7 @@ const LandingOrder = ({
                                   <Minus size={16} />
                                 </button>
 
-                                <span 
+                                <span
                                   className="text-lg font-semibold w-8 text-center"
                                   style={{ color: checkout_text_color || fontColor }}
                                 >
@@ -541,7 +556,7 @@ const LandingOrder = ({
                               </div>
 
                               {variant.quantity > 0 && (
-                                <p 
+                                <p
                                   className="font-bold"
                                   style={{ color: checkout_text_color || fontColor }}
                                 >
@@ -566,14 +581,14 @@ const LandingOrder = ({
               ) : (
                 /* SIMPLE PRODUCT WITHOUT VARIANTS */
                 <div>
-                  <div 
+                  <div
                     className="flex items-center justify-between p-4 border rounded-xl"
-                    style={{ 
+                    style={{
                       borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb'
                     }}
                   >
                     <div className="flex-1">
-                      <p 
+                      <p
                         className="font-semibold text-lg"
                         style={{ color: checkout_text_color || fontColor }}
                       >
@@ -586,7 +601,7 @@ const LandingOrder = ({
                         ৳ {product.discounted_price || product.price}
                       </p>
                       {product.discount > 0 && (
-                        <p 
+                        <p
                           className="text-sm line-through mt-1"
                           style={{ color: checkout_text_color ? `${checkout_text_color}70` : '#9ca3af' }}
                         >
@@ -610,13 +625,13 @@ const LandingOrder = ({
                         </button>
 
                         <div className="flex flex-col items-center">
-                          <span 
+                          <span
                             className="text-2xl font-bold"
                             style={{ color: checkout_text_color || fontColor }}
                           >
                             {simpleProductQuantity}
                           </span>
-                          <span 
+                          <span
                             className="text-xs mt-1"
                             style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
                           >
@@ -638,7 +653,7 @@ const LandingOrder = ({
                         </button>
                       </div>
 
-                      <p 
+                      <p
                         className="font-bold text-lg"
                         style={{ color: checkout_text_color || fontColor }}
                       >
@@ -655,7 +670,7 @@ const LandingOrder = ({
               <div className="mt-8 pt-6 border-t space-y-3" style={{ borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb' }}>
                 <div className="flex justify-between items-center">
                   <p style={{ color: checkout_text_color || fontColor }}>Subtotal</p>
-                  <p 
+                  <p
                     className="font-semibold"
                     style={{ color: checkout_text_color || fontColor }}
                   >
@@ -692,14 +707,14 @@ const LandingOrder = ({
                 <div className="h-px my-3" style={{ backgroundColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb' }}></div>
 
                 <div className="flex justify-between items-center pt-3">
-                  <p 
+                  <p
                     className="text-xl font-bold"
                     style={{ color: checkout_text_color || fontColor }}
                   >
                     Total
                   </p>
-                  <p 
-                    className="text-2xl font-bold" 
+                  <p
+                    className="text-2xl font-bold"
                     style={{ color: checkout_button_color || btnColor }}
                   >
                     ৳ {total}
@@ -709,16 +724,16 @@ const LandingOrder = ({
             </div>
 
             {/* Payment Method Card */}
-            <div 
+            <div
               className="p-6 md:p-8 rounded-2xl shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: checkout_b_color || '#ffffff',
                 borderColor: checkout_b_color ? `${checkout_b_color}20` : '#e5e7eb'
               }}
             >
               <h3
                 className="text-xl font-bold mb-6 pb-4 border-b"
-                style={{ 
+                style={{
                   color: checkout_text_color || fontColor,
                   borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb'
                 }}
@@ -741,9 +756,9 @@ const LandingOrder = ({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div 
+                      <div
                         className="w-12 h-12 flex items-center justify-center rounded-lg"
-                        style={{ 
+                        style={{
                           backgroundColor: checkout_button_color ? `${checkout_button_color}10` : '#f3f4f6',
                           color: checkout_button_color || btnColor
                         }}
@@ -751,13 +766,13 @@ const LandingOrder = ({
                         <Banknote size={24} />
                       </div>
                       <div className="text-left">
-                        <p 
+                        <p
                           className="font-bold text-lg"
                           style={{ color: checkout_text_color || fontColor }}
                         >
                           Cash on Delivery
                         </p>
-                        <p 
+                        <p
                           className="text-sm"
                           style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
                         >
@@ -804,13 +819,13 @@ const LandingOrder = ({
                         bK
                       </div>
                       <div className="text-left">
-                        <p 
+                        <p
                           className="font-bold"
                           style={{ color: checkout_text_color || fontColor }}
                         >
                           bKash Payment
                         </p>
-                        <p 
+                        <p
                           className="text-sm"
                           style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
                         >
@@ -838,19 +853,19 @@ const LandingOrder = ({
               </div>
 
               {/* Security Note */}
-              <div 
+              <div
                 className="mt-6 pt-6 border-t flex items-start gap-3"
                 style={{ borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb' }}
               >
                 <Shield className="text-green-600 mt-1" size={20} />
                 <div>
-                  <p 
+                  <p
                     className="font-semibold"
                     style={{ color: checkout_text_color || fontColor }}
                   >
                     Secure Payment
                   </p>
-                  <p 
+                  <p
                     className="text-sm"
                     style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
                   >
@@ -863,9 +878,9 @@ const LandingOrder = ({
 
           {/* RIGHT COLUMN - Billing Details */}
           <div className="lg:col-span-5">
-            <div 
+            <div
               className="p-6 md:p-8 rounded-2xl shadow-lg sticky top-8"
-              style={{ 
+              style={{
                 backgroundColor: checkout_b_color || '#ffffff',
                 borderColor: checkout_b_color ? `${checkout_b_color}20` : '#e5e7eb'
               }}
@@ -963,7 +978,7 @@ const LandingOrder = ({
                         ))}
                       </select>
                       {product.delivery_charge === "paid" && (
-                        <p 
+                        <p
                           className="text-sm mt-2"
                           style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
                         >
@@ -975,9 +990,9 @@ const LandingOrder = ({
 
                   {/* Show message for free shipping */}
                   {showShippingOptions && product.delivery_charge === "free" && (
-                    <div 
+                    <div
                       className="p-3 rounded-lg border"
-                      style={{ 
+                      style={{
                         backgroundColor: checkout_b_color ? `${checkout_b_color}10` : '#f0fdf4',
                         borderColor: checkout_b_color ? `${checkout_b_color}30` : '#bbf7d0'
                       }}
@@ -986,7 +1001,7 @@ const LandingOrder = ({
                         <Truck size={18} />
                         <p className="font-medium">Free Shipping Available!</p>
                       </div>
-                      <p 
+                      <p
                         className="text-sm mt-1"
                         style={{ color: checkout_button_color ? `${checkout_button_color}70` : '#15803d' }}
                       >
@@ -1047,21 +1062,21 @@ const LandingOrder = ({
                   </div>
 
                   {/* Order Summary */}
-                  <div 
+                  <div
                     className="mt-4 p-4 rounded-lg"
-                    style={{ 
+                    style={{
                       backgroundColor: checkout_b_color ? `${checkout_b_color}10` : '#f9fafb',
                       borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb'
                     }}
                   >
-                    <p 
+                    <p
                       className="font-semibold mb-3"
                       style={{ color: checkout_text_color || fontColor }}
                     >
                       Order Summary:
                     </p>
 
-                    {product.variations && product.variations.length > 0 ? (
+                    {Array.isArray(product.variations) && product.variations.length > 0 ? (
                       <div className="space-y-2">
                         {selectedVariants
                           .filter((v) => v.quantity > 0)
@@ -1081,7 +1096,7 @@ const LandingOrder = ({
                           ))}
                         {selectedVariants.filter((v) => v.quantity > 0).length ===
                           0 && (
-                            <p 
+                            <p
                               className="text-sm"
                               style={{ color: checkout_text_color ? `${checkout_text_color}70` : '#9ca3af' }}
                             >
@@ -1101,7 +1116,7 @@ const LandingOrder = ({
                     )}
 
                     {/* Shipping Info in Summary */}
-                    <div 
+                    <div
                       className="mt-2 pt-2 border-t"
                       style={{ borderColor: checkout_b_color ? `${checkout_b_color}30` : '#d1d5db' }}
                     >
@@ -1117,7 +1132,7 @@ const LandingOrder = ({
                       </div>
                     </div>
 
-                    <div 
+                    <div
                       className="h-px my-3"
                       style={{ backgroundColor: checkout_b_color ? `${checkout_b_color}30` : '#d1d5db' }}
                     ></div>
@@ -1135,7 +1150,7 @@ const LandingOrder = ({
                   disabled={
                     isSubmitting ||
                     !isValid ||
-                    (product.variations &&
+                    (Array.isArray(product.variations) &&
                       product.variations.length > 0 &&
                       !hasSelectedVariants) ||
                     (!product.variations && simpleProductQuantity === 0)
@@ -1179,7 +1194,7 @@ const LandingOrder = ({
               {/* Social Media Links */}
               {hasSocialMedia && (
                 <div className="mt-6 pt-6 border-t">
-                  <p 
+                  <p
                     className="font-semibold mb-3 text-center"
                     style={{ color: footer_heading_color || checkout_text_color || fontColor }}
                   >
@@ -1192,7 +1207,7 @@ const LandingOrder = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
-                        style={{ 
+                        style={{
                           backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
                           color: footer_link_color || checkout_link_color || btnColor
                         }}
@@ -1206,7 +1221,7 @@ const LandingOrder = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
-                        style={{ 
+                        style={{
                           backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
                           color: footer_link_color || checkout_link_color || btnColor
                         }}
@@ -1220,7 +1235,7 @@ const LandingOrder = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
-                        style={{ 
+                        style={{
                           backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
                           color: footer_link_color || checkout_link_color || btnColor
                         }}
@@ -1234,7 +1249,7 @@ const LandingOrder = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
-                        style={{ 
+                        style={{
                           backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
                           color: footer_link_color || checkout_link_color || btnColor
                         }}
@@ -1248,7 +1263,7 @@ const LandingOrder = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
-                        style={{ 
+                        style={{
                           backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
                           color: footer_link_color || checkout_link_color || btnColor
                         }}
@@ -1261,11 +1276,11 @@ const LandingOrder = ({
               )}
 
               {/* Footer */}
-              <div 
+              <div
                 className="mt-8 pt-6 border-t text-center"
                 style={{ borderColor: footer_b_color ? `${footer_b_color}30` : (checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb') }}
               >
-                <p 
+                <p
                   className="text-sm"
                   style={{ color: footer_text_color || checkout_text_color || fontColor }}
                 >
