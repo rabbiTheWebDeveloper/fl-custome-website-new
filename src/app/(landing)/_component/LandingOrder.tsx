@@ -17,64 +17,7 @@ import { api } from "@/lib/api-client"
 import { getDomainHeadersFromCookies } from "@/app/(theme-3-old)/th_3/_components/checkout/checkout"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-
-interface ProductVariant {
-  id: number
-  product_id: number
-  variant: string
-  price: number
-  quantity: number
-  media?: string
-  code?: string
-  description?: string | null
-}
-
-interface SelectedVariant {
-  id: number
-  variant: string
-  price: number
-  quantity: number
-  media?: string
-}
-
-interface ProductAttribute {
-  id: string
-  key: string
-  values: string[]
-}
-
-interface ProductData {
-  id: number
-  product_name: string
-  product_code: string
-  price: number
-  discount: number
-  discounted_price: number
-  delivery_charge: string // 'paid' or 'free'
-  inside_dhaka: number
-  outside_dhaka: number
-  sub_area_charge?: number
-  default_delivery_location?: string | null
-  short_description?: string
-  long_description?: string
-  main_image?: string
-  wp_product_image_url?: string
-  attributes?: ProductAttribute[] | null
-  variations?: ProductVariant[]
-  product_qty: number
-}
-
-interface LandingOrderProps {
-  product: ProductData
-  backgroundColor: string
-  fontColor: string
-  btnColor: string
-  btnTextColor: string
-  order_title?: string
-  checkout_button_text?: string
-  showShippingOptions?: boolean
-  storeUrl?: string
-}
+import { LandingOrderProps } from "@/type/landing"
 
 // Define form validation schema
 const orderFormSchema = z.object({
@@ -101,10 +44,8 @@ const LandingOrder = ({
   const [selectedPayment, setSelectedPayment] = useState<"cod" | "bkash">("cod")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
-
   // For products WITHOUT variants
   const [simpleProductQuantity, setSimpleProductQuantity] = useState<number>(1)
-
   // For products WITH variants
   const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>(
     () => {
