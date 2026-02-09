@@ -6,8 +6,8 @@ import { api } from "@/lib/api-client"
 const ShopPage = async () => {
   const cookie = cookies()
   const domain = (await cookie).get("domain")?.value || ""
-  const shopId = JSON.parse(domain).state.domain.shop_id
-  const userId = JSON.parse(domain).state.domain.id
+  const shopId = JSON?.parse(domain).state.domain.shop_id
+  const userId = JSON?.parse(domain).state.domain.id
   const response = await api.getTyped<
     "/customer/products",
     IProductsApiResponse

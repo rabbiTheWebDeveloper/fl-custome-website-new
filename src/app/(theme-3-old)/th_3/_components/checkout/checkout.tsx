@@ -59,7 +59,7 @@ export function getDomainHeadersFromCookies(): {
       }
 
       try {
-        const domain = JSON.parse(domainValue)
+        const domain = JSON?.parse(domainValue)
         if (
           domain &&
           typeof domain === "object" &&
@@ -675,7 +675,7 @@ const Checkout = () => {
           // Try to parse JSON with better error handling
           let domain: unknown
           try {
-            domain = JSON.parse(domainValue)
+            domain = JSON?.parse(domainValue)
           } catch (parseError) {
             console.warn("Failed to parse domain cookie as JSON:", parseError)
             // Try to extract values from potentially malformed JSON
