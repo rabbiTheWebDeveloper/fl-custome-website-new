@@ -27,6 +27,7 @@ import { ICategoriesApiResponse, ICategory } from "../types/categories"
 import { CartPopover } from "./carts/cart-popover"
 import { useCartStore } from "@/lib/cart"
 import ThemeToggle from "./ThemeToggle"
+import { LanguageSelector } from "./header/language-selector"
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
@@ -190,12 +191,7 @@ export default function Header() {
 
             {/* Actions */}
             <div className="flex items-center gap-4">
-              <select className="px-3 py-2 rounded-lg
-                               bg-gray-100 dark:bg-gray-800
-                               text-gray-900 dark:text-white">
-                <option>EN</option>
-                <option>BN</option>
-              </select>
+              <LanguageSelector />
               <ThemeToggle />
               <CartPopover
                 isCartOpen={isCartOpen}
