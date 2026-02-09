@@ -36,7 +36,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
   if (!htmlContent) {
     try {
       const templateData = await fetch(
-        `${API_ENDPOINTS.TEMPLATE_URL}/templates/${domainInfo.shop_id}/${landingPageInfo.id}/`,
+        `${API_ENDPOINTS.TEMPLATE_URL}/templates/${domainInfo.shop_id}/${landingPageInfo?.id}/`,
         {
           method: "GET",
           redirect: "follow",
