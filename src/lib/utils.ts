@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-const shopDomain = process.env.NEXT_PUBLIC_NEXT_HOST_NAME || "mhnfamily.com"
+const shopDomain = process.env.NEXT_PUBLIC_NEXT_HOST_NAME
 export const prepareDomain = (domain: string) => {
   if (domain.startsWith("http://localhost:")) {
     return shopDomain
