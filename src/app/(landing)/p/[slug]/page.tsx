@@ -29,6 +29,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
 
   console.log("landingPageInfo", landingPageInfo)
   if (!landingPageInfo) return notFound()
+  if (!product) return notFound()
 
   let htmlContent = landingPageInfo?.page_content || ""
 
