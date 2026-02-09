@@ -844,7 +844,7 @@ const Checkout = () => {
     )
   }
   return (
- <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Progress Bar */}
       <div className="bg-white border-b shadow-sm dark:bg-gray-800 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -854,20 +854,18 @@ const Checkout = () => {
                 <React.Fragment key={step}>
                   <div className="flex items-center">
                     <div
-                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-base ${
-                        index < 2
+                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-base ${index < 2
                           ? "bg-green-600 text-white"
                           : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                      }`}
+                        }`}
                     >
                       {index < 2 ? <Check className="w-3 h-3 sm:w-4 sm:h-4" /> : index + 1}
                     </div>
                     <span
-                      className={`ml-1 sm:ml-2 text-xs sm:text-sm font-medium hidden sm:inline ${
-                        index < 2
+                      className={`ml-1 sm:ml-2 text-xs sm:text-sm font-medium hidden sm:inline ${index < 2
                           ? "text-green-600"
                           : "text-gray-600 dark:text-gray-300"
-                      }`}
+                        }`}
                     >
                       {step}
                     </span>
@@ -875,11 +873,10 @@ const Checkout = () => {
 
                   {index < 2 && (
                     <div
-                      className={`flex-1 h-0.5 sm:h-1 mx-2 sm:mx-4 ${
-                        index < 1
+                      className={`flex-1 h-0.5 sm:h-1 mx-2 sm:mx-4 ${index < 1
                           ? "bg-green-600"
                           : "bg-gray-200 dark:bg-gray-700"
-                      }`}
+                        }`}
                     />
                   )}
                 </React.Fragment>
@@ -989,17 +986,21 @@ const Checkout = () => {
                 <div className="px-5">
                   <RadioGroup
                     value={paymentMethod}
-                    onValueChange={(value) => setPaymentMethod(value)}
+                    onValueChange={(value) =>
+                      setValue(
+                        "paymentMethod",
+                        value as CheckoutFormData["paymentMethod"]
+                      )
+                    }
                     className="grid sm:grid-cols-2 gap-4"
                   >
                     {paymentMethods.map((method) => (
                       <label
                         key={method.id}
-                        className={`cursor-pointer border-2 rounded-xl p-4 transition-all flex items-center gap-3 ${
-                          paymentMethod === method.id
+                        className={`cursor-pointer border-2 rounded-xl p-4 transition-all flex items-center gap-3 ${paymentMethod === method.id
                             ? "border-green-600 bg-green-600 text-white"
                             : "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500 dark:text-gray-100"
-                        }`}
+                          }`}
                       >
                         <RadioGroupItem value={method.id} className="hidden" />
                         <method.icon className="w-5 h-5" />
@@ -1099,11 +1100,10 @@ const Checkout = () => {
                 <button
                   type="submit"
                   disabled={!isValid || isSubmitting || items.length === 0}
-                  className={`w-full rounded-xl px-4 py-3.5 sm:py-4 font-semibold text-base flex items-center justify-center transition-all duration-200 ease-out ${
-                    isValid && items.length > 0 && !isSubmitting
+                  className={`w-full rounded-xl px-4 py-3.5 sm:py-4 font-semibold text-base flex items-center justify-center transition-all duration-200 ease-out ${isValid && items.length > 0 && !isSubmitting
                       ? "bg-gradient-to-r from-green-600 to-[#3bb77e] text-white shadow-md hover:shadow-lg active:scale-[0.98]"
                       : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   {isSubmitting ? (
                     <div className="flex items-center gap-2">
@@ -1126,7 +1126,7 @@ const Checkout = () => {
           <CheckoutOtp
             timeLeft={timeLeft}
             show={show}
-            onClose={() => {}}
+            onClose={() => { }}
             customerPhone={customerPhone}
             resendLoading={resendLoading}
             onResendOtp={handleResendOtp}
