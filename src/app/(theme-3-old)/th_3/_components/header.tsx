@@ -244,16 +244,29 @@ export default function Header() {
 
               {/* Links */}
               <nav className="flex gap-8">
-                {["Home", "Shop", "About Us"].map((item) => (
-                  <Link
-                    key={item}
-                    href={`/${item.toLowerCase().replace(" ", "")}`}
-                    className="text-gray-700 dark:text-gray-300
+                <Link
+                  href="/"
+                  className="text-gray-700 dark:text-gray-300
                              hover:text-green-600 font-medium"
-                  >
-                    {item}
-                  </Link>
-                ))}
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/shop"
+                   className="text-gray-700 dark:text-gray-300
+                             hover:text-green-600 font-medium"
+                >
+                  Shop
+                </Link>
+
+                <Link
+                  href="/about"
+                  className="text-gray-700 dark:text-gray-300
+                             hover:text-green-600 font-medium"
+                >
+                  About Us
+                </Link>
+               
               </nav>
 
               {/* Support */}

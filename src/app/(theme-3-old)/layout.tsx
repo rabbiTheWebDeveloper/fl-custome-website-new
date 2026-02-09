@@ -24,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${ab.variable} antialiased`}>
-      <body data-new-gr-c-s-check-loaded="14.1271.0" data-gr-ext-installed="" cz-shortcut-listen="true">
+      <body data-new-gr-c-s-check-loaded="14.1271.0" data-gr-ext-installed="" cz-shortcut-listen="true" >
         <Providers>
           <NextIntlClientProvider>
             <div style={{ display: "contents" }}>
