@@ -9,7 +9,14 @@ import {
   Minus,
   Check,
 } from "lucide-react"
-import { useState, useEffect, useRef, CSSProperties } from "react"
+import { useState, useEffect, CSSProperties } from "react"
+import { useForm, SubmitHandler } from "react-hook-form"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { api } from "@/lib/api-client"
+import { getDomainHeadersFromCookies } from "@/app/(theme-3-old)/th_3/_components/checkout/checkout"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 interface ProductVariant {
   id: number
@@ -43,9 +50,11 @@ interface ProductData {
   price: number
   discount: number
   discounted_price: number
-  delivery_charge: string
+  delivery_charge: string // 'paid' or 'free'
   inside_dhaka: number
   outside_dhaka: number
+  sub_area_charge?: number
+  default_delivery_location?: string | null
   short_description?: string
   long_description?: string
   main_image?: string
@@ -64,15 +73,19 @@ interface LandingOrderProps {
   order_title?: string
   checkout_button_text?: string
   showShippingOptions?: boolean
+  storeUrl?: string
 }
 
-interface OrderFormData {
-  name: string
-  phone: string
-  address: string
-  note: string
-  deliveryArea: string
-}
+// Define form validation schema
+const orderFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  phone: z.string().min(11, "Phone number must be at least 11 digits").max(14, "Phone number too long"),
+  address: z.string().min(1, "Address is required"),
+  note: z.string().optional(),
+  deliveryArea: z.enum(["inside", "outside", "sub_area"]).default("inside"),
+})
+
+type OrderFormData = z.infer<typeof orderFormSchema>
 
 const LandingOrder = ({
   product,
@@ -83,16 +96,11 @@ const LandingOrder = ({
   order_title = "Your Order",
   checkout_button_text = "Place Order",
   showShippingOptions = true,
+  storeUrl = typeof window !== 'undefined' ? window.location.origin : '',
 }: LandingOrderProps) => {
   const [selectedPayment, setSelectedPayment] = useState<"cod" | "bkash">("cod")
-  const [deliveryArea, setDeliveryArea] = useState<string>("inside")
-  const [formData, setFormData] = useState<OrderFormData>({
-    name: "",
-    phone: "",
-    address: "",
-    note: "",
-    deliveryArea: "inside",
-  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
 
   // For products WITHOUT variants
   const [simpleProductQuantity, setSimpleProductQuantity] = useState<number>(1)
@@ -115,19 +123,62 @@ const LandingOrder = ({
 
   const [prevProductId, setPrevProductId] = useState(product.id)
 
-  if (product.id !== prevProductId) {
-    setPrevProductId(product.id)
-    if (product.variations && product.variations.length > 0) {
-      const initialVariants = product.variations.map((variant) => ({
-        id: variant.id,
-        variant: variant.variant,
-        price: variant.price,
-        quantity: 0,
-        media: variant.media,
-      }))
-      setSelectedVariants(initialVariants)
-    } else {
-      setSelectedVariants([])
+  // Reset when product changes
+  useEffect(() => {
+    if (product.id !== prevProductId) {
+      setPrevProductId(product.id)
+      if (product.variations && product.variations.length > 0) {
+        const initialVariants = product.variations.map((variant) => ({
+          id: variant.id,
+          variant: variant.variant,
+          price: variant.price,
+          quantity: 0,
+          media: variant.media,
+        }))
+        setSelectedVariants(initialVariants)
+      } else {
+        setSelectedVariants([])
+        setSimpleProductQuantity(1)
+      }
+    }
+  }, [product.id, prevProductId])
+
+  // Initialize react-hook-form
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isValid },
+    reset,
+  } = useForm<OrderFormData>({
+    resolver: zodResolver(orderFormSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      address: "",
+      note: "",
+      deliveryArea: (product.default_delivery_location === "sub_area"
+        ? "sub_area"
+        : "inside") as OrderFormData["deliveryArea"],
+    },
+    mode: "onChange",
+  })
+
+  const deliveryArea = watch("deliveryArea")
+
+  // Calculate shipping charge based on delivery area
+  const getShippingCharge = () => {
+    if (product.delivery_charge === "free") return 0
+
+    switch (deliveryArea) {
+      case "inside":
+        return product.inside_dhaka || 0
+      case "outside":
+        return product.outside_dhaka || 0
+      case "sub_area":
+        return product.sub_area_charge || product.outside_dhaka || 0
+      default:
+        return product.inside_dhaka || 0
     }
   }
 
@@ -139,24 +190,18 @@ const LandingOrder = ({
         (sum, item) => sum + item.price * item.quantity,
         0
       )
-      const shippingCharge =
-        deliveryArea === "inside"
-          ? product.inside_dhaka || 0
-          : product.outside_dhaka || 0
+      const shippingCharge = getShippingCharge()
       const isFreeShipping = product.delivery_charge === "free"
-      const total = subtotal + (isFreeShipping ? 0 : shippingCharge)
+      const total = subtotal + shippingCharge
 
       return { subtotal, shippingCharge, total, isFreeShipping }
     } else {
       // For products WITHOUT variants
       const price = product.discounted_price || product.price
       const subtotal = price * simpleProductQuantity
-      const shippingCharge =
-        deliveryArea === "inside"
-          ? product.inside_dhaka || 0
-          : product.outside_dhaka || 0
+      const shippingCharge = getShippingCharge()
       const isFreeShipping = product.delivery_charge === "free"
-      const total = subtotal + (isFreeShipping ? 0 : shippingCharge)
+      const total = subtotal + shippingCharge
 
       return { subtotal, shippingCharge, total, isFreeShipping }
     }
@@ -198,58 +243,180 @@ const LandingOrder = ({
     return "https://via.placeholder.com/150"
   }
 
-  // Handle form input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-    if (name === "deliveryArea") {
-      setDeliveryArea(value)
+  // Check if any variant is selected (for products with variants)
+  const hasSelectedVariants = selectedVariants.some((v) => v.quantity > 0)
+
+  // Prepare order payload according to your prepareOrderData function
+  const prepareOrderPayload = (formData: OrderFormData) => {
+    const formDataObj = new FormData()
+
+    // Customer information
+    formDataObj.append("customer_name", formData.name)
+    formDataObj.append("customer_phone", formData.phone)
+    formDataObj.append("customer_address", formData.address)
+
+    // Customer note (optional)
+    if (formData.note) {
+      formDataObj.append("customer_note", formData.note)
     }
+
+    // Payment method (gateway)
+    // const gateway = selectedPayment === "cod" ? "cod" : selectedPayment
+    formDataObj.append("gateway", "bkash")
+
+    // Store URL
+    const storeUrlWithProtocol = storeUrl.startsWith("http")
+      ? storeUrl
+      : `https://${storeUrl}`
+    formDataObj.append("store_url", storeUrlWithProtocol)
+
+    // Product arrays
+    if (product.variations && product.variations.length > 0) {
+      // For variant products
+      selectedVariants
+        .filter((v) => v.quantity > 0)
+        .forEach((variant) => {
+          formDataObj.append("product_id[]", String(product.id))
+          formDataObj.append("product_qty[]", String(variant.quantity))
+          formDataObj.append("variant_id[]", String(variant.id))
+        })
+    } else {
+      // For simple products
+      formDataObj.append("product_id[]", String(product.id))
+      formDataObj.append("product_qty[]", String(simpleProductQuantity))
+      formDataObj.append("variant_id[]", "0")
+    }
+
+    // Delivery location - map to inside_dhaka/outside_dhaka
+    let deliveryLocation = "inside_dhaka"
+    if (formData.deliveryArea === "outside") {
+      deliveryLocation = "outside_dhaka"
+    } else if (formData.deliveryArea === "sub_area") {
+      deliveryLocation = "sub_area" // This should match your backend
+    }
+    formDataObj.append("delivery_location", deliveryLocation)
+
+    // Shipping cost
+
+    formDataObj.append("shipping_cost", String(shippingCharge || 0))
+
+
+    // Order type
+    formDataObj.append("order_type", "website")
+    // Visitor ID
+
+    formDataObj.append("visitor_id", "dsdsds")
+
+    return formDataObj
   }
 
-  // Handle place order
-  const handlePlaceOrder = () => {
-    const orderData = {
-      ...formData,
-      productId: product.id,
-      productName: product.product_name,
-      productCode: product.product_code,
-      ...(product.variations && product.variations.length > 0
-        ? { variants: selectedVariants.filter((v) => v.quantity > 0) }
-        : { quantity: simpleProductQuantity }),
-      subtotal,
-      shippingCharge: isFreeShipping ? 0 : shippingCharge,
-      total,
-      paymentMethod: selectedPayment,
-      deliveryArea,
-    }
-
-    console.log("Order placed:", orderData)
+  // Handle form submission
+  const onSubmit: SubmitHandler<OrderFormData> = async (formData) => {
+    const headers = getDomainHeadersFromCookies()
+    const shopId = headers["shop-id"]
 
     // Validate if any items are selected
-    const hasItems =
-      product.variations && product.variations.length > 0
-        ? selectedVariants.some((v) => v.quantity > 0)
-        : simpleProductQuantity > 0
+    const hasItems = product.variations && product.variations.length > 0
+      ? hasSelectedVariants
+      : simpleProductQuantity > 0
 
     if (!hasItems) {
-      alert("Please add at least one item to your order!")
+      toast.error("Please add at least one item to your order!")
       return
     }
 
-    // Here you would typically send this to your backend
-    alert(`Order placed for ${product.product_name}! Total: ৳${total}`)
+    setIsSubmitting(true)
+
+    try {
+      const formDataPayload = prepareOrderPayload(formData)
+
+      console.log("Order payload:", Object.fromEntries(formDataPayload))
+
+      // Call your API
+      const response = await api.post(
+        "/customer/order/store",
+        formDataPayload,
+        undefined,
+        {
+          headers: {
+            ...(shopId && { "shop-id": String(shopId) }),
+          },
+        }
+      )
+
+      const responseData = response?.data as {
+        message?: string
+        order?: {
+          id?: number
+          otp_sent?: boolean
+        }
+        data?: {
+          order?: {
+            id?: number
+          }
+          payment_url?: string
+        }
+      }
+
+      console.log("Order response:", responseData)
+
+      if (response.data && typeof response.data === "object") {
+        const { order, data: responseOrderData } = responseData
+
+        if (responseOrderData?.order?.id) {
+          toast.success("Order placed successfully")
+          router.push(`/order-successfull/${responseOrderData.order.id}`)
+        } else if (responseOrderData?.payment_url) {
+          window.location.href = responseOrderData.payment_url
+        } else if (order?.otp_sent) {
+          toast.success("OTP sent successfully")
+          // Handle OTP verification flow here if needed
+          // router.push(`/order-successfull/${order?.id}`)
+        } else if (responseData.message) {
+          toast.success(responseData.message)
+        }
+      }
+    } catch (error: any) {
+      console.error("Error placing order:", error)
+      const errorMessage = error.response?.data?.message ||
+        error.message ||
+        "An error occurred while placing your order. Please try again."
+      toast.error(errorMessage)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  // Check if any variant is selected (for products with variants)
-  const hasSelectedVariants = selectedVariants.some((v) => v.quantity > 0)
+  // Get delivery options based on product
+  const getDeliveryOptions = () => {
+    const options = []
+
+    // Only show delivery options if delivery_charge is 'paid'
+    if (product.delivery_charge === "paid") {
+      if (product.inside_dhaka !== undefined && product.inside_dhaka !== null) {
+        options.push({
+          value: "inside",
+          label: `Inside Dhaka (৳${product.inside_dhaka})`
+        })
+      }
+
+      if (product.outside_dhaka !== undefined && product.outside_dhaka !== null) {
+        options.push({
+          value: "outside",
+          label: `Outside Dhaka (৳${product.outside_dhaka})`
+        })
+      }
+
+      if (product.sub_area_charge !== undefined && product.sub_area_charge !== null) {
+        options.push({
+          value: "sub_area",
+          label: `Sub Area (৳${product.sub_area_charge})`
+        })
+      }
+    }
+
+    return options
+  }
 
   return (
     <section className="py-12 min-h-screen" style={{ backgroundColor }}>
@@ -364,11 +531,10 @@ const LandingOrder = ({
                                     handleVariantQuantityChange(variant.id, -1)
                                   }
                                   disabled={variant.quantity <= 0}
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                    variant.quantity > 0
-                                      ? "bg-gray-200 hover:bg-gray-300"
-                                      : "bg-gray-100 cursor-not-allowed"
-                                  }`}
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${variant.quantity > 0
+                                    ? "bg-gray-200 hover:bg-gray-300"
+                                    : "bg-gray-100 cursor-not-allowed"
+                                    }`}
                                 >
                                   <Minus size={16} />
                                 </button>
@@ -382,11 +548,10 @@ const LandingOrder = ({
                                     handleVariantQuantityChange(variant.id, 1)
                                   }
                                   disabled={variant.quantity >= availableStock}
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                    variant.quantity < availableStock
-                                      ? "bg-gray-200 hover:bg-gray-300"
-                                      : "bg-gray-100 cursor-not-allowed"
-                                  }`}
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${variant.quantity < availableStock
+                                    ? "bg-gray-200 hover:bg-gray-300"
+                                    : "bg-gray-100 cursor-not-allowed"
+                                    }`}
                                 >
                                   <Plus size={16} />
                                 </button>
@@ -437,11 +602,10 @@ const LandingOrder = ({
                         <button
                           onClick={() => handleSimpleProductQuantityChange(-1)}
                           disabled={simpleProductQuantity <= 1}
-                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                            simpleProductQuantity > 1
-                              ? "bg-gray-200 hover:bg-gray-300"
-                              : "bg-gray-100 cursor-not-allowed"
-                          }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${simpleProductQuantity > 1
+                            ? "bg-gray-200 hover:bg-gray-300"
+                            : "bg-gray-100 cursor-not-allowed"
+                            }`}
                         >
                           <Minus size={20} />
                         </button>
@@ -460,11 +624,10 @@ const LandingOrder = ({
                           disabled={
                             simpleProductQuantity >= product.product_qty
                           }
-                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                            simpleProductQuantity < product.product_qty
-                              ? "bg-gray-200 hover:bg-gray-300"
-                              : "bg-gray-100 cursor-not-allowed"
-                          }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${simpleProductQuantity < product.product_qty
+                            ? "bg-gray-200 hover:bg-gray-300"
+                            : "bg-gray-100 cursor-not-allowed"
+                            }`}
                         >
                           <Plus size={20} />
                         </button>
@@ -495,7 +658,11 @@ const LandingOrder = ({
                   <p
                     className={`font-semibold ${isFreeShipping ? "text-green-600" : ""}`}
                   >
-                    {isFreeShipping ? "Free" : `৳ ${shippingCharge}`}
+                    {isFreeShipping ? (
+                      <span className="text-green-600">Free Shipping</span>
+                    ) : (
+                      `৳ ${shippingCharge}`
+                    )}
                   </p>
                 </div>
 
@@ -519,8 +686,7 @@ const LandingOrder = ({
               </div>
             </div>
 
-            {/* Payment Method Card (same as before) */}
-            {/* ... Keep the same payment method section from previous code ... */}
+            {/* Payment Method Card */}
             <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
               <h3
                 className="text-xl font-bold mb-6 pb-4 border-b"
@@ -641,197 +807,242 @@ const LandingOrder = ({
                 Billing Details
               </h3>
 
-              <div className="space-y-5">
-                <div>
-                  <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: fontColor }}
-                  >
-                    Your Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Enter your full name"
-                    className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition"
-                    style={
-                      {
-                        borderColor: fontColor,
-                        "--tw-ring-color": btnColor,
-                      } as CSSProperties
-                    }
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: fontColor }}
-                  >
-                    Mobile Number *
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="01XXXXXXXXX"
-                    className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition"
-                    style={
-                      {
-                        borderColor: fontColor,
-                        "--tw-ring-color": btnColor,
-                      } as CSSProperties
-                    }
-                    required
-                  />
-                </div>
-
-                {showShippingOptions && product.delivery_charge !== "free" && (
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <div className="space-y-5">
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
                       style={{ color: fontColor }}
                     >
-                      Delivery Area *
+                      Your Name *
                     </label>
-                    <select
-                      name="deliveryArea"
-                      value={formData.deliveryArea}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition"
+                    <input
+                      type="text"
+                      {...register("name")}
+                      placeholder="Enter your full name"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.name ? "border-red-500" : ""}`}
+                      style={
+                        {
+                          borderColor: errors.name ? "#ef4444" : fontColor,
+                          "--tw-ring-color": btnColor,
+                        } as CSSProperties
+                      }
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.name.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      className="block text-sm font-medium mb-2"
+                      style={{ color: fontColor }}
+                    >
+                      Mobile Number *
+                    </label>
+                    <input
+                      type="tel"
+                      {...register("phone")}
+                      placeholder="01XXXXXXXXX"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.phone ? "border-red-500" : ""}`}
+                      style={
+                        {
+                          borderColor: errors.phone ? "#ef4444" : fontColor,
+                          "--tw-ring-color": btnColor,
+                        } as CSSProperties
+                      }
+                    />
+                    {errors.phone && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.phone.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Shipping Options - ONLY show if delivery_charge is 'paid' */}
+                  {showShippingOptions && product.delivery_charge === "paid" && getDeliveryOptions().length > 0 && (
+                    <div>
+                      <label
+                        className="block text-sm font-medium mb-2"
+                        style={{ color: fontColor }}
+                      >
+                        Delivery Area *
+                      </label>
+                      <select
+                        {...register("deliveryArea")}
+                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition"
+                        style={
+                          {
+                            borderColor: fontColor,
+                            "--tw-ring-color": btnColor,
+                          } as CSSProperties
+                        }
+                      >
+                        {getDeliveryOptions().map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      {product.delivery_charge === "paid" && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          Shipping charges apply based on your location
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Show message for free shipping */}
+                  {showShippingOptions && product.delivery_charge === "free" && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 text-green-700">
+                        <Truck size={18} />
+                        <p className="font-medium">Free Shipping Available!</p>
+                      </div>
+                      <p className="text-sm text-green-600 mt-1">
+                        This product includes free delivery anywhere in Bangladesh.
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label
+                      className="block text-sm font-medium mb-2"
+                      style={{ color: fontColor }}
+                    >
+                      Full Address *
+                    </label>
+                    <textarea
+                      {...register("address")}
+                      placeholder="House #, Road #, Area, City"
+                      rows={3}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition resize-none ${errors.address ? "border-red-500" : ""}`}
+                      style={
+                        {
+                          borderColor: errors.address ? "#ef4444" : fontColor,
+                          "--tw-ring-color": btnColor,
+                        } as CSSProperties
+                      }
+                    />
+                    {errors.address && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.address.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      className="block text-sm font-medium mb-2"
+                      style={{ color: fontColor }}
+                    >
+                      Note (Optional)
+                    </label>
+                    <textarea
+                      {...register("note")}
+                      placeholder="Add any special instructions for delivery"
+                      rows={2}
+                      className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition resize-none"
                       style={
                         {
                           borderColor: fontColor,
                           "--tw-ring-color": btnColor,
                         } as CSSProperties
                       }
-                    >
-                      <option value="inside">
-                        Inside Dhaka (৳{product.inside_dhaka || 0})
-                      </option>
-                      <option value="outside">
-                        Outside Dhaka (৳{product.outside_dhaka || 0})
-                      </option>
-                    </select>
+                    />
                   </div>
-                )}
 
-                <div>
-                  <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: fontColor }}
-                  >
-                    Full Address *
-                  </label>
-                  <textarea
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    placeholder="House #, Road #, Area, City"
-                    rows={3}
-                    className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition resize-none"
-                    style={
-                      {
-                        borderColor: fontColor,
-                        "--tw-ring-color": btnColor,
-                      } as CSSProperties
-                    }
-                    required
-                  />
-                </div>
+                  {/* Order Summary */}
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <p className="font-semibold mb-3">Order Summary:</p>
 
-                <div>
-                  <label
-                    className="block text-sm font-medium mb-2"
-                    style={{ color: fontColor }}
-                  >
-                    Note (Optional)
-                  </label>
-                  <textarea
-                    name="note"
-                    value={formData.note}
-                    onChange={handleInputChange}
-                    placeholder="Add any special instructions for delivery"
-                    rows={2}
-                    className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition resize-none"
-                    style={
-                      {
-                        borderColor: fontColor,
-                        "--tw-ring-color": btnColor,
-                      } as CSSProperties
-                    }
-                  />
-                </div>
+                    {product.variations && product.variations.length > 0 ? (
+                      <div className="space-y-2">
+                        {selectedVariants
+                          .filter((v) => v.quantity > 0)
+                          .map((variant, idx) => (
+                            <div
+                              key={idx}
+                              className="flex justify-between text-sm"
+                            >
+                              <span>
+                                {product.product_name} - {variant.variant} ×{" "}
+                                {variant.quantity}
+                              </span>
+                              <span>৳ {variant.price * variant.quantity}</span>
+                            </div>
+                          ))}
+                        {selectedVariants.filter((v) => v.quantity > 0).length ===
+                          0 && (
+                            <p className="text-sm text-gray-500">
+                              No items selected
+                            </p>
+                          )}
+                      </div>
+                    ) : (
+                      <div className="flex justify-between text-sm">
+                        <span>
+                          {product.product_name} × {simpleProductQuantity}
+                        </span>
+                        <span>৳ {subtotal}</span>
+                      </div>
+                    )}
 
-                {/* Order Summary */}
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <p className="font-semibold mb-3">Order Summary:</p>
-
-                  {product.variations && product.variations.length > 0 ? (
-                    <div className="space-y-2">
-                      {selectedVariants
-                        .filter((v) => v.quantity > 0)
-                        .map((variant, idx) => (
-                          <div
-                            key={idx}
-                            className="flex justify-between text-sm"
-                          >
-                            <span>
-                              {product.product_name} - {variant.variant} ×{" "}
-                              {variant.quantity}
-                            </span>
-                            <span>৳ {variant.price * variant.quantity}</span>
-                          </div>
-                        ))}
-                      {selectedVariants.filter((v) => v.quantity > 0).length ===
-                        0 && (
-                        <p className="text-sm text-gray-500">
-                          No items selected
-                        </p>
-                      )}
+                    {/* Shipping Info in Summary */}
+                    <div className="mt-2 pt-2 border-t border-gray-300">
+                      <div className="flex justify-between text-sm">
+                        <span>Shipping</span>
+                        <span>
+                          {isFreeShipping ? (
+                            <span className="text-green-600">Free</span>
+                          ) : (
+                            `৳ ${shippingCharge}`
+                          )}
+                        </span>
+                      </div>
                     </div>
+
+                    <div className="h-px bg-gray-300 my-3"></div>
+
+                    <div className="flex justify-between font-bold">
+                      <span>Total</span>
+                      <span style={{ color: btnColor }}>৳ {total}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Place Order Button */}
+                <button
+                  type="submit"
+                  disabled={
+                    isSubmitting ||
+                    !isValid ||
+                    (product.variations &&
+                      product.variations.length > 0 &&
+                      !hasSelectedVariants) ||
+                    (!product.variations && simpleProductQuantity === 0)
+                  }
+                  className={`w-full mt-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed`}
+                  style={{
+                    background: btnColor,
+                    color: btnTextColor,
+                  }}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </>
                   ) : (
-                    <div className="flex justify-between text-sm">
-                      <span>
-                        {product.product_name} × {simpleProductQuantity}
-                      </span>
-                      <span>৳ {subtotal}</span>
-                    </div>
+                    <>
+                      <ShoppingCart size={24} />
+                      {checkout_button_text} ৳ {total}
+                    </>
                   )}
-
-                  <div className="h-px bg-gray-300 my-3"></div>
-
-                  <div className="flex justify-between font-bold">
-                    <span>Total</span>
-                    <span style={{ color: btnColor }}>৳ {total}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Place Order Button */}
-              <button
-                onClick={handlePlaceOrder}
-                disabled={
-                  !formData.name ||
-                  !formData.phone ||
-                  !formData.address ||
-                  (product.variations &&
-                    product.variations.length > 0 &&
-                    !hasSelectedVariants)
-                }
-                className={`w-full mt-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed`}
-                style={{
-                  background: btnColor,
-                  color: btnTextColor,
-                }}
-              >
-                <ShoppingCart size={24} />
-                {checkout_button_text} ৳ {total}
-              </button>
+                </button>
+              </form>
 
               {/* Additional Info */}
               <div className="mt-6 space-y-3 text-sm text-gray-600">

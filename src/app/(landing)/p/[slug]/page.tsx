@@ -26,6 +26,8 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     checkout_button_text,
   } = landingPageInfo || {}
 
+
+  console.log("landingPageInfo", landingPageInfo)
   if (!landingPageInfo) return notFound()
 
   let htmlContent = landingPageInfo?.page_content || ""
