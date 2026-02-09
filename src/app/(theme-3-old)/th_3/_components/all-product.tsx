@@ -19,9 +19,9 @@ const AllProduct = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {products?.map((product) => (
-            <React.Fragment key={product.id}>
+            <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col" key={product.id}>
               <ProductCard {...product} />
-            </React.Fragment>
+            </div>
           ))}
         </div>
       </div>

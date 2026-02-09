@@ -20,11 +20,9 @@ export const ProductCard = ({
 }: IProduct) => {
   const router = useRouter()
   const { addItem, getItemByProduct } = useCart()
-
   // Check current quantity in cart
   const cartItem = getItemByProduct(id)
   const currentQuantity = cartItem?.quantity ?? 0
-
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent navigation to product page
 
@@ -69,7 +67,7 @@ export const ProductCard = ({
 
   console.log(variations)
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+    <>
       <Link
         href={`/product/${slug}?id=${id}`}
         className="relative w-full aspect-square"
@@ -132,6 +130,6 @@ export const ProductCard = ({
           </button>
         </div>
       </div>
-    </div>
+    </>
   )
 }
