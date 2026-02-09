@@ -8,6 +8,11 @@ import {
   Plus,
   Minus,
   Check,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Youtube,
 } from "lucide-react"
 import { useState, useEffect, CSSProperties } from "react"
 import { useForm, SubmitHandler } from "react-hook-form"
@@ -32,6 +37,20 @@ type OrderFormData = z.infer<typeof orderFormSchema>
 
 const LandingOrder = ({
   product,
+  fb,
+  twitter,
+  linkedin,
+  instagram,
+  youtube,
+  footer_text_color,
+  footer_link_color,
+  footer_b_color,
+  footer_heading_color,
+  checkout_text_color,
+  checkout_link_color,
+  checkout_b_color,
+  checkout_button_color,
+  checkout_button_text_color,
   backgroundColor,
   fontColor,
   btnColor,
@@ -358,9 +377,9 @@ const LandingOrder = ({
 
     return options
   }
-
+  const hasSocialMedia = fb || twitter || linkedin || instagram || youtube
   return (
-    <section className="py-12 min-h-screen" style={{ backgroundColor }}>
+     <section className="py-12 min-h-screen" style={{ backgroundColor }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2
           className="text-3xl md:text-4xl font-bold mb-10 text-center"
@@ -373,7 +392,13 @@ const LandingOrder = ({
           {/* LEFT COLUMN - Product & Payment */}
           <div className="lg:col-span-7 space-y-8">
             {/* Product Summary Card */}
-            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+            <div 
+              className="p-6 md:p-8 rounded-2xl shadow-lg"
+              style={{ 
+                backgroundColor: checkout_b_color || '#ffffff',
+                borderColor: checkout_b_color ? `${checkout_b_color}20` : '#e5e7eb'
+              }}
+            >
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-16 h-16 rounded-xl overflow-hidden">
                   <img
@@ -385,11 +410,14 @@ const LandingOrder = ({
                 <div className="flex-1">
                   <h3
                     className="text-xl font-bold"
-                    style={{ color: fontColor }}
+                    style={{ color: checkout_text_color || fontColor }}
                   >
                     {product.product_name}
                   </h3>
-                  <p className="text-gray-600 text-sm mt-1">
+                  <p 
+                    className="text-sm mt-1"
+                    style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                  >
                     {product.product_code}
                   </p>
                 </div>
@@ -406,11 +434,14 @@ const LandingOrder = ({
                   <div className="flex items-center justify-between mb-4">
                     <h4
                       className="font-semibold text-lg"
-                      style={{ color: fontColor }}
+                      style={{ color: checkout_text_color || fontColor }}
                     >
                       Select Variants
                     </h4>
-                    <span className="text-sm text-gray-600">
+                    <span 
+                      className="text-sm"
+                      style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                    >
                       {selectedVariants.filter((v) => v.quantity > 0).length}{" "}
                       selected
                     </span>
@@ -428,8 +459,8 @@ const LandingOrder = ({
                           style={
                             {
                               borderColor:
-                                variant.quantity > 0 ? btnColor : "#e5e7eb",
-                              "--tw-ring-color": btnColor,
+                                variant.quantity > 0 ? checkout_button_color || btnColor : "#e5e7eb",
+                              "--tw-ring-color": checkout_button_color || btnColor,
                             } as CSSProperties
                           }
                         >
@@ -444,7 +475,12 @@ const LandingOrder = ({
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <p className="font-bold">{variant.variant}</p>
+                                  <p 
+                                    className="font-bold"
+                                    style={{ color: checkout_text_color || fontColor }}
+                                  >
+                                    {variant.variant}
+                                  </p>
                                   {variant.quantity > 0 && (
                                     <Check
                                       size={16}
@@ -454,11 +490,14 @@ const LandingOrder = ({
                                 </div>
                                 <p
                                   className="font-bold text-lg mt-1"
-                                  style={{ color: btnColor }}
+                                  style={{ color: checkout_button_color || btnColor }}
                                 >
                                   ৳ {variant.price}
                                 </p>
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p 
+                                  className="text-sm mt-1"
+                                  style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                                >
                                   Available: {availableStock} units
                                 </p>
                               </div>
@@ -480,7 +519,10 @@ const LandingOrder = ({
                                   <Minus size={16} />
                                 </button>
 
-                                <span className="text-lg font-semibold w-8 text-center">
+                                <span 
+                                  className="text-lg font-semibold w-8 text-center"
+                                  style={{ color: checkout_text_color || fontColor }}
+                                >
                                   {variant.quantity}
                                 </span>
 
@@ -499,7 +541,10 @@ const LandingOrder = ({
                               </div>
 
                               {variant.quantity > 0 && (
-                                <p className="font-bold">
+                                <p 
+                                  className="font-bold"
+                                  style={{ color: checkout_text_color || fontColor }}
+                                >
                                   ৳ {variant.price * variant.quantity}
                                 </p>
                               )}
@@ -521,17 +566,30 @@ const LandingOrder = ({
               ) : (
                 /* SIMPLE PRODUCT WITHOUT VARIANTS */
                 <div>
-                  <div className="flex items-center justify-between p-4 border rounded-xl">
+                  <div 
+                    className="flex items-center justify-between p-4 border rounded-xl"
+                    style={{ 
+                      borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb'
+                    }}
+                  >
                     <div className="flex-1">
-                      <p className="font-semibold text-lg">Standard Product</p>
+                      <p 
+                        className="font-semibold text-lg"
+                        style={{ color: checkout_text_color || fontColor }}
+                      >
+                        Standard Product
+                      </p>
                       <p
                         className="font-bold text-2xl mt-2"
-                        style={{ color: btnColor }}
+                        style={{ color: checkout_button_color || btnColor }}
                       >
                         ৳ {product.discounted_price || product.price}
                       </p>
                       {product.discount > 0 && (
-                        <p className="text-sm text-gray-500 line-through">
+                        <p 
+                          className="text-sm line-through mt-1"
+                          style={{ color: checkout_text_color ? `${checkout_text_color}70` : '#9ca3af' }}
+                        >
                           ৳ {product.price}
                         </p>
                       )}
@@ -552,10 +610,16 @@ const LandingOrder = ({
                         </button>
 
                         <div className="flex flex-col items-center">
-                          <span className="text-2xl font-bold">
+                          <span 
+                            className="text-2xl font-bold"
+                            style={{ color: checkout_text_color || fontColor }}
+                          >
                             {simpleProductQuantity}
                           </span>
-                          <span className="text-xs text-gray-600 mt-1">
+                          <span 
+                            className="text-xs mt-1"
+                            style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                          >
                             Available: {product.product_qty}
                           </span>
                         </div>
@@ -574,7 +638,10 @@ const LandingOrder = ({
                         </button>
                       </div>
 
-                      <p className="font-bold text-lg">
+                      <p 
+                        className="font-bold text-lg"
+                        style={{ color: checkout_text_color || fontColor }}
+                      >
                         Total: ৳{" "}
                         {(product.discounted_price || product.price) *
                           simpleProductQuantity}
@@ -585,19 +652,25 @@ const LandingOrder = ({
               )}
 
               {/* Price Breakdown */}
-              <div className="mt-8 pt-6 border-t space-y-3">
+              <div className="mt-8 pt-6 border-t space-y-3" style={{ borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb' }}>
                 <div className="flex justify-between items-center">
-                  <p className="text-gray-700">Subtotal</p>
-                  <p className="font-semibold">৳ {subtotal}</p>
+                  <p style={{ color: checkout_text_color || fontColor }}>Subtotal</p>
+                  <p 
+                    className="font-semibold"
+                    style={{ color: checkout_text_color || fontColor }}
+                  >
+                    ৳ {subtotal}
+                  </p>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <Truck size={16} />
-                    <p className="text-gray-700">Shipping</p>
+                    <Truck size={16} style={{ color: checkout_text_color || fontColor }} />
+                    <p style={{ color: checkout_text_color || fontColor }}>Shipping</p>
                   </div>
                   <p
                     className={`font-semibold ${isFreeShipping ? "text-green-600" : ""}`}
+                    style={!isFreeShipping ? { color: checkout_text_color || fontColor } : {}}
                   >
                     {isFreeShipping ? (
                       <span className="text-green-600">Free Shipping</span>
@@ -609,18 +682,26 @@ const LandingOrder = ({
 
                 {product.discount > 0 && (
                   <div className="flex justify-between items-center">
-                    <p className="text-gray-700">Discount</p>
+                    <p style={{ color: checkout_text_color || fontColor }}>Discount</p>
                     <p className="font-semibold text-green-600">
                       -{product.discount}%
                     </p>
                   </div>
                 )}
 
-                <div className="h-px bg-gray-200 my-3"></div>
+                <div className="h-px my-3" style={{ backgroundColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb' }}></div>
 
                 <div className="flex justify-between items-center pt-3">
-                  <p className="text-xl font-bold">Total</p>
-                  <p className="text-2xl font-bold" style={{ color: btnColor }}>
+                  <p 
+                    className="text-xl font-bold"
+                    style={{ color: checkout_text_color || fontColor }}
+                  >
+                    Total
+                  </p>
+                  <p 
+                    className="text-2xl font-bold" 
+                    style={{ color: checkout_button_color || btnColor }}
+                  >
                     ৳ {total}
                   </p>
                 </div>
@@ -628,10 +709,19 @@ const LandingOrder = ({
             </div>
 
             {/* Payment Method Card */}
-            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+            <div 
+              className="p-6 md:p-8 rounded-2xl shadow-lg"
+              style={{ 
+                backgroundColor: checkout_b_color || '#ffffff',
+                borderColor: checkout_b_color ? `${checkout_b_color}20` : '#e5e7eb'
+              }}
+            >
               <h3
                 className="text-xl font-bold mb-6 pb-4 border-b"
-                style={{ color: fontColor }}
+                style={{ 
+                  color: checkout_text_color || fontColor,
+                  borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb'
+                }}
               >
                 Payment Method
               </h3>
@@ -644,19 +734,33 @@ const LandingOrder = ({
                   style={
                     {
                       borderColor:
-                        selectedPayment === "cod" ? btnColor : "#e5e7eb",
-                      "--tw-ring-color": btnColor,
+                        selectedPayment === "cod" ? checkout_button_color || btnColor : "#e5e7eb",
+                      "--tw-ring-color": checkout_button_color || btnColor,
                     } as CSSProperties
                   }
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-100">
+                      <div 
+                        className="w-12 h-12 flex items-center justify-center rounded-lg"
+                        style={{ 
+                          backgroundColor: checkout_button_color ? `${checkout_button_color}10` : '#f3f4f6',
+                          color: checkout_button_color || btnColor
+                        }}
+                      >
                         <Banknote size={24} />
                       </div>
                       <div className="text-left">
-                        <p className="font-bold text-lg">Cash on Delivery</p>
-                        <p className="text-gray-600 text-sm">
+                        <p 
+                          className="font-bold text-lg"
+                          style={{ color: checkout_text_color || fontColor }}
+                        >
+                          Cash on Delivery
+                        </p>
+                        <p 
+                          className="text-sm"
+                          style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                        >
                           Pay after receiving your order
                         </p>
                       </div>
@@ -665,9 +769,9 @@ const LandingOrder = ({
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedPayment === "cod" ? "" : "border-gray-300"}`}
                       style={{
                         backgroundColor:
-                          selectedPayment === "cod" ? btnColor : "transparent",
+                          selectedPayment === "cod" ? checkout_button_color || btnColor : "transparent",
                         borderColor:
-                          selectedPayment === "cod" ? btnColor : "#d1d5db",
+                          selectedPayment === "cod" ? checkout_button_color || btnColor : "#d1d5db",
                       }}
                     >
                       {selectedPayment === "cod" && (
@@ -686,8 +790,8 @@ const LandingOrder = ({
                   style={
                     {
                       borderColor:
-                        selectedPayment === "bkash" ? btnColor : "#e5e7eb",
-                      "--tw-ring-color": btnColor,
+                        selectedPayment === "bkash" ? checkout_button_color || btnColor : "#e5e7eb",
+                      "--tw-ring-color": checkout_button_color || btnColor,
                     } as CSSProperties
                   }
                 >
@@ -695,13 +799,21 @@ const LandingOrder = ({
                     <div className="flex items-center gap-4">
                       <div
                         className="w-12 h-12 flex items-center justify-center rounded-lg text-white font-bold"
-                        style={{ backgroundColor: btnColor }}
+                        style={{ backgroundColor: checkout_button_color || btnColor }}
                       >
                         bK
                       </div>
                       <div className="text-left">
-                        <p className="font-bold">bKash Payment</p>
-                        <p className="text-gray-600 text-sm">
+                        <p 
+                          className="font-bold"
+                          style={{ color: checkout_text_color || fontColor }}
+                        >
+                          bKash Payment
+                        </p>
+                        <p 
+                          className="text-sm"
+                          style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                        >
                           Secure online payment
                         </p>
                       </div>
@@ -711,10 +823,10 @@ const LandingOrder = ({
                       style={{
                         backgroundColor:
                           selectedPayment === "bkash"
-                            ? btnColor
+                            ? checkout_button_color || btnColor
                             : "transparent",
                         borderColor:
-                          selectedPayment === "bkash" ? btnColor : "#d1d5db",
+                          selectedPayment === "bkash" ? checkout_button_color || btnColor : "#d1d5db",
                       }}
                     >
                       {selectedPayment === "bkash" && (
@@ -726,11 +838,22 @@ const LandingOrder = ({
               </div>
 
               {/* Security Note */}
-              <div className="mt-6 pt-6 border-t flex items-start gap-3">
+              <div 
+                className="mt-6 pt-6 border-t flex items-start gap-3"
+                style={{ borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb' }}
+              >
                 <Shield className="text-green-600 mt-1" size={20} />
                 <div>
-                  <p className="font-semibold">Secure Payment</p>
-                  <p className="text-gray-600 text-sm">
+                  <p 
+                    className="font-semibold"
+                    style={{ color: checkout_text_color || fontColor }}
+                  >
+                    Secure Payment
+                  </p>
+                  <p 
+                    className="text-sm"
+                    style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                  >
                     Your payment information is encrypted and secure.
                   </p>
                 </div>
@@ -740,10 +863,16 @@ const LandingOrder = ({
 
           {/* RIGHT COLUMN - Billing Details */}
           <div className="lg:col-span-5">
-            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg sticky top-8">
+            <div 
+              className="p-6 md:p-8 rounded-2xl shadow-lg sticky top-8"
+              style={{ 
+                backgroundColor: checkout_b_color || '#ffffff',
+                borderColor: checkout_b_color ? `${checkout_b_color}20` : '#e5e7eb'
+              }}
+            >
               <h3
                 className="text-xl font-bold mb-6"
-                style={{ color: fontColor }}
+                style={{ color: checkout_text_color || fontColor }}
               >
                 Billing Details
               </h3>
@@ -753,7 +882,7 @@ const LandingOrder = ({
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
-                      style={{ color: fontColor }}
+                      style={{ color: checkout_text_color || fontColor }}
                     >
                       Your Name *
                     </label>
@@ -764,8 +893,10 @@ const LandingOrder = ({
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.name ? "border-red-500" : ""}`}
                       style={
                         {
-                          borderColor: errors.name ? "#ef4444" : fontColor,
-                          "--tw-ring-color": btnColor,
+                          borderColor: errors.name ? "#ef4444" : (checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb'),
+                          "--tw-ring-color": checkout_button_color || btnColor,
+                          color: checkout_text_color || fontColor,
+                          backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
                         } as CSSProperties
                       }
                     />
@@ -779,7 +910,7 @@ const LandingOrder = ({
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
-                      style={{ color: fontColor }}
+                      style={{ color: checkout_text_color || fontColor }}
                     >
                       Mobile Number *
                     </label>
@@ -790,8 +921,10 @@ const LandingOrder = ({
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.phone ? "border-red-500" : ""}`}
                       style={
                         {
-                          borderColor: errors.phone ? "#ef4444" : fontColor,
-                          "--tw-ring-color": btnColor,
+                          borderColor: errors.phone ? "#ef4444" : (checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb'),
+                          "--tw-ring-color": checkout_button_color || btnColor,
+                          color: checkout_text_color || fontColor,
+                          backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
                         } as CSSProperties
                       }
                     />
@@ -807,7 +940,7 @@ const LandingOrder = ({
                     <div>
                       <label
                         className="block text-sm font-medium mb-2"
-                        style={{ color: fontColor }}
+                        style={{ color: checkout_text_color || fontColor }}
                       >
                         Delivery Area *
                       </label>
@@ -816,8 +949,10 @@ const LandingOrder = ({
                         className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition"
                         style={
                           {
-                            borderColor: fontColor,
-                            "--tw-ring-color": btnColor,
+                            borderColor: checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb',
+                            "--tw-ring-color": checkout_button_color || btnColor,
+                            color: checkout_text_color || fontColor,
+                            backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
                           } as CSSProperties
                         }
                       >
@@ -828,7 +963,10 @@ const LandingOrder = ({
                         ))}
                       </select>
                       {product.delivery_charge === "paid" && (
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p 
+                          className="text-sm mt-2"
+                          style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                        >
                           Shipping charges apply based on your location
                         </p>
                       )}
@@ -837,12 +975,21 @@ const LandingOrder = ({
 
                   {/* Show message for free shipping */}
                   {showShippingOptions && product.delivery_charge === "free" && (
-                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center gap-2 text-green-700">
+                    <div 
+                      className="p-3 rounded-lg border"
+                      style={{ 
+                        backgroundColor: checkout_b_color ? `${checkout_b_color}10` : '#f0fdf4',
+                        borderColor: checkout_b_color ? `${checkout_b_color}30` : '#bbf7d0'
+                      }}
+                    >
+                      <div className="flex items-center gap-2" style={{ color: checkout_button_color ? `${checkout_button_color}80` : '#16a34a' }}>
                         <Truck size={18} />
                         <p className="font-medium">Free Shipping Available!</p>
                       </div>
-                      <p className="text-sm text-green-600 mt-1">
+                      <p 
+                        className="text-sm mt-1"
+                        style={{ color: checkout_button_color ? `${checkout_button_color}70` : '#15803d' }}
+                      >
                         This product includes free delivery anywhere in Bangladesh.
                       </p>
                     </div>
@@ -851,7 +998,7 @@ const LandingOrder = ({
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
-                      style={{ color: fontColor }}
+                      style={{ color: checkout_text_color || fontColor }}
                     >
                       Full Address *
                     </label>
@@ -862,8 +1009,10 @@ const LandingOrder = ({
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition resize-none ${errors.address ? "border-red-500" : ""}`}
                       style={
                         {
-                          borderColor: errors.address ? "#ef4444" : fontColor,
-                          "--tw-ring-color": btnColor,
+                          borderColor: errors.address ? "#ef4444" : (checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb'),
+                          "--tw-ring-color": checkout_button_color || btnColor,
+                          color: checkout_text_color || fontColor,
+                          backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
                         } as CSSProperties
                       }
                     />
@@ -877,7 +1026,7 @@ const LandingOrder = ({
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"
-                      style={{ color: fontColor }}
+                      style={{ color: checkout_text_color || fontColor }}
                     >
                       Note (Optional)
                     </label>
@@ -888,16 +1037,29 @@ const LandingOrder = ({
                       className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition resize-none"
                       style={
                         {
-                          borderColor: fontColor,
-                          "--tw-ring-color": btnColor,
+                          borderColor: checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb',
+                          "--tw-ring-color": checkout_button_color || btnColor,
+                          color: checkout_text_color || fontColor,
+                          backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
                         } as CSSProperties
                       }
                     />
                   </div>
 
                   {/* Order Summary */}
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <p className="font-semibold mb-3">Order Summary:</p>
+                  <div 
+                    className="mt-4 p-4 rounded-lg"
+                    style={{ 
+                      backgroundColor: checkout_b_color ? `${checkout_b_color}10` : '#f9fafb',
+                      borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb'
+                    }}
+                  >
+                    <p 
+                      className="font-semibold mb-3"
+                      style={{ color: checkout_text_color || fontColor }}
+                    >
+                      Order Summary:
+                    </p>
 
                     {product.variations && product.variations.length > 0 ? (
                       <div className="space-y-2">
@@ -908,34 +1070,44 @@ const LandingOrder = ({
                               key={idx}
                               className="flex justify-between text-sm"
                             >
-                              <span>
+                              <span style={{ color: checkout_text_color || fontColor }}>
                                 {product.product_name} - {variant.variant} ×{" "}
                                 {variant.quantity}
                               </span>
-                              <span>৳ {variant.price * variant.quantity}</span>
+                              <span style={{ color: checkout_text_color || fontColor }}>
+                                ৳ {variant.price * variant.quantity}
+                              </span>
                             </div>
                           ))}
                         {selectedVariants.filter((v) => v.quantity > 0).length ===
                           0 && (
-                            <p className="text-sm text-gray-500">
+                            <p 
+                              className="text-sm"
+                              style={{ color: checkout_text_color ? `${checkout_text_color}70` : '#9ca3af' }}
+                            >
                               No items selected
                             </p>
                           )}
                       </div>
                     ) : (
                       <div className="flex justify-between text-sm">
-                        <span>
+                        <span style={{ color: checkout_text_color || fontColor }}>
                           {product.product_name} × {simpleProductQuantity}
                         </span>
-                        <span>৳ {subtotal}</span>
+                        <span style={{ color: checkout_text_color || fontColor }}>
+                          ৳ {subtotal}
+                        </span>
                       </div>
                     )}
 
                     {/* Shipping Info in Summary */}
-                    <div className="mt-2 pt-2 border-t border-gray-300">
+                    <div 
+                      className="mt-2 pt-2 border-t"
+                      style={{ borderColor: checkout_b_color ? `${checkout_b_color}30` : '#d1d5db' }}
+                    >
                       <div className="flex justify-between text-sm">
-                        <span>Shipping</span>
-                        <span>
+                        <span style={{ color: checkout_text_color || fontColor }}>Shipping</span>
+                        <span style={{ color: checkout_text_color || fontColor }}>
                           {isFreeShipping ? (
                             <span className="text-green-600">Free</span>
                           ) : (
@@ -945,11 +1117,14 @@ const LandingOrder = ({
                       </div>
                     </div>
 
-                    <div className="h-px bg-gray-300 my-3"></div>
+                    <div 
+                      className="h-px my-3"
+                      style={{ backgroundColor: checkout_b_color ? `${checkout_b_color}30` : '#d1d5db' }}
+                    ></div>
 
                     <div className="flex justify-between font-bold">
-                      <span>Total</span>
-                      <span style={{ color: btnColor }}>৳ {total}</span>
+                      <span style={{ color: checkout_text_color || fontColor }}>Total</span>
+                      <span style={{ color: checkout_button_color || btnColor }}>৳ {total}</span>
                     </div>
                   </div>
                 </div>
@@ -967,8 +1142,8 @@ const LandingOrder = ({
                   }
                   className={`w-full mt-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed`}
                   style={{
-                    background: btnColor,
-                    color: btnTextColor,
+                    background: checkout_button_color || btnColor,
+                    color: checkout_button_text_color || btnTextColor,
                   }}
                 >
                   {isSubmitting ? (
@@ -986,27 +1161,121 @@ const LandingOrder = ({
               </form>
 
               {/* Additional Info */}
-              <div className="mt-6 space-y-3 text-sm text-gray-600">
+              <div className="mt-6 space-y-3 text-sm">
                 <div className="flex items-center gap-2">
-                  <Truck size={16} />
-                  <p>Estimated delivery: 2-5 business days</p>
+                  <Truck size={16} style={{ color: checkout_text_color || fontColor }} />
+                  <p style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}>
+                    Estimated delivery: 2-5 business days
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CreditCard size={16} />
-                  <p>Secure SSL encrypted payment</p>
+                  <CreditCard size={16} style={{ color: checkout_text_color || fontColor }} />
+                  <p style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}>
+                    Secure SSL encrypted payment
+                  </p>
                 </div>
               </div>
 
+              {/* Social Media Links */}
+              {hasSocialMedia && (
+                <div className="mt-6 pt-6 border-t">
+                  <p 
+                    className="font-semibold mb-3 text-center"
+                    style={{ color: footer_heading_color || checkout_text_color || fontColor }}
+                  >
+                    Follow Us
+                  </p>
+                  <div className="flex justify-center gap-4">
+                    {fb && (
+                      <a
+                        href={fb}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-full hover:opacity-80 transition"
+                        style={{ 
+                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
+                          color: footer_link_color || checkout_link_color || btnColor
+                        }}
+                      >
+                        <Facebook size={18} />
+                      </a>
+                    )}
+                    {twitter && (
+                      <a
+                        href={twitter}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-full hover:opacity-80 transition"
+                        style={{ 
+                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
+                          color: footer_link_color || checkout_link_color || btnColor
+                        }}
+                      >
+                        <Twitter size={18} />
+                      </a>
+                    )}
+                    {linkedin && (
+                      <a
+                        href={linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-full hover:opacity-80 transition"
+                        style={{ 
+                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
+                          color: footer_link_color || checkout_link_color || btnColor
+                        }}
+                      >
+                        <Linkedin size={18} />
+                      </a>
+                    )}
+                    {instagram && (
+                      <a
+                        href={instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-full hover:opacity-80 transition"
+                        style={{ 
+                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
+                          color: footer_link_color || checkout_link_color || btnColor
+                        }}
+                      >
+                        <Instagram size={18} />
+                      </a>
+                    )}
+                    {youtube && (
+                      <a
+                        href={youtube}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-full hover:opacity-80 transition"
+                        style={{ 
+                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
+                          color: footer_link_color || checkout_link_color || btnColor
+                        }}
+                      >
+                        <Youtube size={18} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Footer */}
-              <div className="mt-8 pt-6 border-t text-center">
-                <p className="text-gray-600 text-sm">
+              <div 
+                className="mt-8 pt-6 border-t text-center"
+                style={{ borderColor: footer_b_color ? `${footer_b_color}30` : (checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb') }}
+              >
+                <p 
+                  className="text-sm"
+                  style={{ color: footer_text_color || checkout_text_color || fontColor }}
+                >
                   © {new Date().getFullYear()} All Rights Reserved
                   <br />
                   Designed by{" "}
                   <a
                     href="https://funnelliner.com"
                     className="font-semibold hover:underline transition"
-                    style={{ color: btnColor }}
+                    style={{ color: footer_link_color || checkout_link_color || btnColor }}
                   >
                     Funmel Liner
                   </a>
