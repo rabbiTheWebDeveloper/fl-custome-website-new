@@ -5,9 +5,9 @@ import AllProduct from "./_components/all-product"
 import Scroll from "./_components/Scroll"
 import { getDomainHeaders } from "@/lib/domain"
 import { api } from "@/lib/api-client"
-import { IProductsApiResponse, IProduct } from "./types/product"
+import { IProductsApiResponse} from "./types/product"
 
-export const dynamic = "force-dynamic"
+
 
 export default async function Home({
   searchParams,
