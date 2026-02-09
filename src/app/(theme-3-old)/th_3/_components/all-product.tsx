@@ -4,7 +4,7 @@ import { Fragment } from "react/jsx-runtime"
 import { ProductCard } from "./products/product-card"
 
 const AllProduct = ({
-  products = [],
+  products,
   totalPages,
 }: {
   products: IProduct[]
