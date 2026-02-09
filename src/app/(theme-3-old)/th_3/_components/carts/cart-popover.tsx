@@ -18,6 +18,7 @@ export const CartPopover = ({
   // Get cart items and totals from store (reactive)
   const items = useCartStore((state) => state.items)
   const totals = useCartStore((state) => state.totals)
+  console.log(totals, "totals")
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     await updateItem(itemId, { quantity: newQuantity })

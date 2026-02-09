@@ -12,11 +12,6 @@ import {
   Youtube,
   ChevronDown,
   X,
-  Phone,
-  Globe,
-  Shield,
-  Truck,
-  Award,
   Menu as MenuIcon,
   ChevronRight,
 } from "lucide-react"
@@ -30,40 +25,7 @@ import { IShopResponse } from "../types/shop"
 import { prepareDomain } from "@/lib/utils"
 import { ICategoriesApiResponse, ICategory } from "../types/categories"
 import { CartPopover } from "./carts/cart-popover"
-
-const cartItems = [
-  {
-    id: 1,
-    name: "Wireless Headphones",
-    price: 1999,
-    quantity: 1,
-    image:
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=150&h=150&fit=crop",
-  },
-  {
-    id: 2,
-    name: "Smart Watch",
-    price: 5499,
-    quantity: 1,
-    image:
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&h=150&fit=crop",
-  },
-  {
-    id: 3,
-    name: "Laptop Bag",
-    price: 2499,
-    quantity: 2,
-    image:
-      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=150&h=150&fit=crop",
-  },
-]
-
-const totalCartItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
-const cartTotal = cartItems.reduce(
-  (sum, item) => sum + item.price * item.quantity,
-  0
-)
-
+import { useCartStore } from "@/lib/cart"
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
@@ -76,6 +38,8 @@ export default function Header() {
   const categories: ICategory[] | null = useCategories(
     (state) => state.categories
   )
+    const totals = useCartStore((state) => state.totals)
+    
   const setCategories = useCategories((state) => state.setCategories)
   const setDomainAddress = useDomain((state) => state.setDomainAddress)
   const getCookie = useGetCookie()
@@ -150,6 +114,7 @@ export default function Header() {
       getCategories()
     }
   }, [domain, setCategories])
+    const totalProducts = totals?.itemCount
   return (
     <>
       {/* ================= MAIN HEADER ================= */}
@@ -448,7 +413,7 @@ export default function Header() {
                 <ShoppingCart className="w-6 h-6" />
                 <span className="text-xs mt-1">Cart</span>
                 <span className="absolute -top-1 -right-2 bg-green-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {totalCartItems}
+                  {totalProducts}
                 </span>
               </Link>
             </div>

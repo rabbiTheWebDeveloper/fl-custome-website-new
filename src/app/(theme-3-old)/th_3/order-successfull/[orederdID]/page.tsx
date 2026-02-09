@@ -20,7 +20,7 @@ const OrderSuccessfullPage = async ({
     }
   )
   const orderDetails: IOrderSuccessfullData = response?.data?.data
-  console.log(orderDetails, "orderDetails")
+  console.log(orderDetails.order_details, "orderDetails")
   return (
     <>
       <OrderSuccessfull {...orderDetails} />

@@ -72,5 +72,58 @@ export interface IOrderDetail {
   variation?: unknown | null
   created_at: string
   updated_at: string
-  product: IOrderSuccessfullData
+  product: IProduct
+}
+export interface IProductAttributeValue {
+  id: number
+  attribute_id: number
+  value: string
+}
+
+export interface IProductAttribute {
+  id: string
+  key: string
+  values: IProductAttributeValue[]
+}
+
+export interface IProductCategory {
+  id: number
+  name?: string
+  slug?: string
+}
+
+export interface IProduct {
+  id: number
+  category_id: number
+  shop_id: number
+  shop_uid: number
+  product_name: string
+  product_code: string
+  product_qty: number
+  slug: string
+  price: number
+  delivery_charge: "paid" | "free"
+  inside_dhaka: number
+  outside_dhaka: number
+  discount: number
+  discount_type: "flat" | "percentage"
+  video_url: string | null
+  packaging_cost: number | null
+  transportation_cost: number | null
+  ad_budget_cost: number | null
+  buying_price: number | null
+  short_description: string
+  long_description: string
+  status: number
+  sub_area_charge: number
+  default_delivery_location: string | null
+  created_at: string
+  updated_at: string
+  product_type: string | null
+  wp_product_id: number | null
+  wp_product_image_url: string | null
+  visit_counter: number
+  main_image: string
+  attributes: string | IProductAttribute[]
+  category: IProductCategory | object
 }

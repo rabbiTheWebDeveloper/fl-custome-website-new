@@ -746,7 +746,7 @@ const Checkout = () => {
       if (response.data && typeof response.data === "object") {
         if (responseOrderData?.order?.id) {
           toast.success("Order placed successfully")
-          // router.push(`/order-successfull/${responseOrderData?.order?.id}`)
+          router.push(`/order-successfull/${responseOrderData?.order?.id}`)
         } else if (responseOrderData?.payment_url) {
           router.push(responseOrderData?.payment_url)
         } else if (order?.otp_sent) {
@@ -855,9 +855,8 @@ const Checkout = () => {
                   <div className="flex items-center">
                     <div
                       className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-base
-          ${
-            index < 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
-          }`}
+          ${index < 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
+                        }`}
                     >
                       {index < 2 ? (
                         <Check className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -1271,35 +1270,43 @@ const Checkout = () => {
                   </span>
                 </div>
                 {/* Place Order Button */}
-
                 <button
                   type="submit"
-                  // disabled={!isValid || isSubmitting || items.length === 0}
-                  className={`w-full py-3.5 sm:py-4 rounded-lg font-semibold text-base transition-all duration-200 ${
-                    isValid && items.length > 0
-                      ? "bg-gradient-to-r from-[#3bb77e] to-green-600 hover:from-green-600 hover:to-[#3bb77e] text-white shadow-md hover:shadow-lg"
+                  disabled={!isValid || isSubmitting || items.length === 0}
+                  className={`
+    w-full rounded-xl px-4 py-3.5 sm:py-4
+    font-semibold text-base
+    transition-all duration-200 ease-out
+    flex items-center justify-center
+    ${isValid && items.length > 0 && !isSubmitting
+                      ? "bg-gradient-to-r from-[#3bb77e] to-green-600 text-white shadow-md hover:shadow-lg hover:from-green-600 hover:to-[#3bb77e] active:scale-[0.98]"
                       : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  }`}
+                    }
+  `}
                 >
                   {isSubmitting ? (
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center gap-2">
                       <RefreshCw className="w-5 h-5 animate-spin" />
-                      <span>Processing...</span>
+                      <span>Processing order…</span>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <Lock className="w-4 h-4" />
-                      <span>
-                        {items.length === 0 ? "Cart is Empty" : "Place Order"}
-                      </span>
+                    <div className="flex w-full items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4 opacity-90" />
+                        <span>
+                          {items.length === 0 ? "Your cart is empty" : "Place Order"}
+                        </span>
+                      </div>
+
                       {items.length > 0 && (
-                        <span className="ml-auto font-bold">
+                        <span className="ml-auto text-lg font-bold tracking-tight">
                           ৳{finalTotals.total.toLocaleString()}
                         </span>
                       )}
                     </div>
                   )}
                 </button>
+
 
                 {/* Return Policy */}
                 <div className="mt-4 pt-4 border-t border-gray-100 text-center">

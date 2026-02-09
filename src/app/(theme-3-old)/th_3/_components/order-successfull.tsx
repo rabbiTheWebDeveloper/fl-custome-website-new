@@ -74,15 +74,15 @@ const OrderSuccessfull = ({
                     <td className="py-4">
                       <div className="flex items-center gap-4">
                         <Image
-                          src={item.product.main_image || "/placeholder.jpg"}
-                          alt={item.product.product_name}
+                          src={item.product?.main_image || "/placeholder.jpg"}
+                          alt={item.product?.product_name}
                           className="w-16 h-16 object-contain border rounded"
                           width={64}
                           height={64}
                         />
                         <div>
                           <p className="font-medium">
-                            {item.product.product_name}
+                            {item.product?.product_name}
                           </p>
                           <p className="text-sm text-gray-500">
                             Qty: {item.product_qty}
