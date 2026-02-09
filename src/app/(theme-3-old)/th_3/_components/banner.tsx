@@ -101,96 +101,105 @@ export default function Banner() {
       onMouseEnter={() => setIsPlaying(false)}
       onMouseLeave={() => setIsPlaying(true)}
     >
-      {/* Embla viewport */}
+      {/* ================= Carousel ================= */}
       <div
         ref={emblaRef}
-        className="overflow-hidden w-full shadow-lg rounded-xl"
+        className="overflow-hidden w-full rounded-xl shadow-lg
+                   bg-white dark:bg-gray-900"
       >
-        {/* Embla container */}
         <div className="flex">
           {slides?.map((slide, index) => (
             <div
               key={slide.id}
-              className="relative flex-[0_0_100%] w-full h-[400px] md:h-[500px] lg:h-[600px] cursor-pointer overflow-hidden rounded-xl"
+              className="relative flex-[0_0_100%] h-[400px] md:h-[500px] lg:h-[600px]"
             >
-              {/* Background image */}
               <Image
                 src={slide.image}
                 alt={`Banner ${index + 1}`}
                 fill
                 priority={index === 0}
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
                 onError={handleImageError}
                 unoptimized={slide.image.startsWith("https")}
+                className="object-cover transition-transform duration-700
+                           group-hover:scale-105"
               />
+
+              {/* Dark overlay for readability */}
+              <div className="absolute inset-0 bg-black/10 dark:bg-black/40" />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Navigation arrows - only show on hover and for multiple slides */}
+      {/* ================= Arrows ================= */}
       {slideCount > 1 && (
         <>
           <button
             onClick={scrollPrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-            aria-label="Previous slide"
+            className="absolute left-4 top-1/2 -translate-y-1/2
+                       bg-white/80 dark:bg-gray-800/80
+                       hover:bg-white dark:hover:bg-gray-700
+                       p-2 rounded-full shadow-lg
+                       opacity-0 group-hover:opacity-100
+                       transition z-10"
           >
-            <ChevronLeft className="w-6 h-6 text-gray-800" />
+            <ChevronLeft className="w-6 h-6 text-gray-800 dark:text-gray-100" />
           </button>
 
           <button
             onClick={scrollNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-            aria-label="Next slide"
+            className="absolute right-4 top-1/2 -translate-y-1/2
+                       bg-white/80 dark:bg-gray-800/80
+                       hover:bg-white dark:hover:bg-gray-700
+                       p-2 rounded-full shadow-lg
+                       opacity-0 group-hover:opacity-100
+                       transition z-10"
           >
-            <ChevronRight className="w-6 h-6 text-gray-800" />
+            <ChevronRight className="w-6 h-6 text-gray-800 dark:text-gray-100" />
           </button>
         </>
       )}
 
-      {/* Pagination bullets */}
+      {/* ================= Pagination ================= */}
       {slideCount > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-10">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2
+                        flex gap-3 z-10">
           {slides?.map((_, index) => (
             <button
               key={index}
               onClick={() => scrollTo(index)}
-              className={`w-3 h-3 rounded-full border-2 transition-all duration-300 hover:scale-125
+              className={`w-3 h-3 rounded-full border-2 transition-all
                 ${
                   selectedIndex === index
-                    ? "bg-white border-white scale-125"
-                    : "bg-white/50 border-white/80 hover:bg-white/70"
+                    ? "bg-white dark:bg-gray-200 border-white dark:border-gray-200 scale-125"
+                    : "bg-white/50 dark:bg-gray-400/50 border-white/70 dark:border-gray-400"
                 }`}
-              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
       )}
 
-      {/* Autoplay toggle button */}
+      {/* ================= Play / Pause ================= */}
       {slideCount > 1 && (
         <button
-          onClick={toggleAutoplay}
-          className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full shadow-lg z-10 transition-colors duration-300"
-          aria-label={isPlaying ? "Pause slideshow" : "Play slideshow"}
+          onClick={() => setIsPlaying(!isPlaying)}
+          className="absolute top-4 right-4
+                     bg-black/50 dark:bg-white/20
+                     hover:bg-black/70 dark:hover:bg-white/30
+                     text-white p-2 rounded-full shadow-lg z-10"
         >
-          {isPlaying ? (
-            <span className="flex items-center justify-center w-6 h-6">⏸️</span>
-          ) : (
-            <span className="flex items-center justify-center w-6 h-6">▶️</span>
-          )}
+          {isPlaying ? "⏸️" : "▶️"}
         </button>
       )}
 
-      {/* Progress bar */}
+      {/* ================= Progress Bar ================= */}
       {slideCount > 1 && isPlaying && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent z-10">
+        <div className="absolute bottom-0 left-0 right-0 h-1
+                        bg-white/30 dark:bg-gray-700">
           <div
-            className="h-full bg-white transition-all duration-5000 ease-linear"
+            className="h-full bg-white dark:bg-gray-300 transition-all duration-[5000ms]"
             style={{
-              width: `${(selectedIndex + 1) * (100 / slideCount)}%`,
-              animation: "progress 5s linear infinite",
+              width: `${((selectedIndex + 1) / slideCount) * 100}%`,
             }}
           />
         </div>

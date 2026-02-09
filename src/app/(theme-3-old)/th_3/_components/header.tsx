@@ -26,6 +26,7 @@ import { prepareDomain } from "@/lib/utils"
 import { ICategoriesApiResponse, ICategory } from "../types/categories"
 import { CartPopover } from "./carts/cart-popover"
 import { useCartStore } from "@/lib/cart"
+import ThemeToggle from "./ThemeToggle"
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
@@ -119,72 +120,83 @@ export default function Header() {
     <>
       {/* ================= MAIN HEADER ================= */}
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? "bg-white shadow-lg" : "bg-white shadow-sm"}`}
+        className={`sticky top-0 z-50 transition-all
+      ${isScrolled ? "shadow-lg" : "shadow-sm"}
+      bg-white dark:bg-gray-900`}
       >
-        {/* ================= DESKTOP HEADER ================= */}
+        {/* ================= DESKTOP ================= */}
         <div className="hidden lg:block">
-          {/* Top Row */}
+          {/* TOP BAR */}
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
               <div className="relative w-12 h-12">
                 <Image
                   src={domain?.shop_logo || "/placeholder.png"}
-                  alt="ShopHub Logo"
+                  alt="Logo"
                   fill
                   className="object-contain"
                 />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {domain?.name}
-                </h1>
-              </div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {domain?.name || "ShopHub"}
+              </h1>
             </Link>
 
-            {/* Search Bar */}
-            <div className="flex-1 max-w-2xl mx-8">
-              <div className="relative dropdown">
-                <div className="flex border-2  border-[#3bb77e] rounded-full overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                  <input
-                    type="text"
-                    placeholder="Search for products, brands, and categories..."
-                    className="flex-1 px-6 py-3 outline-none"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setIsSearchOpen(true)}
-                  />
-                  <button className="bg-[#3bb77e] hover:bg-green-700 px-6 text-white transition-colors">
-                    <Search size={20} />
-                  </button>
-                </div>
-
-                {/* Search Suggestions */}
-                {isSearchOpen && searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border p-4 z-50">
-                    <div className="mb-4">
-                      <h3 className="font-semibold text-gray-700 mb-2">
-                        Popular Searches
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {searchSuggestions.map((suggestion, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setSearchQuery(suggestion)}
-                            className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-sm transition-colors"
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+            {/* Search */}
+            <div className="flex-1 max-w-2xl mx-8 relative">
+              <div className="flex rounded-full border-2 border-[#3bb77e]
+                            bg-white dark:bg-gray-800 overflow-hidden">
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchOpen(true)}
+                  onBlur={() => setTimeout(() => setIsSearchOpen(false), 150)}
+                  placeholder="Search products..."
+                  className="flex-1 px-6 py-3 bg-transparent outline-none
+                           text-gray-900 dark:text-white
+                           placeholder-gray-400"
+                />
+                <button className="px-6 bg-[#3bb77e] text-white">
+                  <Search size={20} />
+                </button>
               </div>
+
+              {isSearchOpen && searchQuery && (
+                <div className="absolute top-full mt-2 w-full
+                              bg-white dark:bg-gray-800
+                              border border-gray-200 dark:border-gray-700
+                              rounded-xl shadow-xl p-4 z-50">
+                  <h3 className="mb-2 text-gray-700 dark:text-gray-300 font-semibold">
+                    Popular Searches
+                  </h3>
+                  <div className="flex gap-2 flex-wrap">
+                    {searchSuggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setSearchQuery(s)}
+                        className="px-3 py-1.5 rounded-full text-sm
+                                 bg-gray-100 dark:bg-gray-700
+                                 text-gray-900 dark:text-white
+                                 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Right Actions */}
-            <div className="flex items-center gap-6">
+            {/* Actions */}
+            <div className="flex items-center gap-4">
+              <select className="px-3 py-2 rounded-lg
+                               bg-gray-100 dark:bg-gray-800
+                               text-gray-900 dark:text-white">
+                <option>EN</option>
+                <option>BN</option>
+              </select>
+              <ThemeToggle />
               <CartPopover
                 isCartOpen={isCartOpen}
                 setIsCartOpen={setIsCartOpen}
@@ -192,232 +204,105 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Navigation Row */}
-          <div className="border-t">
-            <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-              {/* Categories Dropdown */}
-              <div className="relative dropdown">
+          {/* NAV BAR */}
+          <div className="border-t border-gray-200 dark:border-gray-800">
+            <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+              {/* Categories */}
+              <div className="relative">
                 <button
                   onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                  className="flex items-center gap-3 bg-[#3bb77e] hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-6 py-3
+                           bg-[#3bb77e] text-white rounded-lg"
                 >
-                  <MenuIcon className="w-5 h-5" />
-                  <span className="font-semibold">All Categories</span>
-                  <ChevronDown className="w-4 h-4" />
+                  <Menu size={18} />
+                  All Categories
+                  <ChevronDown size={16} />
                 </button>
 
-                {/* Categories Mega Menu */}
                 {isCategoriesOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-[800px] bg-white rounded-xl shadow-2xl border z-50 p-6">
-                    <div className="grid grid-cols-2 gap-6">
-                      {categories?.map((category) => (
+                  <div className="absolute top-full mt-2 w-[700px]
+                                bg-white dark:bg-gray-800
+                                border dark:border-gray-700
+                                rounded-xl shadow-xl p-6 z-50">
+                    <div className="grid grid-cols-2 gap-4">
+                      {categories?.map((c: any) => (
                         <Link
-                          key={category.id}
-                          href={`/category/${category.id}`}
-                          className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors group"
+                          key={c.id}
+                          href={`/category/${c.id}`}
+                          className="flex justify-between items-center p-3
+                                   hover:bg-gray-50 dark:hover:bg-gray-700
+                                   rounded-lg text-gray-900 dark:text-white"
                         >
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900 group-hover:text-green-600">
-                              {category.name}
-                            </div>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-green-600" />
+                          {c.name}
+                          <ChevronRight size={18} />
                         </Link>
                       ))}
-                    </div>
-                    <div className="mt-6 pt-6 border-t">
-                      <Link
-                        href="/all-categories"
-                        className="text-green-600 hover:text-green-700 font-semibold flex items-center gap-2"
-                      >
-                        View All Categories <ChevronRight className="w-4 h-4" />
-                      </Link>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Main Navigation */}
-              <nav className="flex items-center gap-8">
-                <Link
-                  href="/"
-                  className="font-medium text-gray-700 hover:text-green-600 transition-colors"
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/shop"
-                  className="font-medium text-gray-700 hover:text-green-600 transition-colors"
-                >
-                  Shop
-                </Link>
-
-                <Link
-                  href="/about"
-                  className="font-medium text-gray-700 hover:text-green-600 transition-colors"
-                >
-                  About Us
-                </Link>
+              {/* Links */}
+              <nav className="flex gap-8">
+                {["Home", "Shop", "About Us"].map((item) => (
+                  <Link
+                    key={item}
+                    href={`/${item.toLowerCase().replace(" ", "")}`}
+                    className="text-gray-700 dark:text-gray-300
+                             hover:text-green-600 font-medium"
+                  >
+                    {item}
+                  </Link>
+                ))}
               </nav>
 
-              {/* Support Info */}
+              {/* Support */}
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <div className="font-semibold text-gray-900">
+                  <div className="font-semibold text-gray-900 dark:text-white">
                     24/7 Support
                   </div>
-                  <div className="text-sm text-gray-500">{domain?.phone}</div>
+                  <div className="text-sm text-gray-500">
+                    {domain?.phone}
+                  </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <Facebook className="w-5 h-5 text-gray-600 hover:text-blue-600 cursor-pointer transition-colors" />
-                  <Instagram className="w-5 h-5 text-gray-600 hover:text-pink-600 cursor-pointer transition-colors" />
-                  <Youtube className="w-5 h-5 text-gray-600 hover:text-red-600 cursor-pointer transition-colors" />
+                <div className="flex gap-4">
+                  <Facebook className="text-gray-600 dark:text-gray-400" />
+                  <Instagram className="text-gray-600 dark:text-gray-400" />
+                  <Youtube className="text-gray-600 dark:text-gray-400" />
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ================= MOBILE HEADER ================= */}
-        <div className="lg:hidden">
-          {/* Top Bar */}
-          <div className="px-4 py-3 flex items-center justify-between bg-white border-b">
-            {/* Logo and Menu */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
-              </button>
-              <Link href="/" className="flex items-center gap-2">
-                <div className="relative w-8 h-8">
-                  <Image
-                    src={domain?.shop_logo || "/placeholder.png"}
-                    alt="Logo"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <span className="text-xl font-bold text-gray-900">
-                  {domain?.name}
-                </span>
-              </Link>
-            </div>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-4">
-              <button onClick={() => setIsSearchOpen(!isSearchOpen)}>
-                <Search className="w-6 h-6 text-gray-600" />
-              </button>
-            </div>
+        {/* ================= MOBILE ================= */}
+        <div className="lg:hidden bg-white dark:bg-gray-900">
+          <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-800">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              {isMobileMenuOpen ? <X /> : <Menu />}
+            </button>
+            <span className="font-bold text-gray-900 dark:text-white">
+              {domain?.name}
+            </span>
+            <ShoppingCart />
           </div>
 
-          {/* Mobile Search */}
-          {isSearchOpen && (
-            <div className="px-4 py-3 border-b bg-white">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className="flex-1 border rounded-lg px-4 py-2 outline-none"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button className="bg-green-600 text-white px-4 rounded-lg">
-                  <Search className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="fixed inset-0 top-16 bg-white z-40 overflow-y-auto">
-              {/* Menu Items */}
-              <div className="p-4">
-                <nav className="space-y-1">
-                  <Link
-                    href="/"
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg"
-                  >
-                    <Home className="w-5 h-5" />
-                    <span>Home</span>
-                  </Link>
-                  <button
-                    onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                    className="flex items-center justify-between w-full p-3 hover:bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <MenuIcon className="w-5 h-5" />
-                      <span>Categories</span>
-                    </div>
-                    <ChevronDown
-                      className={`w-5 h-5 transition-transform ${isCategoriesOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  <Link
-                    href="/shop"
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg"
-                  >
-                    <Store className="w-5 h-5" />
-                    <span>Shop</span>
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg"
-                  >
-                    <User className="w-5 h-5" />
-                    <span>About Us</span>
-                  </Link>
-                </nav>
-
-                {/* Social Links */}
-                <div className="mt-8 pt-6 border-t">
-                  <div className="flex justify-center gap-6">
-                    <Facebook className="w-6 h-6 text-gray-600" />
-                    <Instagram className="w-6 h-6 text-gray-600" />
-                    <Youtube className="w-6 h-6 text-gray-600" />
-                  </div>
-                </div>
-              </div>
+            <div className="p-4 space-y-2">
+              {["Home", "Shop", "About Us"].map((item) => (
+                <Link
+                  key={item}
+                  href="/"
+                  className="block p-3 rounded-lg
+                           hover:bg-gray-100 dark:hover:bg-gray-800
+                           text-gray-900 dark:text-white"
+                >
+                  {item}
+                </Link>
+              ))}
             </div>
           )}
-
-          {/* Bottom Navigation */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-30">
-            <div className="flex justify-around py-3">
-              <Link
-                href="/"
-                className="flex flex-col items-center text-green-600"
-              >
-                <Home className="w-6 h-6" />
-                <span className="text-xs mt-1">Home</span>
-              </Link>
-              <button
-                onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                className="flex flex-col items-center text-gray-600"
-              >
-                <MenuIcon className="w-6 h-6" />
-                <span className="text-xs mt-1">Categories</span>
-              </button>
-              <Link
-                href="/checkout"
-                className="flex flex-col items-center text-gray-600 relative"
-              >
-                <ShoppingCart className="w-6 h-6" />
-                <span className="text-xs mt-1">Cart</span>
-                <span className="absolute -top-1 -right-2 bg-green-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {totals?.itemCount}
-                </span>
-              </Link>
-            </div>
-          </div>
         </div>
       </header>
     </>

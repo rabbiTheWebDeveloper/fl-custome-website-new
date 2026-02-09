@@ -5,6 +5,7 @@ import "./globals.css"
 import FooterUI from "./th_3/_components/footer"
 import { Toaster } from "@/components/ui/sonner"
 import dynamic from "next/dynamic"
+import { Providers } from "./th_3/providers"
 const Header = dynamic(() => import('./th_3/_components/header'), { ssr: true })
 export const metadata: Metadata = {
   title: "My App",
@@ -24,14 +25,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${ab.variable} antialiased`}>
       <body data-new-gr-c-s-check-loaded="14.1271.0" data-gr-ext-installed="" cz-shortcut-listen="true">
-        <NextIntlClientProvider>
-          <div style={{ display: "contents" }}>
-            <Header />
-            {children}
-            <FooterUI />
-          </div>
-        </NextIntlClientProvider>
-        <Toaster />
+        <Providers>
+          <NextIntlClientProvider>
+            <div style={{ display: "contents" }}>
+              <Header />
+              {children}
+              <FooterUI />
+            </div>
+          </NextIntlClientProvider>
+          <Toaster />
+        </Providers>
       </body>
     </html>
   )

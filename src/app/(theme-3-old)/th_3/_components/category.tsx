@@ -115,15 +115,16 @@ export default function Category() {
   }
 
   return (
-    <section className="py-8 bg-gray-50">
+    <section className="py-8 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        {/* Title */}
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">
           Browse Categories
         </h2>
 
         <div className="relative">
-          {/* Carousel */}
-          <div className="overflow-hidden" ref={emblaRef}>
+          {/* ================= Carousel ================= */}
+          <div ref={emblaRef} className="overflow-hidden">
             <div className="flex gap-4 py-2">
               {slides.map((item, index) => (
                 <div
@@ -133,17 +134,18 @@ export default function Category() {
                     flex-shrink-0
                     sm:w-[160px]
                     md:w-[180px]
-                    bg-white
+                    bg-white dark:bg-gray-800
                     rounded-xl
                     p-4
                     text-center
-                    border
-                    hover:shadow-lg
+                    border border-gray-200 dark:border-gray-700
+                    hover:shadow-lg dark:hover:shadow-black/40
                     transition
                   "
                 >
                   {/* Image */}
-                  <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden bg-gray-100">
+                  <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden
+                                  bg-gray-100 dark:bg-gray-700">
                     <Image
                       src={item.image}
                       alt={item.displayName}
@@ -157,14 +159,17 @@ export default function Category() {
 
                   {/* Title */}
                   <Link href={item.href}>
-                    <h5 className="text-sm font-semibold text-gray-800 hover:text-blue-600 line-clamp-2 h-10">
+                    <h5 className="text-sm font-semibold
+                                   text-gray-800 dark:text-gray-100
+                                   hover:text-blue-600 dark:hover:text-blue-400
+                                   line-clamp-2 h-10">
                       {truncate(item.displayName)}
                     </h5>
                   </Link>
 
                   {/* Sub-category count */}
                   {item.sub_categories?.length > 0 && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {item.sub_categories.length} sub-categories
                     </p>
                   )}
@@ -173,18 +178,24 @@ export default function Category() {
             </div>
           </div>
 
-          {/* Arrows */}
+          {/* ================= Arrows ================= */}
           {snapCount > 1 && (
             <>
               <button
                 onClick={() => emblaApi?.scrollPrev()}
-                className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2
+                           bg-white dark:bg-gray-800
+                           text-gray-800 dark:text-gray-100
+                           p-2 rounded-full shadow hover:scale-110 transition"
               >
                 ◀
               </button>
               <button
                 onClick={() => emblaApi?.scrollNext()}
-                className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2
+                           bg-white dark:bg-gray-800
+                           text-gray-800 dark:text-gray-100
+                           p-2 rounded-full shadow hover:scale-110 transition"
               >
                 ▶
               </button>
@@ -192,7 +203,7 @@ export default function Category() {
           )}
         </div>
 
-        {/* Pagination */}
+        {/* ================= Pagination ================= */}
         {snapCount > 1 && (
           <div className="flex justify-center gap-2 mt-6">
             {Array.from({ length: snapCount }).map((_, index) => (
@@ -201,8 +212,8 @@ export default function Category() {
                 onClick={() => emblaApi?.scrollTo(index)}
                 className={`h-2 rounded-full transition-all ${
                   selectedIndex === index
-                    ? "bg-blue-600 w-6"
-                    : "bg-gray-300 w-2"
+                    ? "bg-blue-600 dark:bg-blue-400 w-6"
+                    : "bg-gray-300 dark:bg-gray-600 w-2"
                 }`}
               />
             ))}

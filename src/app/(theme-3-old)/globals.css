@@ -2,7 +2,9 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-
+body {
+  @apply bg-white text-black dark:bg-gray-900 dark:text-white;
+}
 :root {
   --background: oklch(0.9842 0.0034 247.8575);
   --foreground: oklch(0.2795 0.0368 260.031);

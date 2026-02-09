@@ -30,19 +30,21 @@ const MiddleBanner = () => {
     getBanners()
   }, [domain?.shop_id])
   return (
-    <section className="py-8 bg-gray-50">
+   <section className="py-8 bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {banners?.map((banner) => (
             <Link
               key={banner.id}
               href={banner.link}
-              className="block overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+              className="block overflow-hidden rounded-xl shadow-lg
+                         hover:shadow-xl transition-shadow duration-300
+                         bg-white dark:bg-gray-800"
             >
-              <div className="relative w-full aspect-[16/9] bg-gray-200">
+              <div className="relative w-full aspect-[16/9] bg-gray-200 dark:bg-gray-700">
                 <Image
                   src={banner.image}
-                  alt={banner.image}
+                  alt={`Banner ${banner.id}`}
                   fill
                   style={{ objectFit: "cover" }}
                   className="transition-transform duration-300 hover:scale-105"
