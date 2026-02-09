@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { getDomainHeadersFromCookies } from "./checkout"
+import { useCart } from "@/lib/cart"
 
 interface CheckoutOtpProps {
   show: boolean
@@ -36,7 +37,7 @@ const CheckoutOtp: React.FC<CheckoutOtpProps> = ({
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
   const [loading, setLoading] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-
+  const { clearCart } = useCart()
   useEffect(() => {
     if (show) {
       // Reset OTP and focus when modal opens
@@ -112,6 +113,7 @@ const CheckoutOtp: React.FC<CheckoutOtpProps> = ({
       )
 
       if (res?.data?.data?.otp_verified) {
+        clearCart()
         window.location.href = `/order-successfull/${res.data.data.id}`
       } else {
         toast.error("Invalid OTP")

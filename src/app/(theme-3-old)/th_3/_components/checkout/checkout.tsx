@@ -167,7 +167,7 @@ const paymentMethods = [
 
 const Checkout = () => {
   const router = useRouter()
-  const { updateItem, removeItem } = useCart()
+  const { updateItem, removeItem ,clearCart } = useCart()
   const items = useCartStore((state) => state.items)
   const cartTotals = useCartStore((state) => state.totals)
   const tValidation = useTranslations("Theme2.checkout.validation")
@@ -746,9 +746,11 @@ const Checkout = () => {
       if (response.data && typeof response.data === "object") {
         if (responseOrderData?.order?.id) {
           toast.success("Order placed successfully")
+          clearCart()
           router.push(`/order-successfull/${responseOrderData?.order?.id}`)
         } else if (responseOrderData?.payment_url) {
           router.push(responseOrderData?.payment_url)
+          clearCart()
         } else if (order?.otp_sent) {
           toast.success("OTP sent successfully")
           setTimeLeft(120)
