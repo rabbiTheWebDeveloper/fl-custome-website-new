@@ -77,6 +77,20 @@ const LandingOrder = ({
   const [selectedPayment, setSelectedPayment] = useState<"cod" | "bkash">("cod")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+
+  // Early return if product is undefined
+  if (!product) {
+    return (
+      <div className="py-12 min-h-screen flex items-center justify-center" style={{ backgroundColor }}>
+        <div className="text-center">
+          <p className="text-xl font-semibold" style={{ color: fontColor }}>
+            Product information is not available
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   // For products WITHOUT variants
   const [simpleProductQuantity, setSimpleProductQuantity] = useState<number>(1)
   // For products WITH variants
