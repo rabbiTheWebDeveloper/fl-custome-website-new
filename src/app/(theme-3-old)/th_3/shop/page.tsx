@@ -2,21 +2,14 @@ import { cookies } from "next/headers"
 import Shop from "../_components/shop"
 import { IProductsApiResponse } from "../types/product"
 import { api } from "@/lib/api-client"
+import { getDomainHeaders } from "@/lib/domain"
 
 const ShopPage = async () => {
-  const cookie = cookies()
-  const domain = (await cookie).get("domain")?.value || ""
-  const shopId = JSON?.parse(domain).state.domain.shop_id
-  const userId = JSON?.parse(domain).state.domain.id
-  const response = await api.getTyped<
-    "/customer/products",
-    IProductsApiResponse
-  >("/customer/products", {
-    headers: {
-      "shop-id": shopId,
-      "user-id": userId,
-    },
-  })
+  const headers = await getDomainHeaders()
+  const { data: response } = await api.get<IProductsApiResponse>(
+    `/customer/products`,
+    { headers }
+  )
 
   const products = response.data
 
