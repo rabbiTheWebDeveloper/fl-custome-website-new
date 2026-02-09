@@ -1,4 +1,852 @@
-<div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+"use client"
+import Image from "next/image"
+import Link from "next/link"
+import { cn } from "@/lib/utils"
+import {
+  Minus,
+  Plus,
+  X,
+  CreditCard,
+  Smartphone,
+  User,
+  Lock,
+  Check,
+  ArrowRight,
+  ShieldCheck,
+  RefreshCw,
+  RotateCcw,
+  Home,
+  TruckIcon,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { useCart, useCartStore } from "@/lib/cart"
+import type { CartItem as StoreCartItem } from "@/lib/cart"
+import React, { useMemo, useEffect, useState, useRef, useCallback } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { api } from "@/lib/api-client"
+import { prepareOrderData, getStoreUrlFromCookie } from "@/lib/order"
+import type { IProduct } from "../../types/product"
+import { ShippingSetting } from "../../types/shipping"
+import { useTranslations } from "next-intl"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import CheckoutOtp from "./checkout-otp"
+import { toast } from "sonner"
+
+// Client-side function to get domain headers from cookies
+export function getDomainHeadersFromCookies(): {
+  "shop-id": string
+  "user-id": string
+} {
+  if (typeof window === "undefined") {
+    return { "shop-id": "", "user-id": "" }
+  }
+
+  try {
+    const domainCookie = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("domain="))
+
+    if (domainCookie) {
+      const cookieValue = domainCookie.substring("domain=".length)
+      let domainValue: string
+      try {
+        domainValue = decodeURIComponent(cookieValue)
+      } catch {
+        domainValue = cookieValue
+      }
+
+      try {
+        const domain = JSON?.parse(domainValue)
+        if (
+          domain &&
+          typeof domain === "object" &&
+          "state" in domain &&
+          domain.state &&
+          typeof domain.state === "object" &&
+          "domain" in domain.state &&
+          domain.state.domain &&
+          typeof domain.state.domain === "object"
+        ) {
+          const domainObj = domain.state.domain as Record<string, unknown>
+          return {
+            "shop-id": domainObj.shop_id ? String(domainObj.shop_id) : "",
+            "user-id": domainObj.id ? String(domainObj.id) : "",
+          }
+        }
+      } catch {
+        // If parsing fails, try regex extraction
+        const shopIdMatch = domainValue.match(
+          /shop_id["\s]*:["\s]*"?([^",}\s]+)"?/
+        )
+        const userIdMatch = domainValue.match(
+          /["\s]*id["\s]*:["\s]*"?([^",}\s]+)"?/
+        )
+        return {
+          "shop-id": shopIdMatch ? shopIdMatch[1] : "",
+          "user-id": userIdMatch ? userIdMatch[1] : "",
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("Error parsing domain cookie:", error)
+  }
+
+  return { "shop-id": "", "user-id": "" }
+}
+
+// Function to create Zod schema with localized error messages
+function createCheckoutFormSchema(tValidation: (key: string) => string) {
+  return z.object({
+    fullName: z
+      .string()
+      .min(2, tValidation("fullNameMin"))
+      .max(100, tValidation("fullNameMax"))
+      .regex(/^[a-zA-Z\s'-]+$/, tValidation("fullNameRegex")),
+    phone: z
+      .string()
+      .min(1, tValidation("phoneRequired"))
+      .refine(
+        (val) => {
+          // Remove spaces, hyphens, plus signs, and other formatting characters for validation
+          const cleaned = val.replace(/[\s\-\(\)\+]/g, "")
+
+          // Bangladesh phone number patterns:
+          // 1. 11 digits starting with 01 (e.g., 01712345678)
+          // 2. 880 followed by 10 digits (e.g., 8801712345678)
+          // Mobile prefixes: 013, 014, 015, 016, 017, 018, 019
+          const bangladeshPhoneRegex = /^(880|0)?1[3-9]\d{8}$/
+
+          return bangladeshPhoneRegex.test(cleaned)
+        },
+        {
+          message: tValidation("phoneInvalid"),
+        }
+      ),
+    deliveryAddress: z
+      .string()
+      .min(10, tValidation("deliveryAddressMin"))
+      .max(500, tValidation("deliveryAddressMax")),
+    orderNote: z.string().max(1000, tValidation("orderNoteMax")).optional(),
+    shippingMethod: z.enum(["inside-dhaka", "subarea", "outside-dhaka"], {
+      message: tValidation("shippingMethodRequired"),
+    }),
+    paymentMethod: z.enum(["sslcommerz", "cash-on-delivery", "bkash"], {
+      message: tValidation("paymentMethodRequired"),
+    }),
+  })
+}
+
+type CheckoutFormData = z.infer<ReturnType<typeof createCheckoutFormSchema>>
+
+// Payment methods
+const paymentMethods = [
+  {
+    id: "sslcommerz",
+    name: "sslcommerz",
+    description: "Pay via cards, mobile banking",
+    icon: CreditCard,
+    image: "/sslcommerz.png",
+  },
+  {
+    id: "cash-on-delivery",
+    name: "cash-on-delivery",
+    description: "Pay when you receive the order",
+    icon: TruckIcon,
+  },
+  {
+    id: "bkash",
+    name: "bkash",
+    description: "bKash mobile payment",
+    icon: Smartphone,
+    image: "/bkash.png",
+  },
+]
+
+const Checkout = () => {
+  const router = useRouter()
+  const { updateItem, removeItem ,clearCart } = useCart()
+  const items = useCartStore((state) => state.items)
+  const cartTotals = useCartStore((state) => state.totals)
+  const tValidation = useTranslations("Theme2.checkout.validation")
+  const [timeLeft, setTimeLeft] = useState(0)
+  const [shippingSettings, setShippingSettings] =
+    useState<ShippingSetting | null>(null)
+  const [loadingShippingSettings, setLoadingShippingSettings] = useState(true)
+  // Product data cache for items missing metadata
+  const [productDataCache, setProductDataCache] = useState<
+    Map<
+      number,
+      { inside_dhaka: number; outside_dhaka: number; sub_area_charge: number }
+    >
+  >(new Map())
+  const fetchedProductIdsRef = useRef<Set<number>>(new Set())
+
+  const [show, setShow] = useState(false)
+  const handleClose = () => setShow(false)
+  const handleShow = () => setShow(true)
+  const [resendLoading, setResendLoading] = useState(false)
+  // Incomplete order state
+  const [incompleteOrderId, setIncompleteOrderId] = useState<number | null>(
+    null
+  )
+  const incompleteOrderSentRef = useRef(false)
+
+  // Create schema with localized messages
+  const checkoutFormSchema = useMemo(
+    () => createCheckoutFormSchema(tValidation),
+    [tValidation]
+  )
+
+  // Initialize react-hook-form with zod validation
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<CheckoutFormData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(checkoutFormSchema as any),
+    defaultValues: {
+      fullName: "",
+      phone: "",
+      deliveryAddress: "",
+      orderNote: "",
+      shippingMethod: "inside-dhaka",
+      paymentMethod: "bkash",
+    },
+  })
+
+  // Fetch shipping settings on mount
+  useEffect(() => {
+    const fetchShippingSettings = async () => {
+      try {
+        setLoadingShippingSettings(true)
+        const headers = getDomainHeadersFromCookies()
+        const response = await api.get("/customer/shipping-setting/show", {
+          headers,
+        })
+
+        // Check if data exists and is not empty string
+        // API response structure: response.data.data or response.data
+        let shippingData: unknown = null
+
+        if (response.data && typeof response.data === "object") {
+          // Check if it's nested: { data: {...} }
+          if ("data" in response.data && response.data.data !== undefined) {
+            const nestedData = (response.data as { data: unknown }).data
+            // Skip if empty string
+            if (nestedData !== "" && nestedData !== null) {
+              shippingData = nestedData
+            }
+          } else if ("inside" in response.data || "outside" in response.data) {
+            // Direct response with shipping fields
+            shippingData = response.data
+          }
+        }
+
+        // Type guard: check if it's a valid ShippingSetting
+        if (
+          shippingData &&
+          typeof shippingData === "object" &&
+          shippingData !== null &&
+          !Array.isArray(shippingData) &&
+          ("inside" in shippingData || "outside" in shippingData)
+        ) {
+          setShippingSettings(shippingData as ShippingSetting)
+        }
+      } catch (error) {
+        console.error("Error fetching shipping settings:", error)
+        // Continue with product-based shipping if API fails
+      } finally {
+        setLoadingShippingSettings(false)
+      }
+    }
+
+    fetchShippingSettings()
+  }, [])
+  // Fetch product data for cart items missing shipping metadata (runs once after shipping settings load)
+  useEffect(() => {
+    if (loadingShippingSettings) return
+    if (items.length === 0) return
+
+    const itemsNeedingData = items.filter((item) => {
+      const productId = Number(item.productId)
+      if (fetchedProductIdsRef.current.has(productId)) return false
+      return !item.metadata?.inside_dhaka || !item.metadata?.outside_dhaka
+    })
+
+    if (itemsNeedingData.length === 0) return
+
+    const fetchMissingProductData = async () => {
+      try {
+        const headers = getDomainHeadersFromCookies()
+        const fetchPromises = itemsNeedingData.map(async (item) => {
+          const productId = Number(item.productId)
+          // Mark as fetched immediately to prevent duplicate calls
+          fetchedProductIdsRef.current.add(productId)
+
+          try {
+            const response = await api.get(`/customer/products/${productId}`, {
+              headers,
+            })
+            const product = (response.data as { data: IProduct }).data
+            if (product) {
+              setProductDataCache((prev) => {
+                const newCache = new Map(prev)
+                newCache.set(productId, {
+                  inside_dhaka: product.inside_dhaka,
+                  outside_dhaka: product.outside_dhaka,
+                  sub_area_charge: product.sub_area_charge,
+                })
+                return newCache
+              })
+            }
+          } catch (error) {
+            // Remove from fetched set so it can be retried
+            fetchedProductIdsRef.current.delete(productId)
+            console.error(`Failed to fetch product ${productId}:`, error)
+          }
+        })
+
+        await Promise.all(fetchPromises)
+      } catch (error) {
+        console.error("Error fetching product data:", error)
+      }
+    }
+
+    fetchMissingProductData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingShippingSettings])
+
+  // Watch shipping and payment methods for real-time updates
+  const shippingMethod = watch("shippingMethod")
+  const paymentMethod = watch("paymentMethod")
+
+  // Watch name and phone for incomplete order check
+  const customerName = watch("fullName")
+  const customerPhone = watch("phone")
+  const customerAddress = watch("deliveryAddress")
+
+  // Format variants as a string for display
+  const formatVariants = (item: StoreCartItem): string | undefined => {
+    if (!item.variants || item.variants.length === 0) {
+      return undefined
+    }
+    return item.variants.map((v) => `${v.key}: ${v.value}`).join(", ")
+  }
+
+  // Helper function to get inside Dhaka price
+  const getInsideDhakaPrice = useMemo(() => {
+    // Priority 1: Use API settings if available
+    if (shippingSettings && shippingSettings.inside) {
+      const apiPrice = parseFloat(shippingSettings.inside)
+      if (!isNaN(apiPrice) && apiPrice > 0) {
+        return apiPrice
+      }
+    }
+
+    // Priority 2: Use product data from cart items (metadata or cache)
+    if (items.length > 0) {
+      const prices = items
+        .map((item) => {
+          // Try metadata first
+          let price = item.metadata?.inside_dhaka as number | undefined
+
+          // If not in metadata, try cache
+          if (!price || price === 0) {
+            const productId = Number(item.productId)
+            const cachedData = productDataCache.get(productId)
+            price = cachedData?.inside_dhaka
+          }
+
+          return price && price > 0 ? price : 0
+        })
+        .filter((price) => price > 0)
+
+      if (prices.length > 0) {
+        return Math.max(...prices)
+      }
+    }
+
+    // Priority 3: Default fallback
+    return 0
+  }, [shippingSettings, items, productDataCache])
+
+  // Helper function to get subarea price
+  const getSubareaPrice = useMemo(() => {
+    // Priority 1: Use API settings if available
+    if (shippingSettings && shippingSettings.subarea) {
+      const apiPrice = parseFloat(shippingSettings.subarea)
+      if (!isNaN(apiPrice) && apiPrice > 0) {
+        return apiPrice
+      }
+    }
+
+    // Priority 2: Use product data from cart items (metadata or cache)
+    if (items.length > 0) {
+      const prices = items
+        .map((item) => {
+          // Try metadata first
+          let price = item.metadata?.sub_area_charge as number | undefined
+
+          // If not in metadata, try cache
+          if (!price || price === 0) {
+            const productId = Number(item.productId)
+            const cachedData = productDataCache.get(productId)
+            price = cachedData?.sub_area_charge
+          }
+
+          return price && price > 0 ? price : 0
+        })
+        .filter((price) => price > 0)
+
+      if (prices.length > 0) {
+        return Math.max(...prices)
+      }
+    }
+
+    // Priority 3: Default fallback
+    return 0
+  }, [shippingSettings, items, productDataCache])
+
+  // Helper function to get outside Dhaka price
+  const getOutsideDhakaPrice = useMemo(() => {
+    // Priority 1: Use API settings if available
+    if (shippingSettings && shippingSettings.outside) {
+      const apiPrice = parseFloat(shippingSettings.outside)
+      if (!isNaN(apiPrice) && apiPrice > 0) {
+        return apiPrice
+      }
+    }
+
+    // Priority 2: Use product data from cart items (metadata or cache)
+    if (items.length > 0) {
+      const prices = items
+        .map((item) => {
+          // Try metadata first
+          let price = item.metadata?.outside_dhaka as number | undefined
+
+          // If not in metadata, try cache
+          if (!price || price === 0) {
+            const productId = Number(item.productId)
+            const cachedData = productDataCache.get(productId)
+            price = cachedData?.outside_dhaka
+          }
+
+          return price && price > 0 ? price : 0
+        })
+        .filter((price) => price > 0)
+
+      if (prices.length > 0) {
+        return Math.max(...prices)
+      }
+    }
+
+    // Priority 3: Default fallback
+    return 0
+  }, [shippingSettings, items, productDataCache])
+  const shippingCost = useMemo(() => {
+    if (loadingShippingSettings) {
+      return 0 // Return 0 while loading to avoid showing incorrect values
+    }
+
+    if (shippingMethod === "inside-dhaka") {
+      return getInsideDhakaPrice
+    } else if (shippingMethod === "subarea") {
+      return getSubareaPrice
+    } else if (shippingMethod === "outside-dhaka") {
+      return getOutsideDhakaPrice
+    }
+    return 0
+  }, [
+    shippingMethod,
+    getInsideDhakaPrice,
+    getSubareaPrice,
+    getOutsideDhakaPrice,
+    loadingShippingSettings,
+  ])
+  const finalTotals = useMemo(() => {
+    const subtotal = cartTotals.subtotal
+    const discount = cartTotals.discount || 0
+    const tax = cartTotals.tax || 0
+    const total = subtotal - discount + tax + shippingCost
+    return {
+      subtotal,
+      discount,
+      tax,
+      shipping: shippingCost,
+      total,
+    }
+  }, [cartTotals.subtotal, cartTotals.discount, cartTotals.tax, shippingCost])
+
+  // Create incomplete order function (uses refs to read latest values without re-creating)
+  const itemsRef = useRef(items)
+  itemsRef.current = items
+  const customerNameRef = useRef(customerName)
+  customerNameRef.current = customerName
+  const customerPhoneRef = useRef(customerPhone)
+  customerPhoneRef.current = customerPhone
+  const customerAddressRef = useRef(customerAddress)
+  customerAddressRef.current = customerAddress
+  const finalTotalsRef = useRef(finalTotals)
+  finalTotalsRef.current = finalTotals
+
+  const createIncompleteOrder = useCallback(
+    async (shopId: string, userId: string) => {
+      if (itemsRef.current.length === 0) return
+
+      try {
+        const orderPayload = {
+          customer_name: customerNameRef.current || "",
+          customer_phone: customerPhoneRef.current,
+          customer_address: customerAddressRef.current || "",
+          order_type: "website",
+          products: itemsRef.current.map((item) => ({
+            product_id: item.productId,
+            variant_id:
+              item.variants && item.variants.length > 0
+                ? Number(item.variants[0]?.attributeId || 0)
+                : 0,
+            qty: item.quantity,
+            subtotal: (item.discountedPrice ?? item.price) * item.quantity,
+          })),
+          grand_total: finalTotalsRef.current.total,
+        }
+
+        const response = await api.post(
+          "/customer/incomplete-order",
+          orderPayload,
+          {
+            headers: {
+              "shop-id": shopId,
+              "user-id": userId,
+            },
+          }
+        )
+
+        const responseData = response.data as {
+          success: boolean
+          data: {
+            incomplete_order_id: number
+          }
+        }
+        console.log("Incomplete order created:", responseData)
+
+        if (responseData.success && responseData.data?.incomplete_order_id) {
+          setIncompleteOrderId(responseData.data.incomplete_order_id)
+        }
+      } catch (error) {
+        console.error("Error creating incomplete order:", error)
+      }
+    },
+    [] // stable — reads from refs
+  )
+
+  // Check incomplete order status ONCE when name and phone are first entered
+  useEffect(() => {
+    // Already sent once — skip
+    if (incompleteOrderSentRef.current) return
+
+    // Only check if both name and phone are filled
+    if (
+      !customerName ||
+      !customerPhone ||
+      customerName.length < 2 ||
+      customerPhone.length < 10
+    ) {
+      return
+    }
+
+    const checkIncompleteOrderStatus = async () => {
+      // Get shop ID from cookies
+      const headers = getDomainHeadersFromCookies()
+      const shopId = headers["shop-id"]
+
+      if (!shopId) return
+
+      try {
+        const response = await api.get(`/incomplete-order/status/${shopId}`, {
+          headers,
+        })
+
+        const responseData = response.data as {
+          success: boolean
+          data: {
+            shop_id: number
+            incomplete_order_status: number
+          }
+        }
+
+        if (responseData.success && responseData.data) {
+          const status = responseData.data.incomplete_order_status
+
+          if (status === 1) {
+            await createIncompleteOrder(headers["shop-id"], headers["user-id"])
+          } else {
+            setIncompleteOrderId(null)
+          }
+        }
+      } catch (error) {
+        console.error("Error checking incomplete order status:", error)
+      }
+
+      // Mark as done regardless of outcome — only fires once
+      incompleteOrderSentRef.current = true
+    }
+
+    // Debounce the check
+    const timeoutId = setTimeout(checkIncompleteOrderStatus, 500)
+    return () => clearTimeout(timeoutId)
+  }, [customerName, customerPhone, createIncompleteOrder])
+
+  const onSubmit = async (data: CheckoutFormData) => {
+    if (items.length === 0) {
+      return
+    }
+
+    try {
+      // Get store URL from cookie
+      const storeUrl = getStoreUrlFromCookie()
+
+      // Prepare order data
+      console.log(
+        "Submitting order with incomplete_order_id:",
+        incompleteOrderId
+      )
+      const orderData = prepareOrderData({
+        formData: {
+          customer_name: data.fullName,
+          customer_phone: data.phone,
+          customer_address: data.deliveryAddress,
+          customer_note: data.orderNote || undefined,
+        },
+        items,
+        shippingMethod: data.shippingMethod as "inside_dhaka" | "outside_dhaka",
+        paymentMethod: data.paymentMethod,
+        storeUrl: storeUrl || "fldemo.store",
+        visitorId: "1234567890",
+        incomplete_order_id: incompleteOrderId ?? undefined,
+        shipping_cost: shippingCost,
+      })
+
+      // Debug: Check if incomplete_order_id is in FormData
+      if (incompleteOrderId) {
+        console.log(
+          "incomplete_order_id should be included:",
+          incompleteOrderId
+        )
+        const formDataEntries = Array.from(orderData.entries())
+        const hasIncompleteOrderId = formDataEntries.some(
+          ([key]) => key === "incomplete_order_id"
+        )
+        console.log("incomplete_order_id in FormData:", hasIncompleteOrderId)
+        console.log(
+          "All FormData entries:",
+          formDataEntries.map(([key]) => key)
+        )
+      }
+
+      // Get shop-id and user-id from cookies for headers
+      let shopId: string | undefined
+      let userId: string | undefined
+
+      try {
+        const domainCookie = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("domain="))
+
+        if (domainCookie) {
+          // Handle cookie value that might contain = signs
+          const cookieValue = domainCookie.substring("domain=".length)
+
+          // Try to decode the value
+          let domainValue: string
+          try {
+            domainValue = decodeURIComponent(cookieValue)
+          } catch {
+            // If decode fails, use raw value
+            domainValue = cookieValue
+          }
+
+          // Try to parse JSON with better error handling
+          let domain: unknown
+          try {
+            domain = JSON?.parse(domainValue)
+          } catch (parseError) {
+            console.warn("Failed to parse domain cookie as JSON:", parseError)
+            // Try to extract values from potentially malformed JSON
+            const shopIdMatch = domainValue.match(
+              /shop_id["\s]*:["\s]*"?([^",}\s]+)"?/
+            )
+            const userIdMatch = domainValue.match(
+              /["\s]*id["\s]*:["\s]*"?([^",}\s]+)"?/
+            )
+            if (shopIdMatch) shopId = shopIdMatch[1]
+            if (userIdMatch) userId = userIdMatch[1]
+            // If we couldn't extract, continue without them
+            if (!shopId && !userId) {
+              throw parseError
+            }
+          }
+
+          // Type guard for domain structure
+          if (
+            domain &&
+            typeof domain === "object" &&
+            "state" in domain &&
+            domain.state &&
+            typeof domain.state === "object" &&
+            "domain" in domain.state &&
+            domain.state.domain &&
+            typeof domain.state.domain === "object"
+          ) {
+            const domainObj = domain.state.domain as Record<string, unknown>
+            shopId = domainObj.shop_id ? String(domainObj.shop_id) : shopId
+            userId = domainObj.id ? String(domainObj.id) : userId
+          }
+        }
+      } catch (error) {
+        console.warn("Error parsing domain cookie for headers:", error)
+        // Continue without shop-id and user-id if parsing fails
+      }
+
+      // Submit order to API
+      const response = await api.post(
+        "/customer/order/store",
+        orderData,
+        undefined,
+        {
+          headers: {
+            ...(shopId && { "shop-id": String(shopId) }),
+            ...(userId && { "user-id": String(userId) }),
+          },
+        }
+      )
+
+      // Type assertion for the response data
+      const responseData = response?.data as {
+        message?: string
+        order?: {
+          id?: number
+          otp_sent?: boolean
+        }
+        data?: {
+          order?: {
+            id?: number
+          }
+          payment_url?: string
+        }
+      }
+
+      const { order, data: responseOrderData } = responseData
+      if (response.data && typeof response.data === "object") {
+        if (responseOrderData?.order?.id) {
+          toast.success("Order placed successfully")
+          clearCart()
+          router.push(`/order-successfull/${responseOrderData?.order?.id}`)
+        } else if (responseOrderData?.payment_url) {
+          router.push(responseOrderData?.payment_url)
+          clearCart()
+        } else if (order?.otp_sent) {
+          toast.success("OTP sent successfully")
+          setTimeLeft(120)
+          handleShow()
+          // router.push(`/order-successfull/${order?.id}`)
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting order:", error)
+      throw error // Re-throw to let react-hook-form handle it
+    }
+  }
+
+  const handleQuantityChange = async (itemId: string, newQuantity: number) => {
+    await updateItem(itemId, { quantity: newQuantity })
+  }
+
+  const handleRemoveProduct = async (itemId: string) => {
+    await removeItem(itemId)
+  }
+  const shippingMethods = [
+    {
+      id: "inside-dhaka",
+      label: "Inside Dhaka",
+      price: loadingShippingSettings ? 0 : getInsideDhakaPrice,
+    },
+    {
+      id: "outside-dhaka",
+      label: "Outside Dhaka",
+      price: loadingShippingSettings ? 0 : getOutsideDhakaPrice,
+    },
+    {
+      id: "subarea",
+      label: "Sub Area",
+      price: loadingShippingSettings ? 0 : getSubareaPrice,
+    },
+  ]
+
+  const handleResendOtp = async () => {
+    setResendLoading(true)
+    const headers = getDomainHeadersFromCookies()
+    const shopId = headers["shop-id"]
+    try {
+      const res = await api.post(
+        "/customer/resend-otp",
+        { phone: customerPhone },
+        undefined,
+        {
+          headers: {
+            ...(shopId && { "shop-id": shopId }),
+          },
+        }
+      )
+      const responseData = res.data as {
+        data: {
+          otp_sent: boolean
+        }
+      }
+      if (responseData.data.otp_sent) {
+        toast.success("OTP sent successfully")
+        setTimeLeft(120)
+      }
+    } catch (error) {
+      console.error("Error resending OTP:", error)
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!timeLeft) return
+    const intervalId = setInterval(() => {
+      setTimeLeft(timeLeft - 1)
+    }, 1000)
+    return () => clearInterval(intervalId)
+  }, [show, timeLeft])
+
+  // Show empty state if cart is empty
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
+        <p className="text-muted-foreground mb-6">
+          Add some products to your cart to continue checkout.
+        </p>
+        <Button
+          className="bg-[#3BB77E] text-primary-foreground px-4 py-2 rounded-md"
+          asChild
+        >
+          <Link href="/shop">{"continueShopping"}</Link>
+        </Button>
+      </div>
+    )
+  }
+  return (
+   <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Progress Bar - Mobile Optimized */}
       <div className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -501,3 +1349,7 @@
         onResendOtp={handleResendOtp}
       />
     </div>
+  )
+}
+
+export default Checkout
