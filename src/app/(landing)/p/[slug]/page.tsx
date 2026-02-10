@@ -61,7 +61,8 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
 
   return (
     <>
-      <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+      <LandingRenderer html={htmlContent} />
+      {/* <div dangerouslySetInnerHTML={{ __html: htmlContent }} /> */}
       <LandingOrder
         product={product}
         backgroundColor={checkout_b_color || "#f7f7f7"}
