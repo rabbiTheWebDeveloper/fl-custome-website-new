@@ -46,7 +46,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
       if (!templateData.ok) {
         // notFound();
       }
-      console.log("Fetching template from:", templateData)
+      // console.log("Fetching template from:", templateData)
       htmlContent = await templateData.text()
     } catch {
       notFound()
@@ -61,7 +61,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
 
   return (
     <>
-      <LandingRenderer html={htmlContent} />
+      <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
       <LandingOrder
         product={product}
         backgroundColor={checkout_b_color || "#f7f7f7"}
