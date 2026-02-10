@@ -30,8 +30,8 @@ export function proxy(request: NextRequest) {
   if (pathname === "/privacy") {
     return NextResponse.rewrite(new URL(`/${theme}/privacy`, request.url))
   }
-  if (pathname === "/shop") {
-    return NextResponse.rewrite(new URL(`/${theme}/shop`, request.url))
+  if (pathname === "/shop/") {
+   new URL(`/${theme}/shop${request.nextUrl.search}`, request.url)
   }
 
   if (pathname === "/checkout") {

@@ -3,8 +3,14 @@ import Shop from "../_components/shop"
 import { IProductsApiResponse } from "../types/product"
 import { api } from "@/lib/api-client"
 import { getDomainHeaders } from "@/lib/domain"
+// http://localhost:3000/shop?page=2
 
-const ShopPage = async () => {
+const ShopPage = async ({ searchParams }: { searchParams: Promise<{ page?: string }> }) => {
+
+    const { page = '1'} = await searchParams
+
+  console.log("currentPage", page);
+
   const headers = await getDomainHeaders()
   const { data: response } = await api.get<IProductsApiResponse>(
     `/customer/products`,
