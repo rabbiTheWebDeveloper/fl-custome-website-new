@@ -7,10 +7,17 @@ import { Toaster } from "@/components/ui/sonner"
 import dynamic from "next/dynamic"
 import { Providers } from "./th_3/providers"
 import { cookies } from "next/headers"
+import { DynamicMeta } from "./th_3/_components/dynamic-meta"
+import { getDomainMeta } from "@/lib/domain"
 const Header = dynamic(() => import('./th_3/_components/header'), { ssr: true })
-export const metadata: Metadata = {
-  title: "Ecommerce Website",
-  description: "Ecommerce Website",
+export async function generateMetadata(): Promise<Metadata> {
+  const { title, description, favicon } = await getDomainMeta()
+
+  return {
+    title: title || "Shop",
+    description: description || "",
+    icons: favicon ? { icon: favicon } : undefined,
+  }
 }
 
 const ab = Inter({
@@ -34,13 +41,15 @@ export default async function RootLayout({
       <body data-new-gr-c-s-check-loaded="14.1271.0" data-gr-ext-installed="" cz-shortcut-listen="true" >
         <Providers>
           <NextIntlClientProvider>
+               <Toaster position="top-center" richColors />
+            <DynamicMeta />
             <div style={{ display: "contents" }}>
               <Header />
               {children}
               <FooterUI />
             </div>
           </NextIntlClientProvider>
-          <Toaster />
+       
         </Providers>
       </body>
     </html>

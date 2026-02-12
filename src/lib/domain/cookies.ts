@@ -65,3 +65,35 @@ export async function getDomainHeaders(): Promise<{
     "user-id": userId,
   }
 }
+
+/**
+ * Extracts site metadata from the domain cookie (persisted by Zustand)
+ * @returns Object with shop_meta_title, shop_meta_description, shop_favicon
+ */
+export async function getDomainMeta(): Promise<{
+  title: string
+  description: string
+  favicon: string
+}> {
+  const cookieStore = await cookies()
+  const raw = cookieStore.get("domain")?.value || ""
+
+  if (!raw) {
+    return { title: "", description: "", favicon: "" }
+  }
+
+  try {
+    const decoded = decodeURIComponent(raw)
+    const parsed = JSON.parse(decoded)
+    const domain = parsed?.state?.domain
+    console.log("domain favicon", domain?.shop_favicon)
+
+    return {
+      title: domain?.shop_meta_title || "",
+      description: domain?.shop_meta_description || "",
+      favicon: domain?.shop_favicon || "",
+    }
+  } catch {
+    return { title: "", description: "", favicon: "" }
+  }
+}

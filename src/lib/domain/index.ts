@@ -1,1 +1,5 @@
-export { getDomainFromCookies, getDomainHeaders } from "./cookies"
+export {
+  getDomainFromCookies,
+  getDomainHeaders,
+  getDomainMeta,
+} from "./cookies"
