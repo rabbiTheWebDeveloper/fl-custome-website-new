@@ -4,9 +4,6 @@ import {
   ShoppingCart,
   Menu,
   Search,
-  Home,
-  Store,
-  User,
   Facebook,
   Instagram,
   Youtube,
@@ -28,6 +25,7 @@ import { CartPopover } from "./carts/cart-popover"
 import { useCartStore } from "@/lib/cart"
 import ThemeToggle from "./ThemeToggle"
 import { LanguageSelector } from "@/app/(theme-2)/th_2/_components/header/language-selector"
+import { useRouter } from "next/navigation"
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
@@ -41,7 +39,7 @@ export default function Header() {
     (state) => state.categories
   )
   const totals = useCartStore((state) => state.totals)
-
+  const router = useRouter()
   const setCategories = useCategories((state) => state.setCategories)
   const setDomainAddress = useDomain((state) => state.setDomainAddress)
   const getCookie = useGetCookie()
@@ -67,17 +65,6 @@ export default function Header() {
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
 
-  // Search suggestions
-  const searchSuggestions = [
-    "Wireless Headphones",
-    "Smart Watch",
-    "Laptop",
-    "Smartphone",
-    "Running Shoes",
-    "Winter Jacket",
-    "Gaming Keyboard",
-    "Coffee Maker",
-  ]
   useEffect(() => {
     const getDomain = async () => {
       const res = await api.getTyped<
@@ -116,7 +103,13 @@ export default function Header() {
       getCategories()
     }
   }, [domain, setCategories])
-  const totalProducts = totals?.itemCount
+
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return
+
+    router.push(`/shop?search=${encodeURIComponent(searchQuery)}`)
+  }
+  console.log(categories, "categories")
   return (
     <>
       {/* ================= MAIN HEADER ================= */}
@@ -158,7 +151,7 @@ export default function Header() {
                            text-gray-900 dark:text-white
                            placeholder-gray-400"
                 />
-                <button className="px-6 bg-[#3bb77e] text-white">
+                <button className="px-6 bg-[#3bb77e] text-white" onClick={handleSearch}>
                   <Search size={20} />
                 </button>
               </div>
@@ -172,16 +165,16 @@ export default function Header() {
                     Popular Searches
                   </h3>
                   <div className="flex gap-2 flex-wrap">
-                    {searchSuggestions.map((s, i) => (
+                    {categories?.map((s) => (
                       <button
-                        key={i}
-                        onClick={() => setSearchQuery(s)}
+                        key={s.id}
+                        onClick={() => setSearchQuery(s.name)}
                         className="px-3 py-1.5 rounded-full text-sm
                                  bg-gray-100 dark:bg-gray-700
                                  text-gray-900 dark:text-white
                                  hover:bg-gray-200 dark:hover:bg-gray-600"
                       >
-                        {s}
+                        {s.name}
                       </button>
                     ))}
                   </div>
@@ -249,7 +242,7 @@ export default function Header() {
                 </Link>
                 <Link
                   href="/shop"
-                   className="text-gray-700 dark:text-gray-300
+                  className="text-gray-700 dark:text-gray-300
                              hover:text-green-600 font-medium"
                 >
                   Shop
@@ -262,7 +255,7 @@ export default function Header() {
                 >
                   About Us
                 </Link>
-               
+
               </nav>
 
               {/* Support */}
