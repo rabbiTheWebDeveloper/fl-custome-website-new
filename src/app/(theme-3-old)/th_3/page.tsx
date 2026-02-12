@@ -9,18 +9,13 @@ import { IProductsApiResponse } from "./types/product"
 
 
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: Promise<{ page?: string }> // <-- important: it's a Promise
-}) {
+export default async function Home({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   // await searchParams before using it
-  const params = await searchParams
-  const currentPage = Number(params?.page ?? 1)
+  const { page = '1'} = await searchParams
 
   const headers = await getDomainHeaders()
   const { data: response } = await api.get<IProductsApiResponse>(
-    `/customer/products?page=${currentPage}`,
+    `/customer/products?page=${page}`,
     { headers }
   )
 

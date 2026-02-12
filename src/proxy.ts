@@ -30,8 +30,10 @@ export function proxy(request: NextRequest) {
   if (pathname === "/privacy") {
     return NextResponse.rewrite(new URL(`/${theme}/privacy`, request.url))
   }
-  if (pathname === "/shop/") {
-   new URL(`/${theme}/shop${request.nextUrl.search}`, request.url)
+  if (pathname === "/shop") {
+    const rewriteUrl = new URL(`/${theme}${pathname}`, request.url)
+    rewriteUrl.search = request.nextUrl.search
+    return NextResponse.rewrite(rewriteUrl)
   }
 
   if (pathname === "/checkout") {
@@ -45,7 +47,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
   }
   if (pathname === "/") {
-    return NextResponse.rewrite(new URL(`/${theme}`, request.url))
+    const rewriteUrl = new URL(`/${theme}${pathname}`, request.url)
+    rewriteUrl.search = request.nextUrl.search
+    return NextResponse.rewrite(rewriteUrl)
   }
 
   // If the condition is not met, let the request proceed to the default '/' page
