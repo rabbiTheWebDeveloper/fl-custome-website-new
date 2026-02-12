@@ -26,7 +26,9 @@ import { useCartStore } from "@/lib/cart"
 import ThemeToggle from "./ThemeToggle"
 import { LanguageSelector } from "@/app/(theme-2)/th_2/_components/header/language-selector"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 export default function Header() {
+    const t = useTranslations("Theme3.header")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
@@ -132,9 +134,7 @@ export default function Header() {
                   className="object-contain"
                 />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {domain?.name || "ShopHub"}
-              </h1>
+            
             </Link>
 
             {/* Search */}
@@ -146,7 +146,7 @@ export default function Header() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchOpen(true)}
                   onBlur={() => setTimeout(() => setIsSearchOpen(false), 150)}
-                  placeholder="Search products..."
+                  placeholder={t("search")}
                   className="flex-1 px-6 py-3 bg-transparent outline-none
                            text-gray-900 dark:text-white
                            placeholder-gray-400"
@@ -162,7 +162,7 @@ export default function Header() {
                               border border-gray-200 dark:border-gray-700
                               rounded-xl shadow-xl p-4 z-50">
                   <h3 className="mb-2 text-gray-700 dark:text-gray-300 font-semibold">
-                    Popular Searches
+                    {t("popularSearches")}
                   </h3>
                   <div className="flex gap-2 flex-wrap">
                     {categories?.map((s) => (
@@ -204,7 +204,7 @@ export default function Header() {
                            bg-[#3bb77e] text-white rounded-lg"
                 >
                   <Menu size={18} />
-                  All Categories
+                  {t("allCategories")}
                   <ChevronDown size={16} />
                 </button>
 
@@ -238,14 +238,14 @@ export default function Header() {
                   className="text-gray-700 dark:text-gray-300
                              hover:text-green-600 font-medium"
                 >
-                  Home
+                  {t("home")}
                 </Link>
                 <Link
                   href="/shop"
                   className="text-gray-700 dark:text-gray-300
                              hover:text-green-600 font-medium"
                 >
-                  Shop
+                  {t("shop")}
                 </Link>
 
                 <Link
@@ -253,7 +253,7 @@ export default function Header() {
                   className="text-gray-700 dark:text-gray-300
                              hover:text-green-600 font-medium"
                 >
-                  About Us
+                  {t("about")}
                 </Link>
 
               </nav>
@@ -262,7 +262,7 @@ export default function Header() {
               <div className="flex items-center gap-6">
                 <div className="text-right">
                   <div className="font-semibold text-gray-900 dark:text-white">
-                    24/7 Support
+                    {t("support")}
                   </div>
                   <div className="text-sm text-gray-500">
                     {domain?.phone}

@@ -6,11 +6,13 @@ import Link from "next/link"
 import useEmblaCarousel from "embla-carousel-react"
 import { useCategories } from "../store/categories"
 import { ICategory } from "../types/categories"
+import { useTranslations } from "next-intl"
 
 const CATEGORY_ICON_SIZE = 80
 const PLACEHOLDER_IMAGE = "/placeholder-category.png"
 
 export default function Category() {
+   const t = useTranslations('Theme3.categories')
   const categories: ICategory[] | null = useCategories(
     (state) => state.categories
   )
@@ -107,8 +109,8 @@ export default function Category() {
     return (
       <section className="py-8 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-6">Browse Categories</h2>
-          <p className="text-gray-500">No categories available</p>
+          <h2 className="text-2xl font-bold mb-6">{t('title')}</h2>
+          <p className="text-gray-500">{t('empty')}</p>
         </div>
       </section>
     )
@@ -119,7 +121,7 @@ export default function Category() {
       <div className="container mx-auto px-4">
         {/* Title */}
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">
-          Browse Categories
+          {t('title')}
         </h2>
 
         <div className="relative">

@@ -4,6 +4,7 @@ import { useCart, useCartStore } from "@/lib/cart"
 import type { CartItem as StoreCartItem } from "@/lib/cart"
 import { ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 
 const NO_ITEMS = 0
 
@@ -14,6 +15,7 @@ export const CartPopover = ({
   isCartOpen: boolean
   setIsCartOpen: (open: boolean) => void
 }) => {
+   const t = useTranslations("Theme3.header")
   const { updateItem, removeItem } = useCart()
   // Get cart items and totals from store (reactive)
   const items = useCartStore((state) => state.items)
@@ -44,7 +46,7 @@ export const CartPopover = ({
         >
           <ShoppingCart className="w-6 h-6 text-gray-600 group-hover:text-green-600 transition-colors" />
           <div className="text-left">
-            <div className="text-sm text-gray-500">Shopping Cart</div>
+            <div className="text-sm text-gray-500">{t("cart.shoppingCart")}</div>
             <div className="font-semibold text-gray-900">
               ৳{totals?.subtotal?.toLocaleString()}
             </div>
@@ -60,7 +62,7 @@ export const CartPopover = ({
             <div className="p-4 border-b">
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg">
-                  Shopping Cart ({totalProducts})
+                  {t("cart.shoppingCart")} ({totalProducts})
                 </h3>
                 <button
                   className="cursor-pointer"
@@ -145,7 +147,7 @@ export const CartPopover = ({
             {/* Cart Footer */}
             <div className="p-4">
               <div className="flex justify-between mb-4">
-                <span className="text-gray-600">Total:</span>
+                <span className="text-gray-600">{t("cart.total")}:</span>
                 <span className="text-2xl font-bold text-gray-900">
                   ৳{totals?.subtotal?.toLocaleString()}
                 </span>
@@ -155,13 +157,13 @@ export const CartPopover = ({
                   href="/checkout"
                   className="flex-1 border-2 border-green-600 text-green-600 hover:bg-green-50 py-3 rounded-lg text-center font-semibold transition-colors"
                 >
-                  View Cart
+                  {t("cart.viewCart")}
                 </Link>
                 <Link
                   href="/checkout"
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-center font-semibold transition-colors"
                 >
-                  Checkout
+                  {t("cart.checkout")}
                 </Link>
               </div>
             </div>
@@ -175,7 +177,7 @@ export const CartPopover = ({
           <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
             <div className="p-4 border-b flex justify-between items-center">
               <h2 className="text-xl font-bold">
-                Shopping Cart ({totalProducts})
+                {t("cart.shoppingCart")} ({totalProducts})
               </h2>
               <button onClick={() => setIsCartOpen(false)}>
                 <X className="w-6 h-6" />
@@ -214,7 +216,7 @@ export const CartPopover = ({
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-white">
               <div className="flex justify-between mb-4">
-                <span className="text-lg font-semibold">Total:</span>
+                <span className="text-lg font-semibold">{t("cart.total")}:</span>
                 <span className="text-2xl font-bold text-green-600">
                   ${totals?.subtotal?.toLocaleString()}
                 </span>
@@ -224,13 +226,13 @@ export const CartPopover = ({
                   href="/checkout"
                   className="flex-1 border-2 border-green-600 text-green-600 py-3 rounded-lg text-center font-semibold"
                 >
-                  View Cart
+                  {t("cart.viewCart")}
                 </Link>
                 <Link
                   href="/checkout"
                   className="flex-1 bg-green-600 text-white py-3 rounded-lg text-center font-semibold"
                 >
-                  Checkout
+                  {t("cart.checkout")}
                 </Link>
               </div>
             </div>
