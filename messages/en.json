@@ -165,13 +165,19 @@
       }
     },
     "header": {
-      "home": "Home",
-      "shop": "Shop",
-      "category": "Category",
-      "about": "About",
-      "search": "Search",
-      "brandLogo": "BRAND LOGO"
-    },
+    "home": "Home",
+    "shop": "Shop",
+    "about": "About Us",
+    "category": "Category",
+    "search": "Search",
+    "searchPlaceholder": "Search products...",
+    "popularSearches": "Popular Searches",
+    "allCategories": "All Categories",
+    "support": "24/7 Support",
+    "brandLogo": "Brand Logo",
+    "cart": "Cart",
+    "menu": "Menu"
+  },
     "features": {
       "quality": {
         "title": "Quality",
