@@ -66,12 +66,7 @@ const Shop = ({ products, totalPages }: ShopProps) => {
       .filter((c): c is ICategory => c !== undefined);
   }, [products, categories]);
 
-  // Get unique brands from products
-  const brands = useMemo(() => {
-    if (!products) return [];
-    const brandSet = new Set(products.map(p => p.brand).filter(Boolean));
-    return Array.from(brandSet);
-  }, [products]);
+
 
   // Toggle filter sections
   const toggleFilterSection = (section: keyof typeof expandedFilters) => {
@@ -97,20 +92,6 @@ const Shop = ({ products, totalPages }: ShopProps) => {
     }
   }
 
-  // Handle brand selection
-  const handleBrandSelect = (brand: string) => {
-    if (brand === "all") {
-      setSelectedBrands(["all"])
-    } else {
-      setSelectedBrands((prev) => {
-        const newSelection = prev.includes(brand)
-          ? prev.filter((b) => b !== brand)
-          : [...prev.filter((b) => b !== "all"), brand]
-        return newSelection.length === 0 ? ["all"] : newSelection
-      })
-    }
-  }
-
   // Apply filters
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -123,7 +104,6 @@ const Shop = ({ products, totalPages }: ShopProps) => {
       filtered = filtered.filter(
         (product) =>
           product.product_name.toLowerCase().includes(query.toLowerCase()) ||
-          (product.brand && product.brand.toLowerCase().includes(query.toLowerCase())) ||
           (product.product_code && product.product_code.toLowerCase().includes(query.toLowerCase()))
       )
     }
@@ -135,12 +115,6 @@ const Shop = ({ products, totalPages }: ShopProps) => {
       )
     }
 
-    // Brand filter
-    if (!selectedBrands.includes("all") && selectedBrands.length > 0) {
-      filtered = filtered.filter((product) =>
-        product.brand && selectedBrands.includes(product.brand.toLowerCase())
-      )
-    }
 
     // Price filter
     if (selectedPriceRange !== "all") {
@@ -432,71 +406,6 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                   </div>
                 )}
               </div>
-
-              {/* Brands */}
-              {brands.length > 0 && (
-                <div className="mb-5">
-                  <button
-                    onClick={() => toggleFilterSection('brands')}
-                    className="flex items-center justify-between w-full mb-2.5"
-                  >
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm xl:text-base">Brands</h3>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${
-                        expandedFilters.brands ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  {expandedFilters.brands && (
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1 text-sm">
-                      <button
-                        onClick={() => handleBrandSelect("all")}
-                        className="flex items-center justify-between w-full text-left hover:text-green-600 transition-colors py-1"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                              selectedBrands.includes("all")
-                                ? "bg-green-600 border-green-600"
-                                : "border-gray-300 dark:border-gray-600"
-                            }`}
-                          >
-                            {selectedBrands.includes("all") && <Check className="w-3 h-3 text-white" />}
-                          </div>
-                          <span className="text-gray-700 dark:text-gray-300">All Brands</span>
-                        </div>
-                      </button>
-                      
-                      {brands.map((brand) => {
-                        const isSelected = selectedBrands.includes(brand.toLowerCase());
-                        const count = products?.filter(p => p.brand?.toLowerCase() === brand.toLowerCase()).length;
-                        
-                        return (
-                          <button
-                            key={brand}
-                            onClick={() => handleBrandSelect(brand.toLowerCase())}
-                            className="flex items-center justify-between w-full text-left hover:text-green-600 transition-colors py-1 ml-2"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                                  isSelected ? "bg-green-600 border-green-600" : "border-gray-300 dark:border-gray-600"
-                                }`}
-                              >
-                                {isSelected && <Check className="w-3 h-3 text-white" />}
-                              </div>
-                              <span className="text-gray-700 dark:text-gray-300 text-sm truncate max-w-[120px]">
-                                {brand}
-                              </span>
-                            </div>
-                            <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{count}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* Stock Filter */}
               <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
@@ -846,66 +755,7 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                 )}
               </div>
 
-              {/* Brands - Mobile */}
-              {brands.length > 0 && (
-                <div className="mb-5">
-                  <button
-                    onClick={() => toggleFilterSection('brands')}
-                    className="flex items-center justify-between w-full mb-2.5"
-                  >
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Brands</h3>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${
-                        expandedFilters.brands ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  {expandedFilters.brands && (
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      <button
-                        onClick={() => handleBrandSelect("all")}
-                        className="flex items-center justify-between w-full text-left hover:text-green-600 transition-colors py-1.5"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                              selectedBrands.includes("all")
-                                ? "bg-green-600 border-green-600"
-                                : "border-gray-300 dark:border-gray-600"
-                            }`}
-                          >
-                            {selectedBrands.includes("all") && <Check className="w-3 h-3 text-white" />}
-                          </div>
-                          <span className="text-gray-700 dark:text-gray-300">All Brands</span>
-                        </div>
-                      </button>
-                      
-                      {brands.map((brand) => {
-                        const isSelected = selectedBrands.includes(brand.toLowerCase());
-                        return (
-                          <button
-                            key={brand}
-                            onClick={() => handleBrandSelect(brand.toLowerCase())}
-                            className="flex items-center justify-between w-full text-left hover:text-green-600 transition-colors py-1.5 ml-2"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                                  isSelected ? "bg-green-600 border-green-600" : "border-gray-300 dark:border-gray-600"
-                                }`}
-                              >
-                                {isSelected && <Check className="w-3 h-3 text-white" />}
-                              </div>
-                              <span className="text-gray-700 dark:text-gray-300 text-sm">{brand}</span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
+        
               {/* Stock Filter - Mobile */}
               <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-5">
                 <span className="text-sm text-gray-700 dark:text-gray-300">In Stock Only</span>
