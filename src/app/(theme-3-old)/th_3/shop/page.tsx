@@ -7,7 +7,7 @@ import { getDomainHeaders } from "@/lib/domain"
 
 const ShopPage = async ({ searchParams }: { searchParams: Promise<{ page?: string }> }) => {
 
-    const { page = '1'} = await searchParams
+  const { page = '1'} = await searchParams
 
   console.log("currentPage", page);
 
