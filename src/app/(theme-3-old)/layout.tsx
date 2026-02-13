@@ -36,7 +36,13 @@ export default async function RootLayout({
   const locale = (cookieStore.get("NEXT_LOCALE")?.value || "en") as "en" | "bn"
   return (
     <html lang={locale} className={`${ab.variable} antialiased`}>
-      <GoogleTagManager gtmId={other_script?.gtm_head || ""} />
+      <GoogleTagManager
+        gtmId={
+          typeof other_script?.gtm_head === "string"
+            ? other_script.gtm_head
+            : ""
+        }
+      />
       <body
         data-new-gr-c-s-check-loaded="14.1271.0"
         data-gr-ext-installed=""
