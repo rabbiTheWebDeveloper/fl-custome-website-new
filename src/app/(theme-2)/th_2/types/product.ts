@@ -20,6 +20,7 @@ export interface IProductsApiResponse {
 
 export interface IProduct {
   id: number
+  ulid: string
   category_id: number
   shop_id: number
   wp_product_id: number
@@ -47,6 +48,7 @@ export interface IProduct {
   short_description: string | null
   long_description: string | null
   relatedProducts?: IProduct[]
+  related_products?: IProduct[]
   other_images: string[]
 }
 

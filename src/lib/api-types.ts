@@ -49,13 +49,21 @@ export interface RequestContext {
 
 export type ApiResponseData<
   T extends keyof ApiEndpoints,
-  M extends keyof ApiEndpoints[T],
-> = ApiEndpoints[T][M] extends { data: infer D } ? D : never
+  M extends string,
+> = M extends keyof ApiEndpoints[T]
+  ? ApiEndpoints[T][M] extends { data: infer D }
+    ? D
+    : never
+  : never
 
 export type ApiRequestBody<
   T extends keyof ApiEndpoints,
-  M extends keyof ApiEndpoints[T],
-> = ApiEndpoints[T][M] extends { body: infer B } ? B : never
+  M extends string,
+> = M extends keyof ApiEndpoints[T]
+  ? ApiEndpoints[T][M] extends { body: infer B }
+    ? B
+    : never
+  : never
 
 export type EndpointsWithMethod<M extends string> = {
   [K in keyof ApiEndpoints]: M extends keyof ApiEndpoints[K] ? K : never
@@ -141,5 +149,11 @@ export interface ApiEndpoints {
         }
       }>
     }
+  }
+  "/customer/sections": {
+    GET: ApiResponse
+  }
+  [key: `/customer/section-wise-products/${string}`]: {
+    GET: ApiResponse
   }
 }

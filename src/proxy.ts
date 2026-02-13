@@ -5,7 +5,28 @@ import type { NextRequest } from "next/server"
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
+  // const defaultTheme = "th_3"
   const theme = "th_3"
+
+  // const domainCookie = request.cookies.get("domain")?.value
+  // if (domainCookie) {
+  //   try {
+  //     const raw = domainCookie.includes("%7B")
+  //       ? decodeURIComponent(domainCookie)
+  //       : domainCookie
+  //     const parsed = JSON.parse(raw)
+  //     const domain = parsed?.state?.domain
+
+  //     const themeName = domain?.theme_settings?.theme_name
+  //     if (typeof themeName === "string" && themeName.trim() !== "") {
+  //       theme = themeName.trim()
+  //     } else if (domain?.theme_id) {
+  //       theme = String(domain.theme_id).trim()
+  //     }
+  //   } catch {
+  //     // fall back to defaultTheme
+  //   }
+  // }
 
   if (
     pathname === "/default" ||
@@ -31,22 +52,32 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL(`/${theme}/privacy`, request.url))
   }
   if (pathname === "/shop") {
-    const rewriteUrl = new URL(`/${theme}${pathname}`, request.url)
-    rewriteUrl.search = request.nextUrl.search
-    return NextResponse.rewrite(rewriteUrl)
+    return NextResponse.rewrite(new URL(`/${theme}/shop`, request.url))
   }
 
   if (pathname === "/checkout") {
     return NextResponse.rewrite(new URL(`/${theme}/checkout`, request.url))
   }
 
-  if (pathname.startsWith("/product/")) {
-    return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
+  if (pathname === "/order-success") {
+    return NextResponse.rewrite(new URL(`/${theme}/order-success`, request.url))
   }
-  if (pathname === "/") {
+
+  if (pathname.startsWith("/product/")) {
     const rewriteUrl = new URL(`/${theme}${pathname}`, request.url)
     rewriteUrl.search = request.nextUrl.search
     return NextResponse.rewrite(rewriteUrl)
+  }
+  //   if (pathname.startsWith("/p/")) {
+  //   const rewriteUrl = new URL(`/${pathname}`, request.url)
+  //   return NextResponse.rewrite(rewriteUrl)
+  // }
+    if (pathname.startsWith("/order-successfull/")) {
+    return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
+  }
+
+  if (pathname === "/") {
+    return NextResponse.rewrite(new URL(`/${theme}`, request.url))
   }
 
   // If the condition is not met, let the request proceed to the default '/' page

@@ -131,7 +131,7 @@ export function SearchInput() {
         className={cn(
           "absolute right-0 flex items-center gap-2 transition-all duration-300 ease-in-out",
           isSearchExpanded
-            ? "opacity-100 translate-x-0 w-[300px] md:w-[400px]"
+            ? "opacity-100 translate-x-0 w-[calc(100vw-6rem)] max-w-[400px]"
             : "opacity-0 translate-x-4 w-0 pointer-events-none"
         )}
       >

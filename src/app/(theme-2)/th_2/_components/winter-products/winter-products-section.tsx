@@ -147,14 +147,14 @@ export const WinterProductsSection = ({
         {/* Carousel */}
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-6">
-            {/* {products.map((product) => (
+            {products?.map((product) => (
               <div
                 key={product.id}
                 className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(25%-18px)]"
               >
                 <ProductCard {...product} />
               </div>
-            ))} */}
+            ))}
           </div>
         </div>
       </div>

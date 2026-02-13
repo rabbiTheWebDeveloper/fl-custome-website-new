@@ -75,7 +75,9 @@
       "privacy": "গোপনীয়তা নীতি",
       "terms": "শর্তাবলী",
       "other": "অন্যান্য",
+      "others": "অন্যান্য",
       "copyright": "© ব্র্যান্ড নাম {year} | সর্বাধিকার সংরক্ষিত।",
+      "allRightsReserved": "সর্বাধিকার সংরক্ষিত।",
       "madeIn": "তৈরি"
     },
     "headerFooter": {
@@ -104,6 +106,26 @@
       "placingOrder": "অর্ডার করা হচ্ছে...",
       "continueShopping": "কেনাকাটা চালিয়ে যান"
     },
+    "toast": {
+      "outOfStock": "এই পণ্যটি বর্তমানে স্টকে নেই",
+      "maxQuantityReached": "আপনি এই পণ্যের সর্বোচ্চ পরিমাণে পৌঁছেছেন",
+      "addToCartError": "কার্টে পণ্য যোগ করতে ব্যর্থ। আবার চেষ্টা করুন।",
+      "addedToCart": "পণ্য কার্টে যোগ হয়েছে"
+    },
+    "countdown": {
+      "endsIn": "আর মাত্র",
+      "days": "দিন",
+      "hours": "ঘন্টা",
+      "minutes": "মিনিট",
+      "seconds": "সেকেন্ড",
+      "daysShort": "দি",
+      "hoursShort": "ঘ",
+      "minutesShort": "মি",
+      "secondsShort": "সে",
+      "minsShort": "মিনিট",
+      "secsShort": "সেকেন্ড",
+      "offerEnded": "এই অফার শেষ হয়ে গেছে"
+    },
     "checkout": {
       "title": "চেকআউট",
       "subtitle": "প্রায় শেষ — নিরাপদে আপনার অর্ডার সম্পূর্ণ করুন।",
@@ -125,6 +147,7 @@
       "orderNotePlaceholder": "এখানে লিখুন",
       "shippingMethod": "শিপিং পদ্ধতি",
       "insideDhaka": "ঢাকার ভিতরে",
+      "subarea": "সাব-এরিয়া",
       "aroundDhaka": "ঢাকার আশেপাশে",
       "outsideDhaka": "ঢাকার বাইরে",
       "paymentMethod": "পেমেন্ট পদ্ধতি",
@@ -145,7 +168,7 @@
       }
     }
   },
-  "Theme3": {
+    "Theme3": {
     "header": {
       "home": "হোম",
       "shop": "শপ",

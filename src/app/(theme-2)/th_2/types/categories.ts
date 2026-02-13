@@ -9,6 +9,7 @@ export interface ICategoriesApiResponse {
 
 // Category item
 export interface ICategory {
+  category_image: string | null
   id: number
   wp_category_id: number | null
   name: string

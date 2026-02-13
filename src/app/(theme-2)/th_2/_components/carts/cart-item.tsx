@@ -65,6 +65,7 @@ export const CartItem = ({
             />
 
             <Button
+              type="button"
               variant="secondary"
               size="icon"
               className="size-11 shrink-0 rounded-xl"
@@ -90,6 +91,7 @@ export const CartItem = ({
         />
 
         <Button
+          type="button"
           variant="outline"
           size="icon"
           className="size-13 shrink-0 rounded-xl"

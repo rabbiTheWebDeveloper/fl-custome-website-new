@@ -6,6 +6,7 @@ import React from "react"
 import { IProduct } from "../../types/product"
 import type { CartItemVariant } from "@/lib/cart"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 interface AddToCartButtonProps {
   product: IProduct
@@ -20,6 +21,7 @@ function AddToCartButton({
 }: AddToCartButtonProps) {
   const { addItem, getItemByProduct } = useCart()
   const t = useTranslations("Theme2.buttons")
+  const tToast = useTranslations("Theme2.toast")
 
   if (!product) return null
 
@@ -28,37 +30,55 @@ function AddToCartButton({
   const currentQuantity = cartItem?.quantity ?? 0
 
   const handleAddToCart = async () => {
-    // Check if we've reached max quantity
     const maxQty = maxQuantity ?? product.product_qty
-    if (maxQty && currentQuantity >= maxQty) {
-      return // Don't add if at max
+
+    // Check if product is out of stock
+    if (maxQty === 0) {
+      toast.error(tToast("outOfStock"))
+      return
     }
 
-    await addItem({
-      productId: product.id,
-      name: product.product_name,
-      price: product.price,
-      discountedPrice: product.discounted_price,
-      quantity: 1, // Always add 1, mergeIfExists will handle incrementing
-      variants: variants,
-      metadata: {
-        image: product.main_image,
-        sku: product.product_code,
+    // Check if we've reached max quantity
+    if (maxQty && currentQuantity >= maxQty) {
+      toast.warning(tToast("maxQuantityReached"))
+      return
+    }
+
+    try {
+      await addItem({
+        productId: product.id,
+        name: product.product_name,
+        price: product.price,
+        discountedPrice: product.discounted_price,
+        quantity: 1,
+        variants: variants,
+        metadata: {
+          image: product.main_image,
+          sku: product.product_code,
+          ulid: product.ulid,
+          maxQuantity: maxQty,
+          inside_dhaka: product.inside_dhaka,
+          outside_dhaka: product.outside_dhaka,
+          sub_area_charge: product.sub_area_charge,
+        },
+        mergeIfExists: true,
         maxQuantity: maxQty,
-        inside_dhaka: product.inside_dhaka,
-        outside_dhaka: product.outside_dhaka,
-      },
-      mergeIfExists: true, // Merge with existing item if variant matches (increments quantity)
-      maxQuantity: maxQty,
-    })
+      })
+      toast.success(tToast("addedToCart"))
+    } catch (error) {
+      console.error("Failed to add item to cart:", error)
+      toast.error(tToast("addToCartError"))
+    }
   }
 
-  // Disable button if at max quantity
-  const isAtMax = maxQuantity
-    ? currentQuantity >= maxQuantity
-    : product.product_qty
-      ? currentQuantity >= product.product_qty
-      : false
+  // Disable button if at max quantity or out of stock
+  const isAtMax =
+    (maxQuantity ?? product.product_qty) === 0 ||
+    (maxQuantity
+      ? currentQuantity >= maxQuantity
+      : product.product_qty
+        ? currentQuantity >= product.product_qty
+        : false)
 
   return (
     <Button

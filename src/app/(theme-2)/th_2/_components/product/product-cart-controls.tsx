@@ -10,6 +10,7 @@ import { useCart, generateCartItemId } from "@/lib/cart"
 import { useCartStore } from "@/lib/cart"
 import type { IProduct } from "../../types/product"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 interface ProductCartControlsProps {
   product: IProduct
@@ -33,6 +34,7 @@ export function ProductCartControls({
   const { addItem } = useCart()
   const items = useCartStore((state) => state.items)
   const t = useTranslations("Theme2.buttons")
+  const tToast = useTranslations("Theme2.toast")
 
   const [selectedVariants, setSelectedVariants] = useState<
     Record<string, string>
@@ -83,6 +85,12 @@ export function ProductCartControls({
     try {
       const maxQty = product.product_qty
 
+      // Check if product is out of stock
+      if (maxQty === 0) {
+        toast.error(tToast("outOfStock"))
+        return
+      }
+
       // Add item to cart if not already in cart
       if (currentQuantity === 0) {
         await addItem({
@@ -96,6 +104,10 @@ export function ProductCartControls({
             image: product.main_image,
             sku: product.product_code,
             maxQuantity: maxQty,
+            ulid: product.ulid,
+            inside_dhaka: product.inside_dhaka,
+            outside_dhaka: product.outside_dhaka,
+            sub_area_charge: product.sub_area_charge,
           },
           mergeIfExists: true,
           maxQuantity: maxQty,
@@ -106,6 +118,7 @@ export function ProductCartControls({
       router.push("/checkout")
     } catch (error) {
       console.error("Failed to add item to cart:", error)
+      toast.error(tToast("addToCartError"))
     }
   }
 

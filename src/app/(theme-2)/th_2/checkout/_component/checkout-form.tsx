@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useEffect, useState } from "react"
+import { useMemo, useEffect, useState, useRef, useCallback } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -14,11 +14,11 @@ import Image from "next/image"
 import { useCart, useCartStore } from "@/lib/cart"
 import type { CartItem as StoreCartItem } from "@/lib/cart"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { api } from "@/lib/api-client"
 import { prepareOrderData, getStoreUrlFromCookie } from "@/lib/order"
 import { useTranslations } from "next-intl"
 import type { ShippingSetting } from "../../types/shipping"
-import type { IProduct } from "../../types/product"
 
 // Client-side function to get domain headers from cookies
 function getDomainHeadersFromCookies(): {
@@ -115,7 +115,7 @@ function createCheckoutFormSchema(tValidation: (key: string) => string) {
       .min(10, tValidation("deliveryAddressMin"))
       .max(500, tValidation("deliveryAddressMax")),
     orderNote: z.string().max(1000, tValidation("orderNoteMax")).optional(),
-    shippingMethod: z.enum(["inside-dhaka", "outside-dhaka"], {
+    shippingMethod: z.enum(["inside-dhaka", "subarea", "outside-dhaka"], {
       message: tValidation("shippingMethodRequired"),
     }),
     paymentMethod: z.enum(["sslcommerz", "cash-on-delivery", "bkash"], {
@@ -127,8 +127,10 @@ function createCheckoutFormSchema(tValidation: (key: string) => string) {
 type CheckoutFormData = z.infer<ReturnType<typeof createCheckoutFormSchema>>
 
 export function CheckoutForm() {
+  const router = useRouter()
+
   // Get cart data from store
-  const { updateItem, removeItem } = useCart()
+  const { updateItem, removeItem, clearCart } = useCart()
   const items = useCartStore((state) => state.items)
   const cartTotals = useCartStore((state) => state.totals)
   const t = useTranslations("Theme2.buttons")
@@ -140,16 +142,11 @@ export function CheckoutForm() {
     useState<ShippingSetting | null>(null)
   const [loadingShippingSettings, setLoadingShippingSettings] = useState(true)
 
-  // Product data cache for items missing metadata
-  const [productDataCache, setProductDataCache] = useState<
-    Map<number, { inside_dhaka: number; outside_dhaka: number }>
-  >(new Map())
-
   // Incomplete order state
   const [incompleteOrderId, setIncompleteOrderId] = useState<number | null>(
     null
   )
-  const [checkingIncompleteOrder, setCheckingIncompleteOrder] = useState(false)
+  const incompleteOrderSentRef = useRef(false)
 
   // Create schema with localized messages
   const checkoutFormSchema = useMemo(
@@ -226,54 +223,6 @@ export function CheckoutForm() {
     fetchShippingSettings()
   }, [])
 
-  // Fetch product data for cart items missing shipping metadata
-  useEffect(() => {
-    const fetchMissingProductData = async () => {
-      if (items.length === 0) return
-
-      const itemsNeedingData = items.filter(
-        (item) => !item.metadata?.inside_dhaka || !item.metadata?.outside_dhaka
-      )
-
-      if (itemsNeedingData.length === 0) return
-
-      try {
-        const headers = getDomainHeadersFromCookies()
-        const fetchPromises = itemsNeedingData.map(async (item) => {
-          const productId = Number(item.productId)
-          if (productDataCache.has(productId)) return
-
-          try {
-            const response = await api.get(`/customer/products/${productId}`, {
-              headers,
-            })
-            const product = (response.data as { data: IProduct }).data
-            if (product) {
-              setProductDataCache((prev) => {
-                const newCache = new Map(prev)
-                newCache.set(productId, {
-                  inside_dhaka: product.inside_dhaka,
-                  outside_dhaka: product.outside_dhaka,
-                })
-                return newCache
-              })
-            }
-          } catch (error) {
-            console.error(`Failed to fetch product ${productId}:`, error)
-          }
-        })
-
-        await Promise.all(fetchPromises)
-      } catch (error) {
-        console.error("Error fetching product data:", error)
-      }
-    }
-
-    if (!loadingShippingSettings) {
-      fetchMissingProductData()
-    }
-  }, [items, loadingShippingSettings, productDataCache])
-
   // Watch shipping and payment methods for real-time updates
   const shippingMethod = watch("shippingMethod")
   const paymentMethod = watch("paymentMethod")
@@ -301,20 +250,11 @@ export function CheckoutForm() {
       }
     }
 
-    // Priority 2: Use product data from cart items (metadata or cache)
+    // Priority 2: Use product data from cart items (metadata)
     if (items.length > 0) {
       const prices = items
         .map((item) => {
-          // Try metadata first
-          let price = item.metadata?.inside_dhaka as number | undefined
-
-          // If not in metadata, try cache
-          if (!price || price === 0) {
-            const productId = Number(item.productId)
-            const cachedData = productDataCache.get(productId)
-            price = cachedData?.inside_dhaka
-          }
-
+          const price = item.metadata?.inside_dhaka as number | undefined
           return price && price > 0 ? price : 0
         })
         .filter((price) => price > 0)
@@ -326,7 +266,35 @@ export function CheckoutForm() {
 
     // Priority 3: Default fallback
     return 0
-  }, [shippingSettings, items, productDataCache])
+  }, [shippingSettings, items])
+
+  // Helper function to get subarea price
+  const getSubareaPrice = useMemo(() => {
+    // Priority 1: Use API settings if available
+    if (shippingSettings && shippingSettings.subarea) {
+      const apiPrice = parseFloat(shippingSettings.subarea)
+      if (!isNaN(apiPrice) && apiPrice > 0) {
+        return apiPrice
+      }
+    }
+
+    // Priority 2: Use product data from cart items (metadata)
+    if (items.length > 0) {
+      const prices = items
+        .map((item) => {
+          const price = item.metadata?.sub_area_charge as number | undefined
+          return price && price > 0 ? price : 0
+        })
+        .filter((price) => price > 0)
+
+      if (prices.length > 0) {
+        return Math.max(...prices)
+      }
+    }
+
+    // Priority 3: Default fallback
+    return 0
+  }, [shippingSettings, items])
 
   // Helper function to get outside Dhaka price
   const getOutsideDhakaPrice = useMemo(() => {
@@ -338,20 +306,11 @@ export function CheckoutForm() {
       }
     }
 
-    // Priority 2: Use product data from cart items (metadata or cache)
+    // Priority 2: Use product data from cart items (metadata)
     if (items.length > 0) {
       const prices = items
         .map((item) => {
-          // Try metadata first
-          let price = item.metadata?.outside_dhaka as number | undefined
-
-          // If not in metadata, try cache
-          if (!price || price === 0) {
-            const productId = Number(item.productId)
-            const cachedData = productDataCache.get(productId)
-            price = cachedData?.outside_dhaka
-          }
-
+          const price = item.metadata?.outside_dhaka as number | undefined
           return price && price > 0 ? price : 0
         })
         .filter((price) => price > 0)
@@ -363,7 +322,7 @@ export function CheckoutForm() {
 
     // Priority 3: Default fallback
     return 0
-  }, [shippingSettings, items, productDataCache])
+  }, [shippingSettings, items])
 
   // Calculate shipping cost based on selected method
   // Priority: API settings > Product data > Default fallback
@@ -374,6 +333,8 @@ export function CheckoutForm() {
 
     if (shippingMethod === "inside-dhaka") {
       return getInsideDhakaPrice
+    } else if (shippingMethod === "subarea") {
+      return getSubareaPrice
     } else if (shippingMethod === "outside-dhaka") {
       return getOutsideDhakaPrice
     }
@@ -381,6 +342,7 @@ export function CheckoutForm() {
   }, [
     shippingMethod,
     getInsideDhakaPrice,
+    getSubareaPrice,
     getOutsideDhakaPrice,
     loadingShippingSettings,
   ])
@@ -400,18 +362,29 @@ export function CheckoutForm() {
     }
   }, [cartTotals.subtotal, cartTotals.discount, cartTotals.tax, shippingCost])
 
-  // Create incomplete order function
-  const createIncompleteOrder = useMemo(
-    () => async (shopId: string, userId: string) => {
-      if (items.length === 0) return
+  // Create incomplete order function (uses refs to read latest values without re-creating)
+  const itemsRef = useRef(items)
+  itemsRef.current = items
+  const customerNameRef = useRef(customerName)
+  customerNameRef.current = customerName
+  const customerPhoneRef = useRef(customerPhone)
+  customerPhoneRef.current = customerPhone
+  const customerAddressRef = useRef(customerAddress)
+  customerAddressRef.current = customerAddress
+  const finalTotalsRef = useRef(finalTotals)
+  finalTotalsRef.current = finalTotals
+
+  const createIncompleteOrder = useCallback(
+    async (shopId: string, userId: string) => {
+      if (itemsRef.current.length === 0) return
 
       try {
         const orderPayload = {
-          customer_name: customerName || "",
-          customer_phone: customerPhone,
-          customer_address: customerAddress || "",
+          customer_name: customerNameRef.current || "",
+          customer_phone: customerPhoneRef.current,
+          customer_address: customerAddressRef.current || "",
           order_type: "website",
-          products: items.map((item) => ({
+          products: itemsRef.current.map((item) => ({
             product_id: item.productId,
             variant_id:
               item.variants && item.variants.length > 0
@@ -420,7 +393,7 @@ export function CheckoutForm() {
             qty: item.quantity,
             subtotal: (item.discountedPrice ?? item.price) * item.quantity,
           })),
-          grand_total: finalTotals.total,
+          grand_total: finalTotalsRef.current.total,
         }
 
         const response = await api.post(
@@ -449,32 +422,32 @@ export function CheckoutForm() {
         console.error("Error creating incomplete order:", error)
       }
     },
-    [customerName, customerPhone, customerAddress, items, finalTotals.total]
+    [] // stable — reads from refs
   )
 
-  // Check incomplete order status when name and phone are entered
+  // Check incomplete order status ONCE when name and phone are first entered
   useEffect(() => {
-    const checkIncompleteOrderStatus = async () => {
-      // Only check if both name and phone are filled
-      if (
-        !customerName ||
-        !customerPhone ||
-        customerName.length < 2 ||
-        customerPhone.length < 10
-      ) {
-        return
-      }
+    // Already sent once — skip
+    if (incompleteOrderSentRef.current) return
 
+    // Only check if both name and phone are filled
+    if (
+      !customerName ||
+      !customerPhone ||
+      customerName.length < 2 ||
+      customerPhone.length < 10
+    ) {
+      return
+    }
+
+    const checkIncompleteOrderStatus = async () => {
       // Get shop ID from cookies
       const headers = getDomainHeadersFromCookies()
       const shopId = headers["shop-id"]
 
-      if (!shopId) {
-        return
-      }
+      if (!shopId) return
 
       try {
-        setCheckingIncompleteOrder(true)
         const response = await api.get(`/incomplete-order/status/${shopId}`, {
           headers,
         })
@@ -490,28 +463,24 @@ export function CheckoutForm() {
         if (responseData.success && responseData.data) {
           const status = responseData.data.incomplete_order_status
 
-          // If status is 1, create incomplete order
           if (status === 1) {
             await createIncompleteOrder(headers["shop-id"], headers["user-id"])
           } else {
-            // Reset incomplete order ID if status is 0
             setIncompleteOrderId(null)
           }
         }
       } catch (error) {
         console.error("Error checking incomplete order status:", error)
-      } finally {
-        setCheckingIncompleteOrder(false)
       }
+
+      // Mark as done regardless of outcome — only fires once
+      incompleteOrderSentRef.current = true
     }
 
     // Debounce the check
-    const timeoutId = setTimeout(() => {
-      checkIncompleteOrderStatus()
-    }, 500)
-
+    const timeoutId = setTimeout(checkIncompleteOrderStatus, 500)
     return () => clearTimeout(timeoutId)
-  }, [customerName, customerPhone, items, shippingCost, createIncompleteOrder])
+  }, [customerName, customerPhone, createIncompleteOrder])
 
   const onSubmit = async (data: CheckoutFormData) => {
     if (items.length === 0) {
@@ -540,6 +509,7 @@ export function CheckoutForm() {
         storeUrl: storeUrl || "fldemo.store",
         visitorId: "1234567890",
         incomplete_order_id: incompleteOrderId ?? undefined,
+        shipping_cost: shippingCost,
       })
 
       // Debug: Check if incomplete_order_id is in FormData
@@ -638,8 +608,9 @@ export function CheckoutForm() {
 
       console.log("Order submitted successfully:", response.data)
 
-      // TODO: Handle success (redirect to order confirmation, clear cart, etc.)
-      alert("Order placed successfully!")
+      // Clear cart and redirect to success page
+      await clearCart()
+      router.push("/order-success")
     } catch (error) {
       console.error("Error submitting order:", error)
       throw error // Re-throw to let react-hook-form handle it
@@ -813,20 +784,26 @@ export function CheckoutForm() {
                   </span>
                 </label>
 
-                {/* Around Dhaka option commented out */}
-                {/* <label
-                  htmlFor="around-dhaka"
+                <label
+                  htmlFor="subarea"
                   className={cn(
                     "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                    shippingMethod === "around-dhaka" && "bg-[#F6E5FF]"
+                    shippingMethod === "subarea" && "bg-[#F6E5FF]"
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <RadioGroupItem value="around-dhaka" id="around-dhaka" />
-                    <span className="text-[#595959]">{tCheckout("aroundDhaka")}</span>
+                    <RadioGroupItem value="subarea" id="subarea" />
+                    <span className="text-[#595959]">
+                      {tCheckout("subarea")}
+                    </span>
                   </div>
-                  <span className="font-semibold">৳110.00</span>
-                </label> */}
+                  <span className="font-semibold">
+                    ৳
+                    {loadingShippingSettings
+                      ? "0.00"
+                      : getSubareaPrice.toFixed(2)}
+                  </span>
+                </label>
 
                 <label
                   htmlFor="outside-dhaka"

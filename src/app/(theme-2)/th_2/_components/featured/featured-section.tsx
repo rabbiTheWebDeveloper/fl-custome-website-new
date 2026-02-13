@@ -209,7 +209,7 @@ export const FeaturedSection = ({ products }: FeaturedSectionProps) => {
     }
   }, [emblaApi])
 
-  const slides = createSlides(products)
+  const slides = createSlides(products ?? [])
 
   return (
     <section className="py-16">

@@ -10,11 +10,14 @@ import { ICategoriesApiResponse } from "../../types/categories"
 import { useCategories } from "../../store/categories"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useDomain } from "../../store/domain"
+import { useSections } from "../../store/sections"
 import { useGetCookie } from "cookies-next"
 import { prepareDomain } from "@/lib/utils"
 import { IShopResponse } from "../../types/shop"
+import { ISectionsApiResponse } from "../../types/sections"
 import { SearchInput } from "./search-input"
 import { LanguageSelector } from "./language-selector"
+import { MobileNav } from "./mobile-nav"
 
 export const Header = () => {
   const t = useTranslations("Theme2.header")
@@ -25,6 +28,7 @@ export const Header = () => {
   const categories = useCategories((state) => state.categories)
   const setCategories = useCategories((state) => state.setCategories)
   const setDomainAddress = useDomain((state) => state.setDomainAddress)
+  const setSections = useSections((state) => state.setSections)
   const getCookie = useGetCookie()
 
   useEffect(() => {
@@ -40,6 +44,20 @@ export const Header = () => {
       if (res.message === "success") {
         setDomain(res.data)
         setDomainAddress(window.location.origin)
+
+        // Fetch sections after domain loads
+        const sectionsRes = await api.getTyped<
+          "/customer/sections",
+          ISectionsApiResponse
+        >("/customer/sections", {
+          headers: {
+            domain: prepareDomain(window.location.href),
+            "shop-id": String(res.data.shop_id),
+          },
+        })
+        if (sectionsRes.success) {
+          setSections(sectionsRes.data)
+        }
       }
     }
 
@@ -67,7 +85,28 @@ export const Header = () => {
   return (
     <header className="py-4 border-b bg-background border-b-[#E7E7E7] sticky top-0 z-40">
       <div className="flex items-center justify-between container">
-        <ul className="flex items-center gap-5 font-medium max-md:hidden">
+        {/* Left: Mobile hamburger + Logo */}
+        <div className="flex items-center gap-3">
+          <MobileNav />
+          <Link href="/" className="block">
+            <div className="relative h-12 w-12 md:h-14 md:w-28 max-h-full overflow-hidden">
+              <Image
+                src={
+                  domain?.shop_logo && domain.shop_logo.trim() !== ""
+                    ? domain.shop_logo
+                    : "/placeholder.png"
+                }
+                alt={domain?.name || "Shop"}
+                fill
+                className="object-contain object-left"
+                priority
+              />
+            </div>
+          </Link>
+        </div>
+
+        {/* Center: Navigation links (desktop only) */}
+        <ul className="absolute left-1/2 -translate-x-1/2 flex items-center gap-5 font-medium max-md:hidden">
           {linkHrefs.map((link, index) => (
             <li
               key={index}
@@ -80,7 +119,7 @@ export const Header = () => {
               }
             >
               <Link
-                className="hover:text-primary transition-colors"
+                className="hover:text-primary transition-colors whitespace-nowrap"
                 href={link.href}
               >
                 {tHeaderFooter(link.key)}
@@ -93,7 +132,7 @@ export const Header = () => {
                       {categories?.map((category, idx) => (
                         <Link
                           key={idx}
-                          href={category.image ?? ""}
+                          href={`/shop?category=${category.slug}`}
                           className="block rounded-[8px] px-3 py-2.5 text-sm hover:text-primary hover:bg-primary/10 transition-colors font-semibold"
                         >
                           {category.name}
@@ -107,26 +146,11 @@ export const Header = () => {
           ))}
         </ul>
 
-        <div className="md:absolute md:left-1/2 md:-translate-x-1/2 flex items-center">
-          <Link href="/" className="block">
-            <div className="relative h-12 w-12 md:h-14 md:w-28 max-h-full overflow-hidden">
-              <Image
-                src={
-                  domain?.shop_logo && domain.shop_logo.trim() !== ""
-                    ? domain.shop_logo
-                    : "/placeholder.png"
-                }
-                alt="My Insta"
-                fill
-                className="object-fill"
-                priority
-              />
-            </div>
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-5">
-          <LanguageSelector />
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="max-md:hidden">
+            <LanguageSelector />
+          </div>
           <SearchInput />
           <CartPopover />
         </div>

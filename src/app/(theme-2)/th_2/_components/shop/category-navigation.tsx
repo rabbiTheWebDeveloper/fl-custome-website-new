@@ -22,7 +22,7 @@ export function CategoryNavigation({
   const rest = categories.slice(3)
 
   const handleCategoryClick = (
-    e: React.MouseEvent<HTMLElement>,
+    e: React.MouseEvent,
     categoryId: number | null
   ) => {
     e.preventDefault()

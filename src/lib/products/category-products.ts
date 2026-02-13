@@ -60,11 +60,63 @@ export async function getAllProducts(
     "shop-id": string
     "user-id": string
   },
+  page: number = 1,
+  sortColumn?: string,
+  sortDirection?: "asc" | "desc"
+): Promise<IProductsApiResponse> {
+  try {
+    let url = `/customer/products?page=${page}`
+    if (sortColumn && sortDirection) {
+      url += `&sort_column=${sortColumn}&sort_direction=${sortDirection}`
+    }
+    const response = await api.get<IProductsApiResponse>(url, undefined, {
+      headers,
+    })
+    return response.data
+  } catch (error) {
+    console.error("Failed to fetch products:", error)
+    return {
+      message: "error",
+      success: false,
+      error_type: "",
+      execution_time: 0,
+      current_page: 1,
+      data: [],
+      first_page_url: "",
+      from: 0,
+      last_page: 1,
+      last_page_url: "",
+      links: [],
+      next_page_url: null,
+      path: "",
+      per_page: 0,
+      prev_page_url: null,
+      to: 0,
+      total: 0,
+    }
+  }
+}
+
+/**
+ * Fetches products filtered by price range
+ * @param minPrice - Minimum price
+ * @param maxPrice - Maximum price
+ * @param headers - API headers containing shop-id and user-id
+ * @param page - Page number for pagination (default: 1)
+ * @returns Promise with full API response including pagination
+ */
+export async function searchProductsByPrice(
+  minPrice: number,
+  maxPrice: number,
+  headers: {
+    "shop-id": string
+    "user-id": string
+  },
   page: number = 1
 ): Promise<IProductsApiResponse> {
   try {
     const response = await api.get<IProductsApiResponse>(
-      `/customer/products?page=${page}`,
+      `/customer/product-search?min_price=${minPrice}&max_price=${maxPrice}&page=${page}`,
       undefined,
       {
         headers,
@@ -72,7 +124,64 @@ export async function getAllProducts(
     )
     return response.data
   } catch (error) {
-    console.error("Failed to fetch products:", error)
+    console.error(
+      `Failed to filter products by price (${minPrice}-${maxPrice}):`,
+      error
+    )
+    return {
+      message: "error",
+      success: false,
+      error_type: "",
+      execution_time: 0,
+      current_page: 1,
+      data: [],
+      first_page_url: "",
+      from: 0,
+      last_page: 1,
+      last_page_url: "",
+      links: [],
+      next_page_url: null,
+      path: "",
+      per_page: 0,
+      prev_page_url: null,
+      to: 0,
+      total: 0,
+    }
+  }
+}
+
+/**
+ * Fetches products filtered by one or more category IDs via product-search API
+ * @param categoryIds - Array of category IDs to filter by
+ * @param headers - API headers containing shop-id and user-id
+ * @param page - Page number for pagination (default: 1)
+ * @returns Promise with full API response including pagination
+ */
+export async function searchProductsByCategories(
+  categoryIds: number[],
+  headers: {
+    "shop-id": string
+    "user-id": string
+  },
+  page: number = 1
+): Promise<IProductsApiResponse> {
+  try {
+    const categoryParams = categoryIds
+      .map((id) => `category_id=${id}`)
+      .join("&")
+    const response = await api.get<IProductsApiResponse>(
+      `/customer/product-search?${categoryParams}&page=${page}`,
+      undefined,
+      {
+        headers,
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(
+      `Failed to filter products by categories (${categoryIds.join(",")}):`,
+      error
+    )
     return {
       message: "error",
       success: false,

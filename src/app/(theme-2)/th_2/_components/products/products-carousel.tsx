@@ -156,15 +156,17 @@ export const ProductsCarousel = ({
         {/* Carousel */}
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-6">
-            {product?.relatedProducts
-              ? product.relatedProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(25%-18px)]"
-                  >
-                    <ProductCard {...product} />
-                  </div>
-                ))
+            {(product?.relatedProducts ?? product?.related_products)
+              ? (product.relatedProducts ?? product.related_products)?.map(
+                  (product) => (
+                    <div
+                      key={product.id}
+                      className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(25%-18px)]"
+                    >
+                      <ProductCard {...product} />
+                    </div>
+                  )
+                )
               : products?.map((product) => (
                   <div
                     key={product.id}

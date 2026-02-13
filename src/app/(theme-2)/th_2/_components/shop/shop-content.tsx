@@ -10,6 +10,8 @@ import {
   getCategoryProducts,
   getAllProducts,
   searchProducts,
+  searchProductsByPrice,
+  searchProductsByCategories,
 } from "@/lib/products"
 import { IProductsApiResponse } from "../../types/product"
 import { Button } from "../ui/button"
@@ -24,6 +26,48 @@ import {
   SheetTrigger,
 } from "../ui/sheet"
 import { useTranslations } from "next-intl"
+import { api } from "@/lib/api-client"
+import {
+  ISectionWiseProductsApiResponse,
+  ISectionProduct,
+} from "../../types/sections"
+
+/**
+ * Maps an ISectionProduct to an IProduct with defaults for missing fields
+ */
+function mapSectionProductToProduct(sp: ISectionProduct): IProduct {
+  return {
+    id: sp.id,
+    ulid: sp.ulid,
+    category_id: 0,
+    shop_id: sp.shop_id,
+    wp_product_id: 0,
+    product_name: sp.product_name,
+    product_code: sp.product_code,
+    product_qty: sp.product_qty,
+    slug: sp.slug,
+    price: sp.price,
+    discount: sp.discount,
+    discounted_price: sp.discounted_price ?? sp.price,
+    discount_type: sp.discount_type,
+    flat_discount_percent: sp.flat_discount_percent ?? 0,
+    delivery_charge: "0",
+    inside_dhaka: 0,
+    outside_dhaka: 0,
+    status: sp.status,
+    sub_area_charge: 0,
+    default_delivery_location: null,
+    attributes: false,
+    variation_price_range: [],
+    variations: false,
+    created_at: "",
+    main_image: sp.main_image,
+    wp_product_image_url: sp.wp_product_image_url,
+    short_description: null,
+    long_description: null,
+    other_images: [],
+  }
+}
 
 interface PaginationInfo {
   current_page: number
@@ -56,6 +100,9 @@ export function ShopContent({
   const router = useRouter()
   const searchParams = useSearchParams()
   const t = useTranslations("Theme2.buttons")
+
+  const sectionUlid = searchParams.get("section") ?? null
+
   const [products, setProducts] = useState<IProduct[]>(
     Array.isArray(initialProducts) ? initialProducts : []
   )
@@ -69,6 +116,15 @@ export function ShopContent({
   )
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [priceFilter, setPriceFilter] = useState<{
+    min: number
+    max: number
+  } | null>(null)
+  const [categoryFilter, setCategoryFilter] = useState<number[] | null>(null)
+  const [sortColumn, setSortColumn] = useState<string | undefined>(undefined)
+  const [sortDirection, setSortDirection] = useState<
+    "asc" | "desc" | undefined
+  >(undefined)
 
   const loadCategoryProducts = async (categoryId: number, page: number = 1) => {
     setIsLoading(true)
@@ -124,6 +180,111 @@ export function ShopContent({
     }
   }
 
+  const loadPriceFilteredProducts = async (
+    minPrice: number,
+    maxPrice: number,
+    page: number = 1
+  ) => {
+    setIsLoading(true)
+    try {
+      const response = await searchProductsByPrice(
+        minPrice,
+        maxPrice,
+        headers,
+        page
+      )
+      setProducts(Array.isArray(response?.data) ? response.data : [])
+      setPagination({
+        current_page: response?.current_page ?? 1,
+        last_page: response?.last_page ?? 1,
+        next_page_url: response?.next_page_url ?? null,
+        per_page: response?.per_page ?? 0,
+        total: response?.total ?? 0,
+      })
+      setSelectedCategoryId(null)
+      setSearchQuery(null)
+      setPriceFilter({ min: minPrice, max: maxPrice })
+    } catch (error) {
+      console.error("Failed to filter products by price:", error)
+      setProducts([])
+      setPagination({
+        current_page: 1,
+        last_page: 1,
+        next_page_url: null,
+        per_page: 0,
+        total: 0,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const loadCategoryFilteredProducts = async (
+    categoryIds: number[],
+    page: number = 1
+  ) => {
+    setIsLoading(true)
+    try {
+      const response = await searchProductsByCategories(
+        categoryIds,
+        headers,
+        page
+      )
+      setProducts(Array.isArray(response?.data) ? response.data : [])
+      setPagination({
+        current_page: response?.current_page ?? 1,
+        last_page: response?.last_page ?? 1,
+        next_page_url: response?.next_page_url ?? null,
+        per_page: response?.per_page ?? 0,
+        total: response?.total ?? 0,
+      })
+      setSelectedCategoryId(null)
+      setSearchQuery(null)
+      setPriceFilter(null)
+      setCategoryFilter(categoryIds)
+    } catch (error) {
+      console.error("Failed to filter products by categories:", error)
+      setProducts([])
+      setPagination({
+        current_page: 1,
+        last_page: 1,
+        next_page_url: null,
+        per_page: 0,
+        total: 0,
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSortChange = async (
+    column: string,
+    direction: "asc" | "desc"
+  ) => {
+    setSortColumn(column)
+    setSortDirection(direction)
+    setIsLoading(true)
+    try {
+      const response = await getAllProducts(headers, 1, column, direction)
+      setProducts(Array.isArray(response?.data) ? response.data : [])
+      setPagination({
+        current_page: response?.current_page ?? 1,
+        last_page: response?.last_page ?? 1,
+        next_page_url: response?.next_page_url ?? null,
+        per_page: response?.per_page ?? 0,
+        total: response?.total ?? 0,
+      })
+      setSelectedCategoryId(null)
+      setSearchQuery(null)
+      setPriceFilter(null)
+      setCategoryFilter(null)
+    } catch (error) {
+      console.error("Failed to sort products:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const loadMoreProducts = async () => {
     if (isLoadingMore || !pagination.next_page_url) return
 
@@ -132,7 +293,20 @@ export function ShopContent({
       const nextPage = pagination.current_page + 1
       let response: IProductsApiResponse
 
-      if (searchQuery) {
+      if (categoryFilter && categoryFilter.length > 0) {
+        response = await searchProductsByCategories(
+          categoryFilter,
+          headers,
+          nextPage
+        )
+      } else if (priceFilter) {
+        response = await searchProductsByPrice(
+          priceFilter.min,
+          priceFilter.max,
+          headers,
+          nextPage
+        )
+      } else if (searchQuery) {
         response = await searchProducts(searchQuery, headers, nextPage)
       } else if (selectedCategoryId) {
         response = await getCategoryProducts(
@@ -141,7 +315,12 @@ export function ShopContent({
           nextPage
         )
       } else {
-        response = await getAllProducts(headers, nextPage)
+        response = await getAllProducts(
+          headers,
+          nextPage,
+          sortColumn,
+          sortDirection
+        )
       }
 
       // Append new products to existing ones
@@ -160,6 +339,53 @@ export function ShopContent({
       setIsLoadingMore(false)
     }
   }
+
+  // Load section products client-side when section param is in URL
+  useEffect(() => {
+    if (!sectionUlid) return
+
+    let cancelled = false
+
+    const loadSectionProducts = async () => {
+      setIsLoading(true)
+      try {
+        const response = await api.getTyped<
+          `/customer/section-wise-products/${string}`,
+          ISectionWiseProductsApiResponse
+        >(`/customer/section-wise-products/${sectionUlid}`, {
+          headers,
+        })
+
+        if (cancelled) return
+
+        const sectionProducts = Array.isArray(response?.data?.products)
+          ? response.data.products.map(mapSectionProductToProduct)
+          : []
+
+        setProducts(sectionProducts)
+        setPagination({
+          current_page: 1,
+          last_page: 1,
+          next_page_url: null,
+          per_page: sectionProducts.length,
+          total: sectionProducts.length,
+        })
+      } catch (error) {
+        if (cancelled) return
+        console.error("Failed to fetch section products:", error)
+        setProducts([])
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    }
+
+    loadSectionProducts()
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sectionUlid])
 
   // Load category products on mount if categoryId is in URL
   useEffect(() => {
@@ -211,9 +437,12 @@ export function ShopContent({
     const params = new URLSearchParams(searchParams.toString())
 
     if (categoryId === null) {
-      // Clear category and search when showing all products
+      // Clear category, search, price, and category filter when showing all products
       params.delete("catId")
       params.delete("search")
+      params.delete("min_price")
+      params.delete("max_price")
+      params.delete("category_ids")
       router.push(`/shop?${params.toString()}`, { scroll: false })
 
       // Reset to initial state immediately
@@ -221,15 +450,75 @@ export function ShopContent({
       setPagination(initialPagination)
       setSelectedCategoryId(null)
       setSearchQuery(null)
+      setPriceFilter(null)
+      setCategoryFilter(null)
       return
     } else {
-      // Set category and clear search when selecting a category
+      // Set category and clear search/price/category filter when selecting a category
       params.set("catId", String(categoryId))
       params.delete("search")
+      params.delete("min_price")
+      params.delete("max_price")
+      params.delete("category_ids")
+      setPriceFilter(null)
+      setCategoryFilter(null)
       router.push(`/shop?${params.toString()}`, { scroll: false })
     }
 
     await loadCategoryProducts(categoryId)
+  }
+
+  const handlePriceRangeApply = async (minPrice: number, maxPrice: number) => {
+    // Update URL params
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("min_price", String(minPrice))
+    params.set("max_price", String(maxPrice))
+    params.delete("catId")
+    params.delete("search")
+    params.delete("category_ids")
+    setCategoryFilter(null)
+    router.push(`/shop?${params.toString()}`, { scroll: false })
+
+    await loadPriceFilteredProducts(minPrice, maxPrice)
+  }
+
+  const handlePriceRangeReset = async () => {
+    setPriceFilter(null)
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("min_price")
+    params.delete("max_price")
+    router.push(`/shop?${params.toString()}`, { scroll: false })
+
+    // Reset to all products
+    setProducts(Array.isArray(initialProducts) ? initialProducts : [])
+    setPagination(initialPagination)
+    setSelectedCategoryId(null)
+    setSearchQuery(null)
+  }
+
+  const handleCategoryFilterApply = async (categoryIds: number[]) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("catId")
+    params.delete("search")
+    params.delete("min_price")
+    params.delete("max_price")
+    params.set("category_ids", categoryIds.join(","))
+    router.push(`/shop?${params.toString()}`, { scroll: false })
+
+    await loadCategoryFilteredProducts(categoryIds)
+  }
+
+  const handleCategoryFilterReset = async () => {
+    setCategoryFilter(null)
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("category_ids")
+    router.push(`/shop?${params.toString()}`, { scroll: false })
+
+    // Reset to all products
+    setProducts(Array.isArray(initialProducts) ? initialProducts : [])
+    setPagination(initialPagination)
+    setSelectedCategoryId(null)
+    setSearchQuery(null)
   }
 
   const handleLoadMore = async () => {
@@ -239,6 +528,50 @@ export function ShopContent({
   const selectedCategory = selectedCategoryId
     ? categories.find((cat) => cat.id === selectedCategoryId)
     : null
+
+  // Section view: show section products without filters/categories
+  if (sectionUlid) {
+    return (
+      <>
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
+          <Button
+            variant="secondary"
+            size="lg"
+            className="md:text-base font-semibold py-6"
+            onClick={() => router.push("/shop")}
+          >
+            {t("viewAllProducts")}
+          </Button>
+        </div>
+        <div className="pb-10">
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <p className="text-muted-foreground">Loading products...</p>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="flex flex-col justify-center items-center py-20">
+              <p className="text-xl md:text-2xl font-semibold text-muted-foreground mb-2">
+                No products found in this section
+              </p>
+              <Button
+                onClick={() => router.push("/shop")}
+                size="lg"
+                className="px-8 py-6 mt-4"
+              >
+                {t("viewAllProducts")}
+              </Button>
+            </div>
+          ) : (
+            <ProductList
+              products={products}
+              hasMore={false}
+              isLoadingMore={false}
+            />
+          )}
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
@@ -268,7 +601,16 @@ export function ShopContent({
                   </SheetDescription>
                 </SheetHeader>
                 <div>
-                  <Filters />
+                  <Filters
+                    categories={categories}
+                    onPriceRangeApply={handlePriceRangeApply}
+                    onPriceRangeReset={handlePriceRangeReset}
+                    isPriceFilterActive={!!priceFilter}
+                    onCategoryFilterApply={handleCategoryFilterApply}
+                    onCategoryFilterReset={handleCategoryFilterReset}
+                    isCategoryFilterActive={!!categoryFilter}
+                    onSortChange={handleSortChange}
+                  />
                 </div>
               </SheetContent>
             </Sheet>
@@ -283,12 +625,56 @@ export function ShopContent({
 
       <div className="md:grid md:grid-cols-3 xl:grid-cols-5 mt-10 gap-12 md:gap-16 items-start">
         <div className="max-md:hidden">
-          <Filters />
+          <Filters
+            categories={categories}
+            onPriceRangeApply={handlePriceRangeApply}
+            onPriceRangeReset={handlePriceRangeReset}
+            isPriceFilterActive={!!priceFilter}
+            onCategoryFilterApply={handleCategoryFilterApply}
+            onCategoryFilterReset={handleCategoryFilterReset}
+            isCategoryFilterActive={!!categoryFilter}
+            onSortChange={handleSortChange}
+          />
         </div>
         <div className="md:col-span-2 xl:col-span-4 pb-10">
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
               <p className="text-muted-foreground">Loading products...</p>
+            </div>
+          ) : categoryFilter &&
+            categoryFilter.length > 0 &&
+            products.length === 0 ? (
+            <div className="flex flex-col justify-center items-center py-20">
+              <p className="text-xl md:text-2xl font-semibold text-muted-foreground mb-2">
+                No products found in selected categories
+              </p>
+              <p className="text-muted-foreground mb-6">
+                Try selecting different categories or view all products
+              </p>
+              <Button
+                onClick={() => handleCategoryFilterReset()}
+                size="lg"
+                className="px-8 py-6"
+              >
+                {t("viewAllProducts")}
+              </Button>
+            </div>
+          ) : priceFilter && products.length === 0 ? (
+            <div className="flex flex-col justify-center items-center py-20">
+              <p className="text-xl md:text-2xl font-semibold text-muted-foreground mb-2">
+                No products found in this price range
+              </p>
+              <p className="text-muted-foreground mb-6">
+                ৳{priceFilter.min.toLocaleString()} - ৳
+                {priceFilter.max.toLocaleString()}
+              </p>
+              <Button
+                onClick={() => handlePriceRangeReset()}
+                size="lg"
+                className="px-8 py-6"
+              >
+                {t("viewAllProducts")}
+              </Button>
             </div>
           ) : searchQuery && products.length === 0 ? (
             <div className="flex flex-col justify-center items-center py-20">

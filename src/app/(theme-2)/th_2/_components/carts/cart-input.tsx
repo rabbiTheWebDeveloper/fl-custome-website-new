@@ -143,6 +143,7 @@ export const CartInput = ({
       )}
       <div className="flex items-center focus-within:ring-2 ring-ring transition-shadow ring-0 ring-offset-0 focus-within:ring-offset-3 ring-offset-background rounded-xl border border-muted">
         <Button
+          type="button"
           variant="secondary"
           size="icon"
           className="bg-secondary cursor-pointer size-13 rounded-xl rounded-r-none"
@@ -172,6 +173,7 @@ export const CartInput = ({
           )}
         </div>
         <Button
+          type="button"
           variant="secondary"
           size="icon"
           className="bg-secondary cursor-pointer size-13 rounded-xl rounded-l-none"

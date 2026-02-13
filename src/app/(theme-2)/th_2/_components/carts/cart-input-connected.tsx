@@ -6,6 +6,8 @@ import type { IProduct } from "../../types/product"
 import { generateCartItemId } from "@/lib/cart"
 import { useMemo } from "react"
 import { useCartStore } from "@/lib/cart"
+import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 interface CartInputConnectedProps {
   product: IProduct
@@ -23,6 +25,7 @@ export function CartInputConnected({
   maxQuantity,
 }: CartInputConnectedProps) {
   const { updateItem, removeItem } = useCart()
+  const tToast = useTranslations("Theme2.toast")
 
   // Get items from store reactively
   const items = useCartStore((state) => state.items)
@@ -39,16 +42,29 @@ export function CartInputConnected({
   // Handle quantity change
   const handleQuantityChange = async (newQuantity: number) => {
     if (!cartItem) {
-      // Item not in cart, this shouldn't happen but handle gracefully
+      return
+    }
+
+    // Check max quantity before attempting update
+    const maxQty = maxQuantity ?? product.product_qty
+    if (maxQty !== undefined && newQuantity > maxQty) {
+      if (maxQty === 0) {
+        toast.error(tToast("outOfStock"))
+      } else {
+        toast.warning(tToast("maxQuantityReached"))
+      }
       return
     }
 
     if (newQuantity === 0) {
-      // Remove item from cart
       await removeItem(cartItem.id)
     } else {
-      // Update quantity
-      await updateItem(cartItem.id, { quantity: newQuantity })
+      try {
+        await updateItem(cartItem.id, { quantity: newQuantity })
+      } catch (error) {
+        console.error("Failed to update quantity:", error)
+        toast.error(tToast("addToCartError"))
+      }
     }
   }
 

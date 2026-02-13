@@ -3,48 +3,38 @@
 import { useRouter } from "next/navigation"
 import { useLocale } from "next-intl"
 import { setCookie } from "cookies-next"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select"
 import { Globe2 } from "lucide-react"
+import { Button } from "../ui/button"
 
-const languages = [
-  { value: "en", label: "English" },
-  { value: "bn", label: "বাংলা" },
-]
+const localeMap: Record<string, { code: string; next: string }> = {
+  en: { code: "EN", next: "bn" },
+  bn: { code: "বা", next: "en" },
+}
 
 export function LanguageSelector() {
   const router = useRouter()
   const locale = useLocale()
 
-  const handleLanguageChange = (newLocale: string) => {
-    // Store locale preference in cookie
-    setCookie("NEXT_LOCALE", newLocale, {
+  const current = localeMap[locale] ?? localeMap.en
+
+  const handleToggle = () => {
+    setCookie("NEXT_LOCALE", current.next, {
       maxAge: 365 * 24 * 60 * 60, // 1 year
       path: "/",
     })
-
-    // Reload the page to apply the new locale
     router.refresh()
   }
 
   return (
-    <Select value={locale} onValueChange={handleLanguageChange}>
-      <SelectTrigger className="w-[140px] md:w-[160px] h-10 gap-2">
-        <Globe2 className="size-5 text-muted-foreground" />
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {languages.map((lang) => (
-          <SelectItem key={lang.value} value={lang.value}>
-            {lang.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={handleToggle}
+      className="gap-1.5 h-9 px-2.5 rounded-full text-xs font-semibold"
+      aria-label={`Switch language to ${current.next}`}
+    >
+      <Globe2 className="size-4 text-muted-foreground shrink-0" />
+      <span>{current.code}</span>
+    </Button>
   )
 }

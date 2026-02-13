@@ -10,7 +10,6 @@ export const footerNavigationHrefs = [
   { key: "home", href: "/" },
   { key: "shop", href: "/shop" },
   { key: "about", href: "/about" },
-  { key: "contact", href: "/contact" },
 ]
 
 export const footerCategoriesHrefs = [
@@ -22,7 +21,6 @@ export const footerCategoriesHrefs = [
 export const footerLegalsHrefs = [
   { key: "privacy", href: "/privacy" },
   { key: "terms", href: "/terms" },
-  { key: "other", href: "/other" },
 ]
 
 export const footerSocials = [

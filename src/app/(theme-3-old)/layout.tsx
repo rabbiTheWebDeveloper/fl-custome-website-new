@@ -3,12 +3,12 @@ import { Inter } from "next/font/google"
 import { NextIntlClientProvider } from "next-intl"
 import "./globals.css"
 import FooterUI from "./th_3/_components/footer"
-import { Toaster } from "@/components/ui/sonner"
 import dynamic from "next/dynamic"
 import { Providers } from "./th_3/providers"
 import { cookies } from "next/headers"
 import { DynamicMeta } from "./th_3/_components/dynamic-meta"
 import { getDomainMeta } from "@/lib/domain"
+import { Toaster } from "sonner"
 const Header = dynamic(() => import('./th_3/_components/header'), { ssr: true })
 export async function generateMetadata(): Promise<Metadata> {
   const { title, description, favicon } = await getDomainMeta()

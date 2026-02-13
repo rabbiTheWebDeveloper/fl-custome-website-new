@@ -6,21 +6,26 @@ import { IProduct } from "../../types/product"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/lib/cart"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 export const ProductCard = ({
   product_name: name,
   wp_product_image_url: image,
   price: originalPrice,
   discounted_price: discountedPrice,
-  flat_discount_percent: discountPercentage,
+  flat_discount_percent,
   id,
+  ulid,
   main_image,
   product_qty,
   product_code,
+  slug,
+  discount,
 }: IProduct) => {
   const router = useRouter()
   const { addItem, getItemByProduct } = useCart()
   const t = useTranslations("Theme2.buttons")
+  const tToast = useTranslations("Theme2.toast")
 
   // Check current quantity in cart
   const cartItem = getItemByProduct(id)
@@ -29,10 +34,17 @@ export const ProductCard = ({
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent navigation to product page
 
+    // Check if product is out of stock
+    if (product_qty === 0) {
+      toast.error(tToast("outOfStock"))
+      return
+    }
+
     // Check if we've reached max quantity
     const maxQty = product_qty
     if (maxQty && currentQuantity >= maxQty) {
-      return // Don't add if at max
+      toast.warning(tToast("maxQuantityReached"))
+      return
     }
 
     try {
@@ -41,38 +53,41 @@ export const ProductCard = ({
         name: name,
         price: originalPrice,
         discountedPrice: discountedPrice,
-        quantity: 1, // Always add 1, mergeIfExists will handle incrementing
+        quantity: 1,
         metadata: {
           image: main_image,
           sku: product_code,
           maxQuantity: maxQty,
-          // Note: inside_dhaka and outside_dhaka are not available in ProductCard props
-          // They will be fetched from API if needed in checkout
         },
-        mergeIfExists: true, // Merge with existing item if variant matches (increments quantity)
+        mergeIfExists: true,
         maxQuantity: maxQty,
       })
+      toast.success(tToast("addedToCart"))
     } catch (error) {
       console.error("Failed to add item to cart:", error)
+      toast.error(tToast("addToCartError"))
     }
   }
 
-  // Disable button if at max quantity
-  const isAtMax = product_qty ? currentQuantity >= product_qty : false
+  // Disable button if at max quantity or out of stock
+  const isAtMax =
+    product_qty === 0 || (product_qty ? currentQuantity >= product_qty : false)
 
   return (
     <div
       className="group relative cursor-pointer"
-      onClick={() => router.push(`/product/${id}`)}
+      onClick={() => router.push(`/product/${slug}?id=${ulid}`)}
     >
       {/* Product Image Container */}
       <div className="relative aspect-3/4 rounded-2xl overflow-hidden mb-3 bg-gray-100">
         {/* Discount Badge */}
-        <div className="absolute top-5 left-3 z-10">
-          <span className="bg-[#FFA01C] text-black text-sm font-semibold px-3 py-2 rounded-lg">
-            {discountPercentage}% OFF
-          </span>
-        </div>
+        {discount > 0 && (
+          <div className="absolute top-5 left-3 z-10">
+            <span className="bg-[#FFA01C] text-black text-sm font-semibold px-3 py-2 rounded-lg">
+              {flat_discount_percent} OFF
+            </span>
+          </div>
+        )}
 
         {/* Default Product Image */}
         {main_image && main_image.trim() !== "" && (
@@ -120,12 +135,18 @@ export const ProductCard = ({
       <div className="space-y-1">
         <h3 className="text-sm font-medium text-gray-900">{name}</h3>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 line-through">
-            ৳{originalPrice}
-          </span>
-          <span className="text-lg font-semibold text-primary">
-            ৳{discountedPrice}
-          </span>
+          {discount > 0 ? (
+            <span className="text-sm text-gray-500 line-through">
+              ৳{originalPrice}
+            </span>
+          ) : (
+            <span className="text-sm text-gray-500">৳{originalPrice}</span>
+          )}
+          {discount > 0 ? (
+            <span className="text-lg font-semibold text-primary">
+              ৳{discountedPrice}
+            </span>
+          ) : null}
         </div>
       </div>
     </div>

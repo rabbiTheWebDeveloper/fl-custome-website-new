@@ -75,7 +75,9 @@
       "privacy": "Privacy Policy",
       "terms": "Terms & Conditions",
       "other": "Other",
+      "others": "Others",
       "copyright": "© Brand Name {year} | All rights reserved.",
+      "allRightsReserved": "All rights reserved.",
       "madeIn": "Made in"
     },
     "headerFooter": {
@@ -104,6 +106,26 @@
       "placingOrder": "Placing Order...",
       "continueShopping": "Continue Shopping"
     },
+    "toast": {
+      "outOfStock": "This product is currently out of stock",
+      "maxQuantityReached": "You've reached the maximum available quantity for this product",
+      "addToCartError": "Failed to add product to cart. Please try again.",
+      "addedToCart": "Product added to cart"
+    },
+    "countdown": {
+      "endsIn": "Ends in",
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "daysShort": "D",
+      "hoursShort": "H",
+      "minutesShort": "M",
+      "secondsShort": "S",
+      "minsShort": "Mins",
+      "secsShort": "Secs",
+      "offerEnded": "This offer has ended"
+    },
     "checkout": {
       "title": "Checkout",
       "subtitle": "Almost there — complete your order securely.",
@@ -125,6 +147,7 @@
       "orderNotePlaceholder": "Write here",
       "shippingMethod": "Shipping method",
       "insideDhaka": "Inside Dhaka",
+      "subarea": "Subarea",
       "aroundDhaka": "Around Dhaka",
       "outsideDhaka": "Outside Dhaka",
       "paymentMethod": "Payment Method",
@@ -145,7 +168,7 @@
       }
     }
   },
-  "Theme3": {
+    "Theme3": {
     "header": {
       "home": "Home",
       "shop": "Shop",

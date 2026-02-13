@@ -117,18 +117,20 @@ export default async function ProductPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ query: string }>
+  searchParams: Promise<{ id?: string }>
 }) {
-  // const productId = params.slug
-  const { id } = await params
-  const { query } = await searchParams
-  console.log("Product ID:", id, "Query:", query)
+  const { id: slug } = await params
+  const { id: ulid } = await searchParams
+  // Use ?id= query param (ulid) for the API call, fall back to route param (slug)
+  const productId = ulid || slug
+  console.log("Product slug:", slug, "ulid:", ulid, "using:", productId)
   const headers = await getDomainHeaders()
 
-  const response = await api.get(`/customer/products/${id}`, {
+  const response = await api.get(`/customer/products/${productId}`, {
     headers,
   })
-  const product: IProduct = (response.data as { data: IProduct }).data
+  const product: IProduct | undefined = (response.data as { data: IProduct })
+    ?.data
   console.log("Product Details: ", product)
 
   return (
