@@ -74,26 +74,28 @@ export async function getDomainMeta(): Promise<{
   title: string
   description: string
   favicon: string
+  other_script?: Record<string, object> | undefined
 }> {
   const cookieStore = await cookies()
   const raw = cookieStore.get("domain")?.value || ""
 
   if (!raw) {
-    return { title: "", description: "", favicon: "" }
+    return { title: "", description: "", favicon: "", other_script: {} }
   }
 
   try {
     const decoded = decodeURIComponent(raw)
     const parsed = JSON.parse(decoded)
     const domain = parsed?.state?.domain
-    console.log("domain favicon", domain?.shop_favicon)
+    console.log("domain favicon", domain)
 
     return {
       title: domain?.shop_meta_title || "",
       description: domain?.shop_meta_description || "",
       favicon: domain?.shop_favicon || "",
+      other_script: domain?.other_script || {},
     }
   } catch {
-    return { title: "", description: "", favicon: "" }
+    return { title: "", description: "", favicon: "", other_script: {} }
   }
 }

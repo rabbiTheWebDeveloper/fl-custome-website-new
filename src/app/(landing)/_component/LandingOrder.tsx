@@ -28,7 +28,10 @@ import CheckoutOtp from "@/components/checkout-otp"
 // Define form validation schema
 const orderFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  phone: z.string().min(11, "Phone number must be at least 11 digits").max(14, "Phone number too long"),
+  phone: z
+    .string()
+    .min(11, "Phone number must be at least 11 digits")
+    .max(14, "Phone number too long"),
   address: z.string().min(1, "Address is required"),
   note: z.string().optional(),
   deliveryArea: z.enum(["inside", "outside", "sub_area"]),
@@ -46,9 +49,7 @@ interface ProductVariantOption {
   media?: string
 }
 
-interface SelectedVariant extends ProductVariantOption {
-  // Inherits all properties from ProductVariantOption
-}
+type SelectedVariant = ProductVariantOption
 
 const LandingOrder = ({
   product,
@@ -73,37 +74,28 @@ const LandingOrder = ({
   order_title = "Your Order",
   checkout_button_text = "Place Order",
   showShippingOptions = true,
-  storeUrl = typeof window !== 'undefined' ? window.location.origin : '',
+  storeUrl = typeof window !== "undefined" ? window.location.origin : "",
 }: LandingOrderProps) => {
   const [selectedPayment, setSelectedPayment] = useState<"cod" | "bkash">("cod")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   // OTP Modal State
-    const [timeLeft, setTimeLeft] = useState(0)
-    const [show, setShow] = useState(false)
-    const handleClose = () => setShow(false)
-    const handleShow = () => setShow(true)
-    const [resendLoading, setResendLoading] = useState(false)
-
-  // Early return if product is undefined
-  if (!product) {
-    return (
-      <div className="py-12 min-h-screen flex items-center justify-center" style={{ backgroundColor }}>
-        <div className="text-center">
-          <p className="text-xl font-semibold" style={{ color: fontColor }}>
-            Product information is not available
-          </p>
-        </div>
-      </div>
-    )
-  }
+  const [timeLeft, setTimeLeft] = useState(0)
+  const [show, setShow] = useState(false)
+  const handleClose = () => setShow(false)
+  const handleShow = () => setShow(true)
+  const [resendLoading, setResendLoading] = useState(false)
 
   // For products WITHOUT variants
   const [simpleProductQuantity, setSimpleProductQuantity] = useState<number>(1)
   // For products WITH variants
   const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>(
     () => {
-      if (Array.isArray(product.variations) && product.variations.length > 0) {
+      if (
+        product &&
+        Array.isArray(product.variations) &&
+        product.variations.length > 0
+      ) {
         const variants = product.variations as unknown as ProductVariantOption[]
         return variants.map((variant) => ({
           id: variant.id,
@@ -117,11 +109,11 @@ const LandingOrder = ({
     }
   )
 
-  const [prevProductId, setPrevProductId] = useState(product.id)
+  const [prevProductId, setPrevProductId] = useState(product?.id)
 
   // Reset when product changes
   useEffect(() => {
-    if (product.id !== prevProductId) {
+    if (product && product.id !== prevProductId) {
       setPrevProductId(product.id)
       if (Array.isArray(product.variations) && product.variations.length > 0) {
         const variants = product.variations as unknown as ProductVariantOption[]
@@ -138,7 +130,7 @@ const LandingOrder = ({
         setSimpleProductQuantity(1)
       }
     }
-  }, [product.id, prevProductId])
+  }, [product, prevProductId])
 
   // Initialize react-hook-form
   const {
@@ -146,7 +138,6 @@ const LandingOrder = ({
     handleSubmit,
     watch,
     formState: { errors, isValid },
-    reset,
   } = useForm<OrderFormData>({
     resolver: zodResolver(orderFormSchema),
     defaultValues: {
@@ -154,7 +145,7 @@ const LandingOrder = ({
       phone: "",
       address: "",
       note: "",
-      deliveryArea: (product.default_delivery_location === "sub_area"
+      deliveryArea: (product?.default_delivery_location === "sub_area"
         ? "sub_area"
         : "inside") as OrderFormData["deliveryArea"],
     },
@@ -162,6 +153,31 @@ const LandingOrder = ({
   })
 
   const deliveryArea = watch("deliveryArea")
+
+  // OTP timer effect - must be before early return
+  useEffect(() => {
+    if (!timeLeft) return
+    const intervalId = setInterval(() => {
+      setTimeLeft(timeLeft - 1)
+    }, 1000)
+    return () => clearInterval(intervalId)
+  }, [show, timeLeft])
+
+  // Early return if product is undefined (after all hooks)
+  if (!product) {
+    return (
+      <div
+        className="py-12 min-h-screen flex items-center justify-center"
+        style={{ backgroundColor }}
+      >
+        <div className="text-center">
+          <p className="text-xl font-semibold" style={{ color: fontColor }}>
+            Product information is not available
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   // Calculate shipping charge based on delivery area
   const getShippingCharge = () => {
@@ -213,8 +229,11 @@ const LandingOrder = ({
         if (variant.id === variantId) {
           const newQuantity = variant.quantity + change
           // Check available stock
-          const variants = Array.isArray(product.variations) ? product.variations as unknown as ProductVariantOption[] : []
-          const availableStock = variants.find((v) => v.id === variantId)?.quantity || 0
+          const variants = Array.isArray(product.variations)
+            ? (product.variations as unknown as ProductVariantOption[])
+            : []
+          const availableStock =
+            variants.find((v) => v.id === variantId)?.quantity || 0
           if (newQuantity >= 0 && newQuantity <= availableStock) {
             return { ...variant, quantity: newQuantity }
           }
@@ -297,7 +316,6 @@ const LandingOrder = ({
 
     formDataObj.append("shipping_cost", String(shippingCharge || 0))
 
-
     // Order type
     formDataObj.append("order_type", "website")
     // Visitor ID
@@ -313,9 +331,10 @@ const LandingOrder = ({
     const shopId = headers["shop-id"]
 
     // Validate if any items are selected
-    const hasItems = Array.isArray(product.variations) && product.variations.length > 0
-      ? hasSelectedVariants
-      : simpleProductQuantity > 0
+    const hasItems =
+      Array.isArray(product.variations) && product.variations.length > 0
+        ? hasSelectedVariants
+        : simpleProductQuantity > 0
 
     if (!hasItems) {
       toast.error("Please add at least one item to your order!")
@@ -367,18 +386,22 @@ const LandingOrder = ({
           window.location.href = responseOrderData.payment_url
         } else if (order?.otp_sent) {
           toast.success("OTP sent successfully")
-         toast.success("OTP sent successfully")
-                   setTimeLeft(120)
-                   handleShow()
+          toast.success("OTP sent successfully")
+          setTimeLeft(120)
+          handleShow()
         } else if (responseData.message) {
           toast.success(responseData.message)
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error placing order:", error)
-      const errorMessage = error.response?.data?.message ||
-        error.message ||
-        "An error occurred while placing your order. Please try again."
+      const errorMessage =
+        error instanceof Error && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message ||
+            error.message ||
+            "An error occurred while placing your order. Please try again."
+          : "An error occurred while placing your order. Please try again."
       toast.error(errorMessage)
     } finally {
       setIsSubmitting(false)
@@ -394,66 +417,65 @@ const LandingOrder = ({
       if (product.inside_dhaka !== undefined && product.inside_dhaka !== null) {
         options.push({
           value: "inside",
-          label: `Inside Dhaka (৳${product.inside_dhaka})`
+          label: `Inside Dhaka (৳${product.inside_dhaka})`,
         })
       }
 
-      if (product.outside_dhaka !== undefined && product.outside_dhaka !== null) {
+      if (
+        product.outside_dhaka !== undefined &&
+        product.outside_dhaka !== null
+      ) {
         options.push({
           value: "outside",
-          label: `Outside Dhaka (৳${product.outside_dhaka})`
+          label: `Outside Dhaka (৳${product.outside_dhaka})`,
         })
       }
 
-      if (product.sub_area_charge !== undefined && product.sub_area_charge !== null) {
+      if (
+        product.sub_area_charge !== undefined &&
+        product.sub_area_charge !== null
+      ) {
         options.push({
           value: "sub_area",
-          label: `Sub Area (৳${product.sub_area_charge})`
+          label: `Sub Area (৳${product.sub_area_charge})`,
         })
       }
     }
 
     return options
   }
-const customerPhone = watch("phone")
-   const handleResendOtp = async () => {
-      setResendLoading(true)
-      const headers = getDomainHeadersFromCookies()
-      const shopId = headers["shop-id"]
-      try {
-        const res = await api.post(
-          "/customer/resend-otp",
-          { phone: customerPhone },
-          undefined,
-          {
-            headers: {
-              ...(shopId && { "shop-id": shopId }),
-            },
-          }
-        )
-        const responseData = res.data as {
-          data: {
-            otp_sent: boolean
-          }
+  const customerPhone = watch("phone")
+  const handleResendOtp = async () => {
+    setResendLoading(true)
+    const headers = getDomainHeadersFromCookies()
+    const shopId = headers["shop-id"]
+    try {
+      const res = await api.post(
+        "/customer/resend-otp",
+        { phone: customerPhone },
+        undefined,
+        {
+          headers: {
+            ...(shopId && { "shop-id": shopId }),
+          },
         }
-        if (responseData.data.otp_sent) {
-          toast.success("OTP sent successfully")
-          setTimeLeft(120)
+      )
+      const responseData = res.data as {
+        data: {
+          otp_sent: boolean
         }
-      } catch (error) {
-        console.error("Error resending OTP:", error)
-      } finally {
-        setResendLoading(false)
       }
+      if (responseData.data.otp_sent) {
+        toast.success("OTP sent successfully")
+        setTimeLeft(120)
+      }
+    } catch (error) {
+      console.error("Error resending OTP:", error)
+    } finally {
+      setResendLoading(false)
     }
-  
-    useEffect(() => {
-      if (!timeLeft) return
-      const intervalId = setInterval(() => {
-        setTimeLeft(timeLeft - 1)
-      }, 1000)
-      return () => clearInterval(intervalId)
-    }, [show, timeLeft])
+  }
+
   const hasSocialMedia = fb || twitter || linkedin || instagram || youtube
   return (
     <section className="py-12 min-h-screen" style={{ backgroundColor }}>
@@ -472,8 +494,10 @@ const customerPhone = watch("phone")
             <div
               className="p-6 md:p-8 rounded-2xl shadow-lg"
               style={{
-                backgroundColor: checkout_b_color || '#ffffff',
-                borderColor: checkout_b_color ? `${checkout_b_color}20` : '#e5e7eb'
+                backgroundColor: checkout_b_color || "#ffffff",
+                borderColor: checkout_b_color
+                  ? `${checkout_b_color}20`
+                  : "#e5e7eb",
               }}
             >
               <div className="flex items-center gap-4 mb-6">
@@ -493,7 +517,11 @@ const customerPhone = watch("phone")
                   </h3>
                   <p
                     className="text-sm mt-1"
-                    style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                    style={{
+                      color: checkout_text_color
+                        ? `${checkout_text_color}90`
+                        : "#6b7280",
+                    }}
                   >
                     {product.product_code}
                   </p>
@@ -506,7 +534,8 @@ const customerPhone = watch("phone")
               </div>
 
               {/* PRODUCT WITH VARIANTS */}
-              {Array.isArray(product.variations) && product.variations.length > 0 ? (
+              {Array.isArray(product.variations) &&
+              product.variations.length > 0 ? (
                 <div className="mt-6">
                   <div className="flex items-center justify-between mb-4">
                     <h4
@@ -517,7 +546,11 @@ const customerPhone = watch("phone")
                     </h4>
                     <span
                       className="text-sm"
-                      style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                      style={{
+                        color: checkout_text_color
+                          ? `${checkout_text_color}90`
+                          : "#6b7280",
+                      }}
                     >
                       {selectedVariants.filter((v) => v.quantity > 0).length}{" "}
                       selected
@@ -526,8 +559,11 @@ const customerPhone = watch("phone")
 
                   <div className="space-y-4">
                     {selectedVariants.map((variant) => {
-                      const variants = Array.isArray(product.variations) ? product.variations as unknown as ProductVariantOption[] : []
-                      const availableStock = variants.find((v) => v.id === variant.id)?.quantity || 0
+                      const variants = Array.isArray(product.variations)
+                        ? (product.variations as unknown as ProductVariantOption[])
+                        : []
+                      const availableStock =
+                        variants.find((v) => v.id === variant.id)?.quantity || 0
                       return (
                         <div
                           key={variant.id}
@@ -535,8 +571,11 @@ const customerPhone = watch("phone")
                           style={
                             {
                               borderColor:
-                                variant.quantity > 0 ? checkout_button_color || btnColor : "#e5e7eb",
-                              "--tw-ring-color": checkout_button_color || btnColor,
+                                variant.quantity > 0
+                                  ? checkout_button_color || btnColor
+                                  : "#e5e7eb",
+                              "--tw-ring-color":
+                                checkout_button_color || btnColor,
                             } as CSSProperties
                           }
                         >
@@ -553,7 +592,9 @@ const customerPhone = watch("phone")
                                 <div className="flex items-center gap-2">
                                   <p
                                     className="font-bold"
-                                    style={{ color: checkout_text_color || fontColor }}
+                                    style={{
+                                      color: checkout_text_color || fontColor,
+                                    }}
                                   >
                                     {variant.variant}
                                   </p>
@@ -566,13 +607,19 @@ const customerPhone = watch("phone")
                                 </div>
                                 <p
                                   className="font-bold text-lg mt-1"
-                                  style={{ color: checkout_button_color || btnColor }}
+                                  style={{
+                                    color: checkout_button_color || btnColor,
+                                  }}
                                 >
                                   ৳ {variant.price}
                                 </p>
                                 <p
                                   className="text-sm mt-1"
-                                  style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                                  style={{
+                                    color: checkout_text_color
+                                      ? `${checkout_text_color}90`
+                                      : "#6b7280",
+                                  }}
                                 >
                                   Available: {availableStock} units
                                 </p>
@@ -587,17 +634,20 @@ const customerPhone = watch("phone")
                                     handleVariantQuantityChange(variant.id, -1)
                                   }
                                   disabled={variant.quantity <= 0}
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${variant.quantity > 0
-                                    ? "bg-gray-200 hover:bg-gray-300"
-                                    : "bg-gray-100 cursor-not-allowed"
-                                    }`}
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                    variant.quantity > 0
+                                      ? "bg-gray-200 hover:bg-gray-300"
+                                      : "bg-gray-100 cursor-not-allowed"
+                                  }`}
                                 >
                                   <Minus size={16} />
                                 </button>
 
                                 <span
                                   className="text-lg font-semibold w-8 text-center"
-                                  style={{ color: checkout_text_color || fontColor }}
+                                  style={{
+                                    color: checkout_text_color || fontColor,
+                                  }}
                                 >
                                   {variant.quantity}
                                 </span>
@@ -607,10 +657,11 @@ const customerPhone = watch("phone")
                                     handleVariantQuantityChange(variant.id, 1)
                                   }
                                   disabled={variant.quantity >= availableStock}
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${variant.quantity < availableStock
-                                    ? "bg-gray-200 hover:bg-gray-300"
-                                    : "bg-gray-100 cursor-not-allowed"
-                                    }`}
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                                    variant.quantity < availableStock
+                                      ? "bg-gray-200 hover:bg-gray-300"
+                                      : "bg-gray-100 cursor-not-allowed"
+                                  }`}
                                 >
                                   <Plus size={16} />
                                 </button>
@@ -619,7 +670,9 @@ const customerPhone = watch("phone")
                               {variant.quantity > 0 && (
                                 <p
                                   className="font-bold"
-                                  style={{ color: checkout_text_color || fontColor }}
+                                  style={{
+                                    color: checkout_text_color || fontColor,
+                                  }}
                                 >
                                   ৳ {variant.price * variant.quantity}
                                 </p>
@@ -645,7 +698,9 @@ const customerPhone = watch("phone")
                   <div
                     className="flex items-center justify-between p-4 border rounded-xl"
                     style={{
-                      borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb'
+                      borderColor: checkout_b_color
+                        ? `${checkout_b_color}30`
+                        : "#e5e7eb",
                     }}
                   >
                     <div className="flex-1">
@@ -664,7 +719,11 @@ const customerPhone = watch("phone")
                       {product.discount > 0 && (
                         <p
                           className="text-sm line-through mt-1"
-                          style={{ color: checkout_text_color ? `${checkout_text_color}70` : '#9ca3af' }}
+                          style={{
+                            color: checkout_text_color
+                              ? `${checkout_text_color}70`
+                              : "#9ca3af",
+                          }}
                         >
                           ৳ {product.price}
                         </p>
@@ -677,10 +736,11 @@ const customerPhone = watch("phone")
                         <button
                           onClick={() => handleSimpleProductQuantityChange(-1)}
                           disabled={simpleProductQuantity <= 1}
-                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${simpleProductQuantity > 1
-                            ? "bg-gray-200 hover:bg-gray-300"
-                            : "bg-gray-100 cursor-not-allowed"
-                            }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                            simpleProductQuantity > 1
+                              ? "bg-gray-200 hover:bg-gray-300"
+                              : "bg-gray-100 cursor-not-allowed"
+                          }`}
                         >
                           <Minus size={20} />
                         </button>
@@ -694,7 +754,11 @@ const customerPhone = watch("phone")
                           </span>
                           <span
                             className="text-xs mt-1"
-                            style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                            style={{
+                              color: checkout_text_color
+                                ? `${checkout_text_color}90`
+                                : "#6b7280",
+                            }}
                           >
                             Available: {product.product_qty}
                           </span>
@@ -705,10 +769,11 @@ const customerPhone = watch("phone")
                           disabled={
                             simpleProductQuantity >= product.product_qty
                           }
-                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${simpleProductQuantity < product.product_qty
-                            ? "bg-gray-200 hover:bg-gray-300"
-                            : "bg-gray-100 cursor-not-allowed"
-                            }`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                            simpleProductQuantity < product.product_qty
+                              ? "bg-gray-200 hover:bg-gray-300"
+                              : "bg-gray-100 cursor-not-allowed"
+                          }`}
                         >
                           <Plus size={20} />
                         </button>
@@ -728,9 +793,18 @@ const customerPhone = watch("phone")
               )}
 
               {/* Price Breakdown */}
-              <div className="mt-8 pt-6 border-t space-y-3" style={{ borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb' }}>
+              <div
+                className="mt-8 pt-6 border-t space-y-3"
+                style={{
+                  borderColor: checkout_b_color
+                    ? `${checkout_b_color}30`
+                    : "#e5e7eb",
+                }}
+              >
                 <div className="flex justify-between items-center">
-                  <p style={{ color: checkout_text_color || fontColor }}>Subtotal</p>
+                  <p style={{ color: checkout_text_color || fontColor }}>
+                    Subtotal
+                  </p>
                   <p
                     className="font-semibold"
                     style={{ color: checkout_text_color || fontColor }}
@@ -741,12 +815,21 @@ const customerPhone = watch("phone")
 
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <Truck size={16} style={{ color: checkout_text_color || fontColor }} />
-                    <p style={{ color: checkout_text_color || fontColor }}>Shipping</p>
+                    <Truck
+                      size={16}
+                      style={{ color: checkout_text_color || fontColor }}
+                    />
+                    <p style={{ color: checkout_text_color || fontColor }}>
+                      Shipping
+                    </p>
                   </div>
                   <p
                     className={`font-semibold ${isFreeShipping ? "text-green-600" : ""}`}
-                    style={!isFreeShipping ? { color: checkout_text_color || fontColor } : {}}
+                    style={
+                      !isFreeShipping
+                        ? { color: checkout_text_color || fontColor }
+                        : {}
+                    }
                   >
                     {isFreeShipping ? (
                       <span className="text-green-600">Free Shipping</span>
@@ -758,14 +841,23 @@ const customerPhone = watch("phone")
 
                 {product.discount > 0 && (
                   <div className="flex justify-between items-center">
-                    <p style={{ color: checkout_text_color || fontColor }}>Discount</p>
+                    <p style={{ color: checkout_text_color || fontColor }}>
+                      Discount
+                    </p>
                     <p className="font-semibold text-green-600">
                       -{product.discount}%
                     </p>
                   </div>
                 )}
 
-                <div className="h-px my-3" style={{ backgroundColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb' }}></div>
+                <div
+                  className="h-px my-3"
+                  style={{
+                    backgroundColor: checkout_b_color
+                      ? `${checkout_b_color}30`
+                      : "#e5e7eb",
+                  }}
+                ></div>
 
                 <div className="flex justify-between items-center pt-3">
                   <p
@@ -788,15 +880,19 @@ const customerPhone = watch("phone")
             <div
               className="p-6 md:p-8 rounded-2xl shadow-lg"
               style={{
-                backgroundColor: checkout_b_color || '#ffffff',
-                borderColor: checkout_b_color ? `${checkout_b_color}20` : '#e5e7eb'
+                backgroundColor: checkout_b_color || "#ffffff",
+                borderColor: checkout_b_color
+                  ? `${checkout_b_color}20`
+                  : "#e5e7eb",
               }}
             >
               <h3
                 className="text-xl font-bold mb-6 pb-4 border-b"
                 style={{
                   color: checkout_text_color || fontColor,
-                  borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb'
+                  borderColor: checkout_b_color
+                    ? `${checkout_b_color}30`
+                    : "#e5e7eb",
                 }}
               >
                 Payment Method
@@ -810,7 +906,9 @@ const customerPhone = watch("phone")
                   style={
                     {
                       borderColor:
-                        selectedPayment === "cod" ? checkout_button_color || btnColor : "#e5e7eb",
+                        selectedPayment === "cod"
+                          ? checkout_button_color || btnColor
+                          : "#e5e7eb",
                       "--tw-ring-color": checkout_button_color || btnColor,
                     } as CSSProperties
                   }
@@ -820,8 +918,10 @@ const customerPhone = watch("phone")
                       <div
                         className="w-12 h-12 flex items-center justify-center rounded-lg"
                         style={{
-                          backgroundColor: checkout_button_color ? `${checkout_button_color}10` : '#f3f4f6',
-                          color: checkout_button_color || btnColor
+                          backgroundColor: checkout_button_color
+                            ? `${checkout_button_color}10`
+                            : "#f3f4f6",
+                          color: checkout_button_color || btnColor,
                         }}
                       >
                         <Banknote size={24} />
@@ -835,7 +935,11 @@ const customerPhone = watch("phone")
                         </p>
                         <p
                           className="text-sm"
-                          style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                          style={{
+                            color: checkout_text_color
+                              ? `${checkout_text_color}90`
+                              : "#6b7280",
+                          }}
                         >
                           Pay after receiving your order
                         </p>
@@ -845,9 +949,13 @@ const customerPhone = watch("phone")
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedPayment === "cod" ? "" : "border-gray-300"}`}
                       style={{
                         backgroundColor:
-                          selectedPayment === "cod" ? checkout_button_color || btnColor : "transparent",
+                          selectedPayment === "cod"
+                            ? checkout_button_color || btnColor
+                            : "transparent",
                         borderColor:
-                          selectedPayment === "cod" ? checkout_button_color || btnColor : "#d1d5db",
+                          selectedPayment === "cod"
+                            ? checkout_button_color || btnColor
+                            : "#d1d5db",
                       }}
                     >
                       {selectedPayment === "cod" && (
@@ -866,7 +974,9 @@ const customerPhone = watch("phone")
                   style={
                     {
                       borderColor:
-                        selectedPayment === "bkash" ? checkout_button_color || btnColor : "#e5e7eb",
+                        selectedPayment === "bkash"
+                          ? checkout_button_color || btnColor
+                          : "#e5e7eb",
                       "--tw-ring-color": checkout_button_color || btnColor,
                     } as CSSProperties
                   }
@@ -875,7 +985,9 @@ const customerPhone = watch("phone")
                     <div className="flex items-center gap-4">
                       <div
                         className="w-12 h-12 flex items-center justify-center rounded-lg text-white font-bold"
-                        style={{ backgroundColor: checkout_button_color || btnColor }}
+                        style={{
+                          backgroundColor: checkout_button_color || btnColor,
+                        }}
                       >
                         bK
                       </div>
@@ -888,7 +1000,11 @@ const customerPhone = watch("phone")
                         </p>
                         <p
                           className="text-sm"
-                          style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                          style={{
+                            color: checkout_text_color
+                              ? `${checkout_text_color}90`
+                              : "#6b7280",
+                          }}
                         >
                           Secure online payment
                         </p>
@@ -902,7 +1018,9 @@ const customerPhone = watch("phone")
                             ? checkout_button_color || btnColor
                             : "transparent",
                         borderColor:
-                          selectedPayment === "bkash" ? checkout_button_color || btnColor : "#d1d5db",
+                          selectedPayment === "bkash"
+                            ? checkout_button_color || btnColor
+                            : "#d1d5db",
                       }}
                     >
                       {selectedPayment === "bkash" && (
@@ -916,7 +1034,11 @@ const customerPhone = watch("phone")
               {/* Security Note */}
               <div
                 className="mt-6 pt-6 border-t flex items-start gap-3"
-                style={{ borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb' }}
+                style={{
+                  borderColor: checkout_b_color
+                    ? `${checkout_b_color}30`
+                    : "#e5e7eb",
+                }}
               >
                 <Shield className="text-green-600 mt-1" size={20} />
                 <div>
@@ -928,7 +1050,11 @@ const customerPhone = watch("phone")
                   </p>
                   <p
                     className="text-sm"
-                    style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                    style={{
+                      color: checkout_text_color
+                        ? `${checkout_text_color}90`
+                        : "#6b7280",
+                    }}
                   >
                     Your payment information is encrypted and secure.
                   </p>
@@ -942,8 +1068,10 @@ const customerPhone = watch("phone")
             <div
               className="p-6 md:p-8 rounded-2xl shadow-lg sticky top-8"
               style={{
-                backgroundColor: checkout_b_color || '#ffffff',
-                borderColor: checkout_b_color ? `${checkout_b_color}20` : '#e5e7eb'
+                backgroundColor: checkout_b_color || "#ffffff",
+                borderColor: checkout_b_color
+                  ? `${checkout_b_color}20`
+                  : "#e5e7eb",
               }}
             >
               <h3
@@ -969,10 +1097,16 @@ const customerPhone = watch("phone")
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.name ? "border-red-500" : ""}`}
                       style={
                         {
-                          borderColor: errors.name ? "#ef4444" : (checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb'),
+                          borderColor: errors.name
+                            ? "#ef4444"
+                            : checkout_b_color
+                              ? `${checkout_b_color}50`
+                              : "#e5e7eb",
                           "--tw-ring-color": checkout_button_color || btnColor,
                           color: checkout_text_color || fontColor,
-                          backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
+                          backgroundColor: checkout_b_color
+                            ? `${checkout_b_color}05`
+                            : "#ffffff",
                         } as CSSProperties
                       }
                     />
@@ -997,10 +1131,16 @@ const customerPhone = watch("phone")
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.phone ? "border-red-500" : ""}`}
                       style={
                         {
-                          borderColor: errors.phone ? "#ef4444" : (checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb'),
+                          borderColor: errors.phone
+                            ? "#ef4444"
+                            : checkout_b_color
+                              ? `${checkout_b_color}50`
+                              : "#e5e7eb",
                           "--tw-ring-color": checkout_button_color || btnColor,
                           color: checkout_text_color || fontColor,
-                          backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
+                          backgroundColor: checkout_b_color
+                            ? `${checkout_b_color}05`
+                            : "#ffffff",
                         } as CSSProperties
                       }
                     />
@@ -1012,64 +1152,94 @@ const customerPhone = watch("phone")
                   </div>
 
                   {/* Shipping Options - ONLY show if delivery_charge is 'paid' */}
-                  {showShippingOptions && product.delivery_charge === "paid" && getDeliveryOptions().length > 0 && (
-                    <div>
-                      <label
-                        className="block text-sm font-medium mb-2"
-                        style={{ color: checkout_text_color || fontColor }}
-                      >
-                        Delivery Area *
-                      </label>
-                      <select
-                        {...register("deliveryArea")}
-                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition"
-                        style={
-                          {
-                            borderColor: checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb',
-                            "--tw-ring-color": checkout_button_color || btnColor,
-                            color: checkout_text_color || fontColor,
-                            backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
-                          } as CSSProperties
-                        }
-                      >
-                        {getDeliveryOptions().map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      {product.delivery_charge === "paid" && (
-                        <p
-                          className="text-sm mt-2"
-                          style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}
+                  {showShippingOptions &&
+                    product.delivery_charge === "paid" &&
+                    getDeliveryOptions().length > 0 && (
+                      <div>
+                        <label
+                          className="block text-sm font-medium mb-2"
+                          style={{ color: checkout_text_color || fontColor }}
                         >
-                          Shipping charges apply based on your location
-                        </p>
-                      )}
-                    </div>
-                  )}
+                          Delivery Area *
+                        </label>
+                        <select
+                          {...register("deliveryArea")}
+                          className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition"
+                          style={
+                            {
+                              borderColor: checkout_b_color
+                                ? `${checkout_b_color}50`
+                                : "#e5e7eb",
+                              "--tw-ring-color":
+                                checkout_button_color || btnColor,
+                              color: checkout_text_color || fontColor,
+                              backgroundColor: checkout_b_color
+                                ? `${checkout_b_color}05`
+                                : "#ffffff",
+                            } as CSSProperties
+                          }
+                        >
+                          {getDeliveryOptions().map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        {product.delivery_charge === "paid" && (
+                          <p
+                            className="text-sm mt-2"
+                            style={{
+                              color: checkout_text_color
+                                ? `${checkout_text_color}90`
+                                : "#6b7280",
+                            }}
+                          >
+                            Shipping charges apply based on your location
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                   {/* Show message for free shipping */}
-                  {showShippingOptions && product.delivery_charge === "free" && (
-                    <div
-                      className="p-3 rounded-lg border"
-                      style={{
-                        backgroundColor: checkout_b_color ? `${checkout_b_color}10` : '#f0fdf4',
-                        borderColor: checkout_b_color ? `${checkout_b_color}30` : '#bbf7d0'
-                      }}
-                    >
-                      <div className="flex items-center gap-2" style={{ color: checkout_button_color ? `${checkout_button_color}80` : '#16a34a' }}>
-                        <Truck size={18} />
-                        <p className="font-medium">Free Shipping Available!</p>
-                      </div>
-                      <p
-                        className="text-sm mt-1"
-                        style={{ color: checkout_button_color ? `${checkout_button_color}70` : '#15803d' }}
+                  {showShippingOptions &&
+                    product.delivery_charge === "free" && (
+                      <div
+                        className="p-3 rounded-lg border"
+                        style={{
+                          backgroundColor: checkout_b_color
+                            ? `${checkout_b_color}10`
+                            : "#f0fdf4",
+                          borderColor: checkout_b_color
+                            ? `${checkout_b_color}30`
+                            : "#bbf7d0",
+                        }}
                       >
-                        This product includes free delivery anywhere in Bangladesh.
-                      </p>
-                    </div>
-                  )}
+                        <div
+                          className="flex items-center gap-2"
+                          style={{
+                            color: checkout_button_color
+                              ? `${checkout_button_color}80`
+                              : "#16a34a",
+                          }}
+                        >
+                          <Truck size={18} />
+                          <p className="font-medium">
+                            Free Shipping Available!
+                          </p>
+                        </div>
+                        <p
+                          className="text-sm mt-1"
+                          style={{
+                            color: checkout_button_color
+                              ? `${checkout_button_color}70`
+                              : "#15803d",
+                          }}
+                        >
+                          This product includes free delivery anywhere in
+                          Bangladesh.
+                        </p>
+                      </div>
+                    )}
 
                   <div>
                     <label
@@ -1085,10 +1255,16 @@ const customerPhone = watch("phone")
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition resize-none ${errors.address ? "border-red-500" : ""}`}
                       style={
                         {
-                          borderColor: errors.address ? "#ef4444" : (checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb'),
+                          borderColor: errors.address
+                            ? "#ef4444"
+                            : checkout_b_color
+                              ? `${checkout_b_color}50`
+                              : "#e5e7eb",
                           "--tw-ring-color": checkout_button_color || btnColor,
                           color: checkout_text_color || fontColor,
-                          backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
+                          backgroundColor: checkout_b_color
+                            ? `${checkout_b_color}05`
+                            : "#ffffff",
                         } as CSSProperties
                       }
                     />
@@ -1113,10 +1289,14 @@ const customerPhone = watch("phone")
                       className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition resize-none"
                       style={
                         {
-                          borderColor: checkout_b_color ? `${checkout_b_color}50` : '#e5e7eb',
+                          borderColor: checkout_b_color
+                            ? `${checkout_b_color}50`
+                            : "#e5e7eb",
                           "--tw-ring-color": checkout_button_color || btnColor,
                           color: checkout_text_color || fontColor,
-                          backgroundColor: checkout_b_color ? `${checkout_b_color}05` : '#ffffff',
+                          backgroundColor: checkout_b_color
+                            ? `${checkout_b_color}05`
+                            : "#ffffff",
                         } as CSSProperties
                       }
                     />
@@ -1126,8 +1306,12 @@ const customerPhone = watch("phone")
                   <div
                     className="mt-4 p-4 rounded-lg"
                     style={{
-                      backgroundColor: checkout_b_color ? `${checkout_b_color}10` : '#f9fafb',
-                      borderColor: checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb'
+                      backgroundColor: checkout_b_color
+                        ? `${checkout_b_color}10`
+                        : "#f9fafb",
+                      borderColor: checkout_b_color
+                        ? `${checkout_b_color}30`
+                        : "#e5e7eb",
                     }}
                   >
                     <p
@@ -1137,7 +1321,8 @@ const customerPhone = watch("phone")
                       Order Summary:
                     </p>
 
-                    {Array.isArray(product.variations) && product.variations.length > 0 ? (
+                    {Array.isArray(product.variations) &&
+                    product.variations.length > 0 ? (
                       <div className="space-y-2">
                         {selectedVariants
                           .filter((v) => v.quantity > 0)
@@ -1146,31 +1331,47 @@ const customerPhone = watch("phone")
                               key={idx}
                               className="flex justify-between text-sm"
                             >
-                              <span style={{ color: checkout_text_color || fontColor }}>
+                              <span
+                                style={{
+                                  color: checkout_text_color || fontColor,
+                                }}
+                              >
                                 {product.product_name} - {variant.variant} ×{" "}
                                 {variant.quantity}
                               </span>
-                              <span style={{ color: checkout_text_color || fontColor }}>
+                              <span
+                                style={{
+                                  color: checkout_text_color || fontColor,
+                                }}
+                              >
                                 ৳ {variant.price * variant.quantity}
                               </span>
                             </div>
                           ))}
-                        {selectedVariants.filter((v) => v.quantity > 0).length ===
-                          0 && (
-                            <p
-                              className="text-sm"
-                              style={{ color: checkout_text_color ? `${checkout_text_color}70` : '#9ca3af' }}
-                            >
-                              No items selected
-                            </p>
-                          )}
+                        {selectedVariants.filter((v) => v.quantity > 0)
+                          .length === 0 && (
+                          <p
+                            className="text-sm"
+                            style={{
+                              color: checkout_text_color
+                                ? `${checkout_text_color}70`
+                                : "#9ca3af",
+                            }}
+                          >
+                            No items selected
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <div className="flex justify-between text-sm">
-                        <span style={{ color: checkout_text_color || fontColor }}>
+                        <span
+                          style={{ color: checkout_text_color || fontColor }}
+                        >
                           {product.product_name} × {simpleProductQuantity}
                         </span>
-                        <span style={{ color: checkout_text_color || fontColor }}>
+                        <span
+                          style={{ color: checkout_text_color || fontColor }}
+                        >
                           ৳ {subtotal}
                         </span>
                       </div>
@@ -1179,11 +1380,21 @@ const customerPhone = watch("phone")
                     {/* Shipping Info in Summary */}
                     <div
                       className="mt-2 pt-2 border-t"
-                      style={{ borderColor: checkout_b_color ? `${checkout_b_color}30` : '#d1d5db' }}
+                      style={{
+                        borderColor: checkout_b_color
+                          ? `${checkout_b_color}30`
+                          : "#d1d5db",
+                      }}
                     >
                       <div className="flex justify-between text-sm">
-                        <span style={{ color: checkout_text_color || fontColor }}>Shipping</span>
-                        <span style={{ color: checkout_text_color || fontColor }}>
+                        <span
+                          style={{ color: checkout_text_color || fontColor }}
+                        >
+                          Shipping
+                        </span>
+                        <span
+                          style={{ color: checkout_text_color || fontColor }}
+                        >
                           {isFreeShipping ? (
                             <span className="text-green-600">Free</span>
                           ) : (
@@ -1195,12 +1406,22 @@ const customerPhone = watch("phone")
 
                     <div
                       className="h-px my-3"
-                      style={{ backgroundColor: checkout_b_color ? `${checkout_b_color}30` : '#d1d5db' }}
+                      style={{
+                        backgroundColor: checkout_b_color
+                          ? `${checkout_b_color}30`
+                          : "#d1d5db",
+                      }}
                     ></div>
 
                     <div className="flex justify-between font-bold">
-                      <span style={{ color: checkout_text_color || fontColor }}>Total</span>
-                      <span style={{ color: checkout_button_color || btnColor }}>৳ {total}</span>
+                      <span style={{ color: checkout_text_color || fontColor }}>
+                        Total
+                      </span>
+                      <span
+                        style={{ color: checkout_button_color || btnColor }}
+                      >
+                        ৳ {total}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1239,14 +1460,32 @@ const customerPhone = watch("phone")
               {/* Additional Info */}
               <div className="mt-6 space-y-3 text-sm">
                 <div className="flex items-center gap-2">
-                  <Truck size={16} style={{ color: checkout_text_color || fontColor }} />
-                  <p style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}>
+                  <Truck
+                    size={16}
+                    style={{ color: checkout_text_color || fontColor }}
+                  />
+                  <p
+                    style={{
+                      color: checkout_text_color
+                        ? `${checkout_text_color}90`
+                        : "#6b7280",
+                    }}
+                  >
                     Estimated delivery: 2-5 business days
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CreditCard size={16} style={{ color: checkout_text_color || fontColor }} />
-                  <p style={{ color: checkout_text_color ? `${checkout_text_color}90` : '#6b7280' }}>
+                  <CreditCard
+                    size={16}
+                    style={{ color: checkout_text_color || fontColor }}
+                  />
+                  <p
+                    style={{
+                      color: checkout_text_color
+                        ? `${checkout_text_color}90`
+                        : "#6b7280",
+                    }}
+                  >
                     Secure SSL encrypted payment
                   </p>
                 </div>
@@ -1257,7 +1496,12 @@ const customerPhone = watch("phone")
                 <div className="mt-6 pt-6 border-t">
                   <p
                     className="font-semibold mb-3 text-center"
-                    style={{ color: footer_heading_color || checkout_text_color || fontColor }}
+                    style={{
+                      color:
+                        footer_heading_color ||
+                        checkout_text_color ||
+                        fontColor,
+                    }}
                   >
                     Follow Us
                   </p>
@@ -1269,8 +1513,15 @@ const customerPhone = watch("phone")
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
                         style={{
-                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
-                          color: footer_link_color || checkout_link_color || btnColor
+                          backgroundColor: footer_b_color
+                            ? `${footer_b_color}20`
+                            : checkout_b_color
+                              ? `${checkout_b_color}20`
+                              : "#f3f4f6",
+                          color:
+                            footer_link_color ||
+                            checkout_link_color ||
+                            btnColor,
                         }}
                       >
                         <Facebook size={18} />
@@ -1283,8 +1534,15 @@ const customerPhone = watch("phone")
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
                         style={{
-                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
-                          color: footer_link_color || checkout_link_color || btnColor
+                          backgroundColor: footer_b_color
+                            ? `${footer_b_color}20`
+                            : checkout_b_color
+                              ? `${checkout_b_color}20`
+                              : "#f3f4f6",
+                          color:
+                            footer_link_color ||
+                            checkout_link_color ||
+                            btnColor,
                         }}
                       >
                         <Twitter size={18} />
@@ -1297,8 +1555,15 @@ const customerPhone = watch("phone")
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
                         style={{
-                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
-                          color: footer_link_color || checkout_link_color || btnColor
+                          backgroundColor: footer_b_color
+                            ? `${footer_b_color}20`
+                            : checkout_b_color
+                              ? `${checkout_b_color}20`
+                              : "#f3f4f6",
+                          color:
+                            footer_link_color ||
+                            checkout_link_color ||
+                            btnColor,
                         }}
                       >
                         <Linkedin size={18} />
@@ -1311,8 +1576,15 @@ const customerPhone = watch("phone")
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
                         style={{
-                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
-                          color: footer_link_color || checkout_link_color || btnColor
+                          backgroundColor: footer_b_color
+                            ? `${footer_b_color}20`
+                            : checkout_b_color
+                              ? `${checkout_b_color}20`
+                              : "#f3f4f6",
+                          color:
+                            footer_link_color ||
+                            checkout_link_color ||
+                            btnColor,
                         }}
                       >
                         <Instagram size={18} />
@@ -1325,8 +1597,15 @@ const customerPhone = watch("phone")
                         rel="noopener noreferrer"
                         className="p-2 rounded-full hover:opacity-80 transition"
                         style={{
-                          backgroundColor: footer_b_color ? `${footer_b_color}20` : (checkout_b_color ? `${checkout_b_color}20` : '#f3f4f6'),
-                          color: footer_link_color || checkout_link_color || btnColor
+                          backgroundColor: footer_b_color
+                            ? `${footer_b_color}20`
+                            : checkout_b_color
+                              ? `${checkout_b_color}20`
+                              : "#f3f4f6",
+                          color:
+                            footer_link_color ||
+                            checkout_link_color ||
+                            btnColor,
                         }}
                       >
                         <Youtube size={18} />
@@ -1339,11 +1618,20 @@ const customerPhone = watch("phone")
               {/* Footer */}
               <div
                 className="mt-8 pt-6 border-t text-center"
-                style={{ borderColor: footer_b_color ? `${footer_b_color}30` : (checkout_b_color ? `${checkout_b_color}30` : '#e5e7eb') }}
+                style={{
+                  borderColor: footer_b_color
+                    ? `${footer_b_color}30`
+                    : checkout_b_color
+                      ? `${checkout_b_color}30`
+                      : "#e5e7eb",
+                }}
               >
                 <p
                   className="text-sm"
-                  style={{ color: footer_text_color || checkout_text_color || fontColor }}
+                  style={{
+                    color:
+                      footer_text_color || checkout_text_color || fontColor,
+                  }}
                 >
                   © {new Date().getFullYear()} All Rights Reserved
                   <br />
@@ -1351,7 +1639,10 @@ const customerPhone = watch("phone")
                   <a
                     href="https://funnelliner.com"
                     className="font-semibold hover:underline transition"
-                    style={{ color: footer_link_color || checkout_link_color || btnColor }}
+                    style={{
+                      color:
+                        footer_link_color || checkout_link_color || btnColor,
+                    }}
                   >
                     Funmel Liner
                   </a>
@@ -1361,14 +1652,14 @@ const customerPhone = watch("phone")
           </div>
         </div>
       </div>
-          <CheckoutOtp
-              timeLeft={timeLeft}
-              show={show}
-              onClose={handleClose}
-              customerPhone={customerPhone}
-              resendLoading={resendLoading}
-              onResendOtp={handleResendOtp}
-            />
+      <CheckoutOtp
+        timeLeft={timeLeft}
+        show={show}
+        onClose={handleClose}
+        customerPhone={customerPhone}
+        resendLoading={resendLoading}
+        onResendOtp={handleResendOtp}
+      />
     </section>
   )
 }

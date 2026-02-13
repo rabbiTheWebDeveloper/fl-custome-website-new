@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState, useCallback } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import useEmblaCarousel from "embla-carousel-react"
@@ -12,7 +12,7 @@ const CATEGORY_ICON_SIZE = 80
 const PLACEHOLDER_IMAGE = "/placeholder-category.png"
 
 export default function Category() {
-   const t = useTranslations('Theme3.categories')
+  const t = useTranslations("Theme3.categories")
   const categories: ICategory[] | null = useCategories(
     (state) => state.categories
   )
@@ -109,8 +109,8 @@ export default function Category() {
     return (
       <section className="py-8 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-6">{t('title')}</h2>
-          <p className="text-gray-500">{t('empty')}</p>
+          <h2 className="text-2xl font-bold mb-6">{t("title")}</h2>
+          <p className="text-gray-500">{t("empty")}</p>
         </div>
       </section>
     )
@@ -121,7 +121,7 @@ export default function Category() {
       <div className="container mx-auto px-4">
         {/* Title */}
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">
-          {t('title')}
+          {t("title")}
         </h2>
 
         <div className="relative">
@@ -146,8 +146,10 @@ export default function Category() {
                   "
                 >
                   {/* Image */}
-                  <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden
-                                  bg-gray-100 dark:bg-gray-700">
+                  <div
+                    className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden
+                                  bg-gray-100 dark:bg-gray-700"
+                  >
                     <Image
                       src={item.image}
                       alt={item.displayName}
@@ -161,10 +163,12 @@ export default function Category() {
 
                   {/* Title */}
                   <Link href={item.href}>
-                    <h5 className="text-sm font-semibold
+                    <h5
+                      className="text-sm font-semibold
                                    text-gray-800 dark:text-gray-100
                                    hover:text-blue-600 dark:hover:text-blue-400
-                                   line-clamp-2 h-10">
+                                   line-clamp-2 h-10"
+                    >
                       {truncate(item.displayName)}
                     </h5>
                   </Link>

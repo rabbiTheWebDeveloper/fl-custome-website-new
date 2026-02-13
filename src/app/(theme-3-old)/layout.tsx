@@ -9,7 +9,8 @@ import { cookies } from "next/headers"
 import { DynamicMeta } from "./th_3/_components/dynamic-meta"
 import { getDomainMeta } from "@/lib/domain"
 import { Toaster } from "sonner"
-const Header = dynamic(() => import('./th_3/_components/header'), { ssr: true })
+import { GoogleTagManager } from "@next/third-parties/google"
+const Header = dynamic(() => import("./th_3/_components/header"), { ssr: true })
 export async function generateMetadata(): Promise<Metadata> {
   const { title, description, favicon } = await getDomainMeta()
 
@@ -30,18 +31,20 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const { other_script } = await getDomainMeta()
   const cookieStore = await cookies()
   const locale = (cookieStore.get("NEXT_LOCALE")?.value || "en") as "en" | "bn"
- const messages =
-    locale === "bn"
-      ? (await import("@/messages/bn.json")).default
-      : (await import("@/messages/en.json")).default
   return (
-    <html  lang={locale} className={`${ab.variable} antialiased`}>
-      <body data-new-gr-c-s-check-loaded="14.1271.0" data-gr-ext-installed="" cz-shortcut-listen="true" >
+    <html lang={locale} className={`${ab.variable} antialiased`}>
+      <GoogleTagManager gtmId={other_script?.gtm_head || ""} />
+      <body
+        data-new-gr-c-s-check-loaded="14.1271.0"
+        data-gr-ext-installed=""
+        cz-shortcut-listen="true"
+      >
         <Providers>
           <NextIntlClientProvider>
-               <Toaster position="top-center" richColors />
+            <Toaster position="top-center" richColors />
             <DynamicMeta />
             <div style={{ display: "contents" }}>
               <Header />
@@ -49,7 +52,6 @@ export default async function RootLayout({
               <FooterUI />
             </div>
           </NextIntlClientProvider>
-       
         </Providers>
       </body>
     </html>

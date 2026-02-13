@@ -10,20 +10,20 @@ export interface LandingOrderProps {
   checkout_button_text?: string
   showShippingOptions?: boolean
   storeUrl?: string
-  
+
   // Social Media URLs
   fb?: string
   twitter?: string
   linkedin?: string
   instagram?: string
   youtube?: string
-  
+
   // Footer Styling
   footer_text_color?: string
   footer_link_color?: string
   footer_b_color?: string
   footer_heading_color?: string
-  
+
   // Checkout Section Styling
   checkout_text_color?: string
   checkout_link_color?: string

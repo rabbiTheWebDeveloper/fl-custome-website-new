@@ -168,7 +168,7 @@
       }
     }
   },
-    "Theme3": {
+  "Theme3": {
     "header": {
       "home": "হোম",
       "shop": "শপ",
@@ -217,89 +217,112 @@
       "subCategories_one": "{count} টি সাব-ক্যাটাগরি",
       "subCategories_other": "{count} টি সাব-ক্যাটাগরি"
     },
-    "footer": {
-      "brandDescription": "আপনার বিশ্বস্ত ফ্যাশন কোম্পানি",
-      "navigation": "নেভিগেশন",
-      "categories": "ক্যাটাগরি",
-      "legals": "আইনি",
-      "home": "হোম",
-      "shop": "দোকান",
-      "about": "আমাদের সম্পর্কে",
-      "contact": "যোগাযোগ",
-      "men": "পুরুষ",
-      "women": "নারী",
-      "kids": "শিশু",
-      "privacy": "গোপনীয়তা নীতি",
-      "terms": "শর্তাবলী",
-      "other": "অন্যান্য",
-      "copyright": "© ব্র্যান্ড নাম {year} | সর্বাধিকার সংরক্ষিত।",
-      "madeIn": "তৈরি"
-    },
-    "headerFooter": {
-      "home": "হোম",
-      "shop": "দোকান",
-      "category": "ক্যাটাগরি",
-      "about": "আমাদের সম্পর্কে",
-      "contact": "যোগাযোগ",
-      "men": "পুরুষ",
-      "women": "নারী",
-      "kids": "শিশু",
-      "privacy": "গোপনীয়তা নীতি",
-      "terms": "শর্তাবলী",
-      "other": "অন্যান্য"
-    },
-    "buttons": {
+
+    "product": {
+      "tile": "সব পণ্য",
       "addToCart": "কার্টে যোগ করুন",
-      "maxQuantity": "সর্বোচ্চ পরিমাণ",
-      "buyNow": "এখনই কিনুন",
-      "shopNow": "এখনই কিনুন",
+      "orderNow": "এখনই অর্ডার করুন",
+      "outOfStock": "স্টক শেষ",
+      "maxQuantityReached": "সর্বোচ্চ পরিমাণে পৌঁছেছেন",
+      "description": "বিবরণ",
+      "relatedProducts": "সম্পর্কিত পণ্য",
+      "inStock": "স্টকে আছে"
+    },
+    "footer": {
+      "trustedText": "আপনার বিশ্বস্ত অনলাইন কেনাকাটার গন্তব্য",
+      "storeAddress": "স্টোরের ঠিকানা",
+      "contactNumber": "যোগাযোগ নম্বর",
+      "privacyPolicy": "গোপনীয়তা নীতি",
+      "termsConditions": "শর্তাবলী",
+      "joinSocial": "সোশ্যাল মিডিয়াতে আমাদের সাথে যুক্ত হন",
+      "allRightsReserved": "সর্বস্বত্ব সংরক্ষিত",
+      "developedBy": "সিস্টেম ডেভেলপ করেছে"
+    },
+    "shop": {
       "filters": "ফিল্টার",
-      "viewAllProducts": "সব পণ্য দেখুন",
-      "seeMore": "আরও",
-      "loading": "লোড হচ্ছে...",
-      "placeOrder": "অর্ডার করুন",
-      "placingOrder": "অর্ডার করা হচ্ছে...",
-      "continueShopping": "কেনাকাটা চালিয়ে যান"
+      "clearAll": "সব মুছুন",
+      "activeFilters": "সক্রিয় ফিল্টার",
+      "categories": "ক্যাটাগরি",
+      "allCategories": "সব ক্যাটাগরি",
+      "priceRange": "দামের পরিসর",
+      "inStockOnly": "শুধু স্টকে আছে",
+      "products": "পণ্য",
+      "filterCount": "ফিল্টার",
+      "filterCountPlural": "ফিল্টারসমূহ",
+      "gridView": "গ্রিড ভিউ",
+      "listView": "লিস্ট ভিউ",
+      "searchPlaceholder": "পণ্য খুঁজুন...",
+      "noProductsFound": "কোনো পণ্য পাওয়া যায়নি",
+      "noProductsDescription": "আপনার নির্বাচিত মানদণ্ড অনুযায়ী কোনো পণ্য পাওয়া যায়নি। অনুগ্রহ করে ফিল্টার পরিবর্তন করুন।",
+      "clearAllFilters": "সব ফিল্টার মুছুন",
+      "applyFilters": "ফিল্টার প্রয়োগ করুন",
+
+      "sort": {
+        "default": "ডিফল্ট",
+        "priceLow": "দাম: কম থেকে বেশি",
+        "priceHigh": "দাম: বেশি থেকে কম",
+        "newest": "সর্বশেষ আগে",
+        "discount": "সর্বোচ্চ ডিসকাউন্ট"
+      },
+
+      "priceRanges": {
+        "all": "সব দাম",
+        "under1000": "৳১,০০০ এর নিচে",
+        "1000to5000": "৳১,০০০ - ৳৫,০০০",
+        "5000to10000": "৳৫,০০০ - ৳১০,০০০",
+        "10000to50000": "৳১০,০০০ - ৳৫০,০০০",
+        "above50000": "৳৫০,০০০ এর উপরে"
+      }
     },
     "checkout": {
-      "title": "চেকআউট",
-      "subtitle": "প্রায় শেষ — নিরাপদে আপনার অর্ডার সম্পূর্ণ করুন।",
-      "yourOrder": "আপনার অর্ডার",
-      "subtotal": "উপমোট",
-      "discount": "ছাড়",
-      "tax": "কর",
-      "shipping": "শিপিং",
-      "total": "মোট",
-      "checkout": "চেকআউট",
-      "billingDetails": "বিলিং বিবরণ",
-      "fullName": "পূর্ণ নাম",
-      "fullNamePlaceholder": "জন ডো",
-      "phoneNumber": "ফোন নম্বর",
-      "phoneNumberPlaceholder": "+880123456789",
-      "deliveryAddress": "ডেলিভারি ঠিকানা",
-      "deliveryAddressPlaceholder": "এখানে লিখুন",
-      "orderNote": "অর্ডার নোট (ঐচ্ছিক)",
-      "orderNotePlaceholder": "এখানে লিখুন",
-      "shippingMethod": "শিপিং পদ্ধতি",
-      "insideDhaka": "ঢাকার ভিতরে",
-      "aroundDhaka": "ঢাকার আশেপাশে",
-      "outsideDhaka": "ঢাকার বাইরে",
-      "paymentMethod": "পেমেন্ট পদ্ধতি",
-      "sslcommerz": "SSLCOMMERZ (ফ্রি ডেলিভারি)",
-      "cashOnDelivery": "ক্যাশ অন ডেলিভারি",
-      "bkash": "bKash (ফ্রি ডেলিভারি)",
-      "validation": {
-        "fullNameMin": "পূর্ণ নাম কমপক্ষে ২ অক্ষর হতে হবে",
-        "fullNameMax": "পূর্ণ নাম ১০০ অক্ষরের কম হতে হবে",
-        "fullNameRegex": "পূর্ণ নামে শুধুমাত্র অক্ষর, স্পেস, হাইফেন এবং অ্যাপোস্ট্রফি থাকতে পারে",
-        "phoneRequired": "ফোন নম্বর প্রয়োজন",
-        "phoneInvalid": "অনুগ্রহ করে একটি বৈধ বাংলাদেশ ফোন নম্বর লিখুন (যেমন: 01712345678 বা +8801712345678)",
-        "deliveryAddressMin": "ডেলিভারি ঠিকানা কমপক্ষে ১০ অক্ষর হতে হবে",
-        "deliveryAddressMax": "ডেলিভারি ঠিকানা ৫০০ অক্ষরের কম হতে হবে",
-        "orderNoteMax": "অর্ডার নোট ১০০০ অক্ষরের কম হতে হবে",
-        "shippingMethodRequired": "অনুগ্রহ করে একটি শিপিং পদ্ধতি নির্বাচন করুন",
-        "paymentMethodRequired": "অনুগ্রহ করে একটি পেমেন্ট পদ্ধতি নির্বাচন করুন"
-      }
+      "steps": {
+        "cart": "কার্ট",
+        "information": "তথ্য",
+        "payment": "পেমেন্ট"
+      },
+      "emptyCart": {
+        "title": "আপনার কার্ট খালি",
+        "description": "চেকআউট চালিয়ে যেতে কার্টে কিছু পণ্য যোগ করুন।",
+        "continueShopping": "কেনাকাটা চালিয়ে যান"
+      },
+      "contact": {
+        "title": "যোগাযোগের তথ্য",
+        "name": "নাম *",
+        "phone": "ফোন নম্বর *",
+        "address": "ঠিকানা *",
+        "orderNotes": "অর্ডার নোট (ঐচ্ছিক)",
+        "orderNotesPlaceholder": "বিশেষ নির্দেশনা বা ডেলিভারি সংক্রান্ত তথ্য লিখুন"
+      },
+      "payment": {
+        "title": "পেমেন্ট পদ্ধতি",
+        "sslcommerz": "এসএসএলকমার্জ",
+        "sslcommerzDesc": "কার্ড বা মোবাইল ব্যাংকিংয়ের মাধ্যমে পরিশোধ করুন",
+        "cod": "ক্যাশ অন ডেলিভারি",
+        "codDesc": "পণ্য গ্রহণের সময় পরিশোধ করুন",
+        "bkash": "বিকাশ",
+        "bkashDesc": "বিকাশ মোবাইল পেমেন্ট"
+      },
+      "summary": {
+        "title": "অর্ডার সারসংক্ষেপ",
+        "subtotal": "সাবটোটাল",
+        "shippingMethod": "ডেলিভারি পদ্ধতি",
+        "insideDhaka": "ঢাকার ভিতরে",
+        "outsideDhaka": "ঢাকার বাইরে",
+        "subArea": "সাব এরিয়া",
+        "discount": "ডিসকাউন্ট",
+        "total": "মোট",
+        "includingTax": "সব ট্যাক্স ও ফি অন্তর্ভুক্ত"
+      },
+      "security": {
+        "secureCheckout": "নিরাপদ চেকআউট",
+        "encrypted": "আপনার তথ্য এনক্রিপ্টেড ও সুরক্ষিত"
+      },
+      "buttons": {
+        "placeOrder": "অর্ডার করুন",
+        "processing": "অর্ডার প্রক্রিয়াকরণ চলছে…"
+      },
+      "returnPolicy": "৩০ দিনের রিটার্ন পলিসি",
+      "removeItem": "পণ্য সরান"
     }
   }
 }

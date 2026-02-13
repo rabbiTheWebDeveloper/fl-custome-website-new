@@ -68,15 +68,10 @@ export default function Banner() {
     }
   }, [emblaApi, isPlaying])
 
-  // Handle image error
   const handleImageError = (
     e: React.SyntheticEvent<HTMLImageElement, Event>
   ) => {
     e.currentTarget.src = PLACEHOLDER_BANNER
-  }
-  // Toggle autoplay
-  const toggleAutoplay = () => {
-    setIsPlaying(!isPlaying)
   }
   useEffect(() => {
     const getBanners = async () => {
@@ -162,8 +157,10 @@ export default function Banner() {
 
       {/* ================= Pagination ================= */}
       {slideCount > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2
-                        flex gap-3 z-10">
+        <div
+          className="absolute bottom-6 left-1/2 -translate-x-1/2
+                        flex gap-3 z-10"
+        >
           {slides?.map((_, index) => (
             <button
               key={index}
@@ -194,8 +191,10 @@ export default function Banner() {
 
       {/* ================= Progress Bar ================= */}
       {slideCount > 1 && isPlaying && (
-        <div className="absolute bottom-0 left-0 right-0 h-1
-                        bg-white/30 dark:bg-gray-700">
+        <div
+          className="absolute bottom-0 left-0 right-0 h-1
+                        bg-white/30 dark:bg-gray-700"
+        >
           <div
             className="h-full bg-white dark:bg-gray-300 transition-all duration-[5000ms]"
             style={{

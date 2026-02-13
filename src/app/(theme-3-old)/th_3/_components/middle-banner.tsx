@@ -30,7 +30,7 @@ const MiddleBanner = () => {
     getBanners()
   }, [domain?.shop_id])
   return (
-   <section className="py-8 bg-gray-50 dark:bg-gray-900 transition-colors">
+    <section className="py-8 bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {banners?.map((banner) => (

@@ -11,20 +11,22 @@ import {
 
 import Link from "next/link"
 import { useDomain } from "../store/domain"
+import { useTranslations } from "next-intl"
 
 export default function FooterUI() {
+  const t = useTranslations("Theme3.footer")
   const domain = useDomain((state) => state.domain)
   return (
     <footer className="relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-t border-[#3bb77e] mt-6 transition-colors duration-500">
-
       {/* Top gradient line */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] 
-                  bg-gradient-to-r from-transparent via-[#3bb77e] to-transparent" />
+      <div
+        className="absolute top-0 left-0 right-0 h-[1px] 
+                  bg-gradient-to-r from-transparent via-[#3bb77e] to-transparent"
+      />
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Main grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-
           {/* Logo Section */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border p-8 text-center relative overflow-hidden transition-colors duration-300">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#3bb77e] to-[#3bb77e]" />
@@ -39,7 +41,7 @@ export default function FooterUI() {
               {domain?.name || "Your Shop Name"}
             </h4>
             <p className="text-sm text-gray-500 dark:text-gray-300 italic">
-              Your trusted online shopping destination
+              {t("trustedText")}
             </p>
           </div>
 
@@ -52,7 +54,7 @@ export default function FooterUI() {
               </div>
               <div>
                 <h5 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Store Address
+                  {t("storeAddress")}
                 </h5>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   {domain?.shop_address || "123 Main St, City, Country"}
@@ -67,7 +69,7 @@ export default function FooterUI() {
               </div>
               <div>
                 <h5 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Contact Number
+                  {t("contactNumber")}
                 </h5>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   {domain?.phone || "+880 17xxxxxxx"}
@@ -83,29 +85,47 @@ export default function FooterUI() {
         {/* Social Media Section */}
         <div className="bg-[#f8f9fa] dark:bg-gray-800 py-8 text-center transition-colors duration-500">
           <div className="flex justify-center gap-4 mb-6 flex-wrap">
-            <Link href="/privacy" className="text-gray-600 dark:text-gray-300 hover:text-[#3bb77e]">
-              Privacy Policy
+            <Link
+              href="/privacy"
+              className="text-gray-600 dark:text-gray-300 hover:text-[#3bb77e]"
+            >
+              {t("privacyPolicy")}
             </Link>
-            <Link href="/terms" className="text-gray-600 dark:text-gray-300 hover:text-[#3bb77e]">
-              Terms & Conditions
+            <Link
+              href="/terms"
+              className="text-gray-600 dark:text-gray-300 hover:text-[#3bb77e]"
+            >
+              {t("termsConditions")}
             </Link>
           </div>
 
           <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">
-            Join Us On Social Media
+            {t("joinSocial")}
           </h2>
 
           <div className="flex justify-center gap-4 flex-wrap">
-            <a href="#" className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-[#3bb77e] transition-colors">
+            <a
+              href="#"
+              className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-[#3bb77e] transition-colors"
+            >
               <Facebook size={20} />
             </a>
-            <a href="#" className="w-10 h-10 bg-pink-500 text-white rounded-full flex items-center justify-center hover:bg-[#3bb77e] transition-colors">
+            <a
+              href="#"
+              className="w-10 h-10 bg-pink-500 text-white rounded-full flex items-center justify-center hover:bg-[#3bb77e] transition-colors"
+            >
               <Instagram size={20} />
             </a>
-            <a href="#" className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-[#3bb77e] transition-colors">
+            <a
+              href="#"
+              className="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-[#3bb77e] transition-colors"
+            >
               <Youtube size={20} />
             </a>
-            <a href="#" className="w-10 h-10 bg-blue-400 text-white rounded-full flex items-center justify-center hover:bg-[#3bb77e] transition-colors">
+            <a
+              href="#"
+              className="w-10 h-10 bg-blue-400 text-white rounded-full flex items-center justify-center hover:bg-[#3bb77e] transition-colors"
+            >
               <Twitter size={20} />
             </a>
           </div>
@@ -113,14 +133,16 @@ export default function FooterUI() {
 
         {/* Tiny Footer */}
         <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8 transition-colors duration-500">
-          © 2026 {domain?.name || "Shop Name"}. All Rights Reserved. <br />
-          System developed by{" "}
-          <Link href="https://funnelliner.com/" className="text-[#3bb77e] hover:underline">
+          © 2026 {domain?.name || "Shop Name"}. {t("allRightsReserved")}. <br />
+          {t("developedBy")}{" "}
+          <Link
+            href="https://funnelliner.com/"
+            className="text-[#3bb77e] hover:underline"
+          >
             Funnel Liner
           </Link>
         </div>
       </div>
     </footer>
-
   )
 }

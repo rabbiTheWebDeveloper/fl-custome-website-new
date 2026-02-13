@@ -68,7 +68,7 @@ export function proxy(request: NextRequest) {
     rewriteUrl.search = request.nextUrl.search
     return NextResponse.rewrite(rewriteUrl)
   }
-    if (pathname.startsWith("/order-successfull/")) {
+  if (pathname.startsWith("/order-successfull/")) {
     return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
   }
 

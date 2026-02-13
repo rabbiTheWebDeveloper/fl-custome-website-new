@@ -9,7 +9,6 @@ import {
   Youtube,
   ChevronDown,
   X,
-  Menu as MenuIcon,
   ChevronRight,
 } from "lucide-react"
 import Link from "next/link"
@@ -22,13 +21,12 @@ import { IShopResponse } from "../types/shop"
 import { prepareDomain } from "@/lib/utils"
 import { ICategoriesApiResponse, ICategory } from "../types/categories"
 import { CartPopover } from "./carts/cart-popover"
-import { useCartStore } from "@/lib/cart"
 import ThemeToggle from "./ThemeToggle"
 import { LanguageSelector } from "@/app/(theme-2)/th_2/_components/header/language-selector"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 export default function Header() {
-    const t = useTranslations("Theme3.header")
+  const t = useTranslations("Theme3.header")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
@@ -40,7 +38,7 @@ export default function Header() {
   const categories: ICategory[] | null = useCategories(
     (state) => state.categories
   )
-  const totals = useCartStore((state) => state.totals)
+
   const router = useRouter()
   const setCategories = useCategories((state) => state.setCategories)
   const setDomainAddress = useDomain((state) => state.setDomainAddress)
@@ -86,7 +84,7 @@ export default function Header() {
     }
 
     getDomain()
-  }, [])
+  }, [getCookie, setDomain, setDomainAddress])
 
   useEffect(() => {
     const getCategories = async () => {
@@ -134,13 +132,14 @@ export default function Header() {
                   className="object-contain"
                 />
               </div>
-            
             </Link>
 
             {/* Search */}
             <div className="flex-1 max-w-2xl mx-8 relative">
-              <div className="flex rounded-full border-2 border-[#3bb77e]
-                            bg-white dark:bg-gray-800 overflow-hidden">
+              <div
+                className="flex rounded-full border-2 border-[#3bb77e]
+                            bg-white dark:bg-gray-800 overflow-hidden"
+              >
                 <input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -151,16 +150,21 @@ export default function Header() {
                            text-gray-900 dark:text-white
                            placeholder-gray-400"
                 />
-                <button className="px-6 bg-[#3bb77e] text-white" onClick={handleSearch}>
+                <button
+                  className="px-6 bg-[#3bb77e] text-white"
+                  onClick={handleSearch}
+                >
                   <Search size={20} />
                 </button>
               </div>
 
               {isSearchOpen && searchQuery && (
-                <div className="absolute top-full mt-2 w-full
+                <div
+                  className="absolute top-full mt-2 w-full
                               bg-white dark:bg-gray-800
                               border border-gray-200 dark:border-gray-700
-                              rounded-xl shadow-xl p-4 z-50">
+                              rounded-xl shadow-xl p-4 z-50"
+                >
                   <h3 className="mb-2 text-gray-700 dark:text-gray-300 font-semibold">
                     {t("popularSearches")}
                   </h3>
@@ -209,12 +213,14 @@ export default function Header() {
                 </button>
 
                 {isCategoriesOpen && (
-                  <div className="absolute top-full mt-2 w-[700px]
+                  <div
+                    className="absolute top-full mt-2 w-[700px]
                                 bg-white dark:bg-gray-800
                                 border dark:border-gray-700
-                                rounded-xl shadow-xl p-6 z-50">
+                                rounded-xl shadow-xl p-6 z-50"
+                  >
                     <div className="grid grid-cols-2 gap-4">
-                      {categories?.map((c: any) => (
+                      {categories?.map((c: ICategory) => (
                         <Link
                           key={c.id}
                           href={`/category/${c.id}`}
@@ -255,7 +261,6 @@ export default function Header() {
                 >
                   {t("about")}
                 </Link>
-
               </nav>
 
               {/* Support */}
@@ -264,9 +269,7 @@ export default function Header() {
                   <div className="font-semibold text-gray-900 dark:text-white">
                     {t("support")}
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {domain?.phone}
-                  </div>
+                  <div className="text-sm text-gray-500">{domain?.phone}</div>
                 </div>
                 <div className="flex gap-4">
                   <Facebook className="text-gray-600 dark:text-gray-400" />

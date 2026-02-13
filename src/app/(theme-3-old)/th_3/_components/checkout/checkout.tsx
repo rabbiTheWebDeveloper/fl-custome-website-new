@@ -167,7 +167,7 @@ const paymentMethods = [
 
 const Checkout = () => {
   const router = useRouter()
-  const { updateItem, removeItem ,clearCart } = useCart()
+  const { updateItem, removeItem, clearCart } = useCart()
   const items = useCartStore((state) => state.items)
   const cartTotals = useCartStore((state) => state.totals)
   const tValidation = useTranslations("Theme2.checkout.validation")
@@ -846,7 +846,7 @@ const Checkout = () => {
     )
   }
   return (
-   <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Progress Bar - Mobile Optimized */}
       <div className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -857,8 +857,9 @@ const Checkout = () => {
                   <div className="flex items-center">
                     <div
                       className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-base
-          ${index < 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
-                        }`}
+          ${
+            index < 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
+          }`}
                     >
                       {index < 2 ? (
                         <Check className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -1280,10 +1281,11 @@ const Checkout = () => {
     font-semibold text-base
     transition-all duration-200 ease-out
     flex items-center justify-center
-    ${isValid && items.length > 0 && !isSubmitting
-                      ? "bg-gradient-to-r from-[#3bb77e] to-green-600 text-white shadow-md hover:shadow-lg hover:from-green-600 hover:to-[#3bb77e] active:scale-[0.98]"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    }
+    ${
+      isValid && items.length > 0 && !isSubmitting
+        ? "bg-gradient-to-r from-[#3bb77e] to-green-600 text-white shadow-md hover:shadow-lg hover:from-green-600 hover:to-[#3bb77e] active:scale-[0.98]"
+        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+    }
   `}
                 >
                   {isSubmitting ? (
@@ -1296,7 +1298,9 @@ const Checkout = () => {
                       <div className="flex items-center gap-2">
                         <Lock className="w-4 h-4 opacity-90" />
                         <span>
-                          {items.length === 0 ? "Your cart is empty" : "Place Order"}
+                          {items.length === 0
+                            ? "Your cart is empty"
+                            : "Place Order"}
                         </span>
                       </div>
 
@@ -1308,7 +1312,6 @@ const Checkout = () => {
                     </div>
                   )}
                 </button>
-
 
                 {/* Return Policy */}
                 <div className="mt-4 pt-4 border-t border-gray-100 text-center">

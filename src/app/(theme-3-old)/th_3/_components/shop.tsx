@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useMemo } from "react"
 import {
   Filter,
   X,
@@ -15,6 +15,7 @@ import { ProductCard } from "./products/product-card"
 import Pagination from "./pagination"
 import { ICategory } from "../types/categories"
 import { useCategories } from "../store/categories"
+import { useTranslations } from "next-intl"
 
 const priceRanges = [
   { id: "all", name: "All Prices", min: 0, max: 200000 },
@@ -39,12 +40,15 @@ interface ShopProps {
 }
 
 const Shop = ({ products, totalPages }: ShopProps) => {
+  const t = useTranslations("Theme3.shop")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("default")
   const [showMobileFilter, setShowMobileFilter] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileSearchQuery, setMobileSearchQuery] = useState("")
-  const categories: ICategory[] | null = useCategories((state) => state.categories)
+  const categories: ICategory[] | null = useCategories(
+    (state) => state.categories
+  )
   const [expandedFilters, setExpandedFilters] = useState({
     categories: true,
     price: true,
@@ -52,21 +56,21 @@ const Shop = ({ products, totalPages }: ShopProps) => {
   })
 
   // Filter states
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(["all"])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([
+    "all",
+  ])
   const [selectedBrands, setSelectedBrands] = useState<string[]>(["all"])
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>("all")
   const [inStockOnly, setInStockOnly] = useState(false)
-  
+
   // Get unique categories from products
   const productCategories = useMemo(() => {
-    if (!products) return [];
-    const categoryIds = [...new Set(products.map(p => p.category_id))];
+    if (!products) return []
+    const categoryIds = [...new Set(products.map((p) => p.category_id))]
     return categoryIds
-      .map(id => categories?.find(c => c.id === id))
-      .filter((c): c is ICategory => c !== undefined);
-  }, [products, categories]);
-
-
+      .map((id) => categories?.find((c) => c.id === id))
+      .filter((c): c is ICategory => c !== undefined)
+  }, [products, categories])
 
   // Toggle filter sections
   const toggleFilterSection = (section: keyof typeof expandedFilters) => {
@@ -78,8 +82,8 @@ const Shop = ({ products, totalPages }: ShopProps) => {
 
   // Handle category selection
   const handleCategorySelect = (categoryId: string | number) => {
-    const categoryIdStr = categoryId.toString();
-    
+    const categoryIdStr = categoryId.toString()
+
     if (categoryIdStr === "all") {
       setSelectedCategories(["all"])
     } else {
@@ -94,17 +98,18 @@ const Shop = ({ products, totalPages }: ShopProps) => {
 
   // Apply filters
   const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    
+    if (!products) return []
+
     let filtered = [...products]
 
     // Search filter
     if (searchQuery || mobileSearchQuery) {
-      const query = searchQuery || mobileSearchQuery;
+      const query = searchQuery || mobileSearchQuery
       filtered = filtered.filter(
         (product) =>
           product.product_name.toLowerCase().includes(query.toLowerCase()) ||
-          (product.product_code && product.product_code.toLowerCase().includes(query.toLowerCase()))
+          (product.product_code &&
+            product.product_code.toLowerCase().includes(query.toLowerCase()))
       )
     }
 
@@ -114,7 +119,6 @@ const Shop = ({ products, totalPages }: ShopProps) => {
         selectedCategories.includes(product.category_id.toString())
       )
     }
-
 
     // Price filter
     if (selectedPriceRange !== "all") {
@@ -143,16 +147,16 @@ const Shop = ({ products, totalPages }: ShopProps) => {
         break
       case "newest":
         filtered.sort((a, b) => {
-          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-          return dateB - dateA;
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0
+          return dateB - dateA
         })
         break
       case "discount":
         filtered.sort((a, b) => {
-          const discountA = a.discount ? (a.discount / a.price) * 100 : 0;
-          const discountB = b.discount ? (b.discount / b.price) * 100 : 0;
-          return discountB - discountA;
+          const discountA = a.discount ? (a.discount / a.price) * 100 : 0
+          const discountB = b.discount ? (b.discount / b.price) * 100 : 0
+          return discountB - discountA
         })
         break
       default:
@@ -160,13 +164,12 @@ const Shop = ({ products, totalPages }: ShopProps) => {
         break
     }
 
-    return filtered;
+    return filtered
   }, [
     products,
     searchQuery,
     mobileSearchQuery,
     selectedCategories,
-    selectedBrands,
     selectedPriceRange,
     inStockOnly,
     sortBy,
@@ -240,13 +243,15 @@ const Shop = ({ products, totalPages }: ShopProps) => {
           <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 xl:p-6 sticky top-24">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg xl:text-xl font-bold text-gray-900 dark:text-white">Filters</h2>
+                <h2 className="text-lg xl:text-xl font-bold text-gray-900 dark:text-white">
+                  {t("filters")}
+                </h2>
                 {activeFilterCount > 0 && (
                   <button
                     onClick={clearAllFilters}
                     className="text-xs xl:text-sm text-green-600 hover:text-green-700 font-medium"
                   >
-                    Clear All
+                    {t("clearAll")}
                   </button>
                 )}
               </div>
@@ -276,23 +281,30 @@ const Shop = ({ products, totalPages }: ShopProps) => {
               {/* Active Filters */}
               {activeFilterCount > 0 && (
                 <div className="mb-5">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Active filters:</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    {t("activeFilters")}:
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedCategories
                       .filter((c) => c !== "all")
                       .map((categoryId) => {
-                        const category = categories?.find((c) => c.id.toString() === categoryId);
+                        const category = categories?.find(
+                          (c) => c.id.toString() === categoryId
+                        )
                         return category ? (
                           <span
                             key={categoryId}
                             className="inline-flex items-center gap-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full text-xs"
                           >
                             {category.name}
-                            <button onClick={() => handleCategorySelect(categoryId)} className="hover:bg-green-100 dark:hover:bg-green-800 rounded-full p-0.5">
+                            <button
+                              onClick={() => handleCategorySelect(categoryId)}
+                              className="hover:bg-green-100 dark:hover:bg-green-800 rounded-full p-0.5"
+                            >
                               <X className="w-3 h-3" />
                             </button>
                           </span>
-                        ) : null;
+                        ) : null
                       })}
                   </div>
                 </div>
@@ -302,10 +314,12 @@ const Shop = ({ products, totalPages }: ShopProps) => {
               {/* Categories */}
               <div className="mb-5">
                 <button
-                  onClick={() => toggleFilterSection('categories')}
+                  onClick={() => toggleFilterSection("categories")}
                   className="flex items-center justify-between w-full mb-2.5"
                 >
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm xl:text-base">Categories</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm xl:text-base">
+                    {t("categories")}
+                  </h3>
                   <ChevronDown
                     className={`w-4 h-4 transition-transform ${
                       expandedFilters.categories ? "rotate-180" : ""
@@ -326,14 +340,20 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                               : "border-gray-300 dark:border-gray-600"
                           }`}
                         >
-                          {selectedCategories.includes("all") && <Check className="w-3 h-3 text-white" />}
+                          {selectedCategories.includes("all") && (
+                            <Check className="w-3 h-3 text-white" />
+                          )}
                         </div>
-                        <span className="text-gray-700 dark:text-gray-300">All Categories</span>
+                        <span className="text-gray-700 dark:text-gray-300">
+                          {t("allCategories")}
+                        </span>
                       </div>
                     </button>
-                    
+
                     {productCategories.map((category) => {
-                      const isSelected = selectedCategories.includes(category.id.toString());
+                      const isSelected = selectedCategories.includes(
+                        category.id.toString()
+                      )
                       return (
                         <button
                           key={category.id}
@@ -343,20 +363,28 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                           <div className="flex items-center gap-2">
                             <div
                               className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                                isSelected ? "bg-green-600 border-green-600" : "border-gray-300 dark:border-gray-600"
+                                isSelected
+                                  ? "bg-green-600 border-green-600"
+                                  : "border-gray-300 dark:border-gray-600"
                               }`}
                             >
-                              {isSelected && <Check className="w-3 h-3 text-white" />}
+                              {isSelected && (
+                                <Check className="w-3 h-3 text-white" />
+                              )}
                             </div>
                             <span className="text-gray-700 dark:text-gray-300 text-sm truncate max-w-[120px]">
                               {category.name}
                             </span>
                           </div>
                           <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                            {products?.filter(p => p.category_id === category.id).length}
+                            {
+                              products?.filter(
+                                (p) => p.category_id === category.id
+                              ).length
+                            }
                           </span>
                         </button>
-                      );
+                      )
                     })}
                   </div>
                 )}
@@ -365,10 +393,12 @@ const Shop = ({ products, totalPages }: ShopProps) => {
               {/* Price Range */}
               <div className="mb-5">
                 <button
-                  onClick={() => toggleFilterSection('price')}
+                  onClick={() => toggleFilterSection("price")}
                   className="flex items-center justify-between w-full mb-2.5"
                 >
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm xl:text-base">Price Range</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm xl:text-base">
+                    {t("priceRange")}
+                  </h3>
                   <ChevronDown
                     className={`w-4 h-4 transition-transform ${
                       expandedFilters.price ? "rotate-180" : ""
@@ -378,11 +408,13 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                 {expandedFilters.price && (
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1 text-sm">
                     {priceRanges.map((range) => {
-                      const isSelected = selectedPriceRange === range.id;
-                      const count = products?.filter(p => 
-                        p.discounted_price >= range.min && p.discounted_price <= range.max
-                      ).length;
-                      
+                      const isSelected = selectedPriceRange === range.id
+                      const count = products?.filter(
+                        (p) =>
+                          p.discounted_price >= range.min &&
+                          p.discounted_price <= range.max
+                      ).length
+
                       return (
                         <button
                           key={range.id}
@@ -392,16 +424,24 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                           <div className="flex items-center gap-2">
                             <div
                               className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                                isSelected ? "bg-green-600 border-green-600" : "border-gray-300 dark:border-gray-600"
+                                isSelected
+                                  ? "bg-green-600 border-green-600"
+                                  : "border-gray-300 dark:border-gray-600"
                               }`}
                             >
-                              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                              {isSelected && (
+                                <div className="w-2 h-2 rounded-full bg-white" />
+                              )}
                             </div>
-                            <span className="text-gray-700 dark:text-gray-300 text-sm">{range.name}</span>
+                            <span className="text-gray-700 dark:text-gray-300 text-sm">
+                              {range.name}
+                            </span>
                           </div>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{count}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                            {count}
+                          </span>
                         </button>
-                      );
+                      )
                     })}
                   </div>
                 )}
@@ -409,11 +449,15 @@ const Shop = ({ products, totalPages }: ShopProps) => {
 
               {/* Stock Filter */}
               <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <span className="text-sm text-gray-700 dark:text-gray-300">In Stock Only</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  {t("inStockOnly")}
+                </span>
                 <button
                   onClick={() => setInStockOnly(!inStockOnly)}
                   className={`relative w-10 h-5 rounded-full transition-colors ${
-                    inStockOnly ? "bg-green-600" : "bg-gray-300 dark:bg-gray-600"
+                    inStockOnly
+                      ? "bg-green-600"
+                      : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 >
                   <div
@@ -434,10 +478,11 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                 <div className="flex items-center gap-3">
                   <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm text-gray-700 dark:text-gray-300">
-                    {filteredProducts.length} Products
+                    {filteredProducts.length} {t("products")}
                     {activeFilterCount > 0 && (
                       <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
-                        ({activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""})
+                        ({activeFilterCount} filter
+                        {activeFilterCount !== 1 ? "s" : ""})
                       </span>
                     )}
                   </span>
@@ -492,14 +537,14 @@ const Shop = ({ products, totalPages }: ShopProps) => {
             {/* Mobile Stats Bar */}
             <div className="lg:hidden bg-white dark:bg-gray-800 rounded-lg shadow p-3 mb-4 flex items-center justify-between">
               <span className="text-sm text-gray-700 dark:text-gray-300">
-                {filteredProducts.length} Products
+                {filteredProducts.length} {t("products")}
                 {activeFilterCount > 0 && (
                   <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
                     ({activeFilterCount})
                   </span>
                 )}
               </span>
-              
+
               {/* Mobile Sort & View */}
               <div className="flex items-center gap-2">
                 <select
@@ -513,7 +558,7 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                     </option>
                   ))}
                 </select>
-                
+
                 <div className="flex border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setViewMode("grid")}
@@ -565,7 +610,7 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                         </div>
                       ))}
                     </div>
-                    
+
                     {/* Pagination */}
                     <div className="mt-6 sm:mt-8 lg:mt-10">
                       <Pagination totalPages={totalPages || 10} />
@@ -578,17 +623,17 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                         <Search className="w-12 h-12 mx-auto" />
                       </div>
                       <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                        No products found
+                        {t("noProductsFound")}
                       </h3>
                       <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
-                        We couldn't find any products matching your criteria. Try adjusting your filters.
+                        {t("noProductsDescription")}
                       </p>
                       <button
                         onClick={clearAllFilters}
                         className="px-5 py-2.5 bg-green-600 text-white text-sm sm:text-base rounded-lg hover:bg-green-700 transition-colors inline-flex items-center gap-2"
                       >
                         <X className="w-4 h-4" />
-                        Clear All Filters
+                        {t("clearFilters")}
                       </button>
                     </div>
                   </div>
@@ -606,7 +651,9 @@ const Shop = ({ products, totalPages }: ShopProps) => {
             {/* Sticky Header */}
             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b dark:border-gray-700 z-10">
               <div className="p-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">Filters</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {t("filters")}
+                </h2>
                 <button
                   onClick={() => setShowMobileFilter(false)}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
@@ -615,38 +662,42 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-4">
               {/* Active Filters Summary */}
               {activeFilterCount > 0 && (
                 <div className="mb-4 pb-4 border-b dark:border-gray-700">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Active Filters ({activeFilterCount})
+                      {t("activeFilters")} ({activeFilterCount})
                     </span>
                     <button
                       onClick={clearAllFilters}
                       className="text-xs text-green-600 hover:text-green-700 font-medium"
                     >
-                      Clear All
+                      {t("clearAll")}
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedCategories
                       .filter((c) => c !== "all")
                       .map((categoryId) => {
-                        const category = categories?.find((c) => c.id.toString() === categoryId);
+                        const category = categories?.find(
+                          (c) => c.id.toString() === categoryId
+                        )
                         return category ? (
                           <span
                             key={categoryId}
                             className="inline-flex items-center gap-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full text-xs"
                           >
                             {category.name}
-                            <button onClick={() => handleCategorySelect(categoryId)}>
+                            <button
+                              onClick={() => handleCategorySelect(categoryId)}
+                            >
                               <X className="w-3 h-3" />
                             </button>
                           </span>
-                        ) : null;
+                        ) : null
                       })}
                   </div>
                 </div>
@@ -656,10 +707,12 @@ const Shop = ({ products, totalPages }: ShopProps) => {
               {/* Categories */}
               <div className="mb-5">
                 <button
-                  onClick={() => toggleFilterSection('categories')}
+                  onClick={() => toggleFilterSection("categories")}
                   className="flex items-center justify-between w-full mb-2.5"
                 >
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Categories</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    {t("categories")}
+                  </h3>
                   <ChevronDown
                     className={`w-4 h-4 transition-transform ${
                       expandedFilters.categories ? "rotate-180" : ""
@@ -681,14 +734,20 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                               : "border-gray-300 dark:border-gray-600"
                           }`}
                         >
-                          {selectedCategories.includes("all") && <Check className="w-3 h-3 text-white" />}
+                          {selectedCategories.includes("all") && (
+                            <Check className="w-3 h-3 text-white" />
+                          )}
                         </div>
-                        <span className="text-gray-700 dark:text-gray-300">All Categories</span>
+                        <span className="text-gray-700 dark:text-gray-300">
+                          {t("allCategories")}
+                        </span>
                       </div>
                     </button>
-                    
+
                     {productCategories.map((category) => {
-                      const isSelected = selectedCategories.includes(category.id.toString());
+                      const isSelected = selectedCategories.includes(
+                        category.id.toString()
+                      )
                       return (
                         <button
                           key={category.id}
@@ -698,18 +757,28 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                           <div className="flex items-center gap-2">
                             <div
                               className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                                isSelected ? "bg-green-600 border-green-600" : "border-gray-300 dark:border-gray-600"
+                                isSelected
+                                  ? "bg-green-600 border-green-600"
+                                  : "border-gray-300 dark:border-gray-600"
                               }`}
                             >
-                              {isSelected && <Check className="w-3 h-3 text-white" />}
+                              {isSelected && (
+                                <Check className="w-3 h-3 text-white" />
+                              )}
                             </div>
-                            <span className="text-gray-700 dark:text-gray-300 text-sm">{category.name}</span>
+                            <span className="text-gray-700 dark:text-gray-300 text-sm">
+                              {category.name}
+                            </span>
                           </div>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {products?.filter(p => p.category_id === category.id).length}
+                            {
+                              products?.filter(
+                                (p) => p.category_id === category.id
+                              ).length
+                            }
                           </span>
                         </button>
-                      );
+                      )
                     })}
                   </div>
                 )}
@@ -718,10 +787,12 @@ const Shop = ({ products, totalPages }: ShopProps) => {
               {/* Price Range - Mobile */}
               <div className="mb-5">
                 <button
-                  onClick={() => toggleFilterSection('price')}
+                  onClick={() => toggleFilterSection("price")}
                   className="flex items-center justify-between w-full mb-2.5"
                 >
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Price Range</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    {t("priceRange")}
+                  </h3>
                   <ChevronDown
                     className={`w-4 h-4 transition-transform ${
                       expandedFilters.price ? "rotate-180" : ""
@@ -731,7 +802,7 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                 {expandedFilters.price && (
                   <div className="space-y-2">
                     {priceRanges.map((range) => {
-                      const isSelected = selectedPriceRange === range.id;
+                      const isSelected = selectedPriceRange === range.id
                       return (
                         <button
                           key={range.id}
@@ -741,28 +812,37 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                           <div className="flex items-center gap-2">
                             <div
                               className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                                isSelected ? "bg-green-600 border-green-600" : "border-gray-300 dark:border-gray-600"
+                                isSelected
+                                  ? "bg-green-600 border-green-600"
+                                  : "border-gray-300 dark:border-gray-600"
                               }`}
                             >
-                              {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                              {isSelected && (
+                                <div className="w-2 h-2 rounded-full bg-white" />
+                              )}
                             </div>
-                            <span className="text-gray-700 dark:text-gray-300 text-sm">{range.name}</span>
+                            <span className="text-gray-700 dark:text-gray-300 text-sm">
+                              {range.name}
+                            </span>
                           </div>
                         </button>
-                      );
+                      )
                     })}
                   </div>
                 )}
               </div>
 
-        
               {/* Stock Filter - Mobile */}
               <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-5">
-                <span className="text-sm text-gray-700 dark:text-gray-300">In Stock Only</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  {t("inStockOnly")}
+                </span>
                 <button
                   onClick={() => setInStockOnly(!inStockOnly)}
                   className={`relative w-10 h-5 rounded-full transition-colors ${
-                    inStockOnly ? "bg-green-600" : "bg-gray-300 dark:bg-gray-600"
+                    inStockOnly
+                      ? "bg-green-600"
+                      : "bg-gray-300 dark:bg-gray-600"
                   }`}
                 >
                   <div
@@ -778,7 +858,7 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                 onClick={() => setShowMobileFilter(false)}
                 className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
               >
-                Apply Filters
+                {t("applyFilters")}
               </button>
             </div>
           </div>

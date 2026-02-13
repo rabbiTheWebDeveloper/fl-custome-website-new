@@ -168,7 +168,7 @@
       }
     }
   },
-    "Theme3": {
+  "Theme3": {
     "header": {
       "home": "Home",
       "shop": "Shop",
@@ -192,24 +192,6 @@
       },
       "menu": "Menu"
     },
-    "features": {
-      "quality": {
-        "title": "Quality",
-        "description": "We're committed to providing the highest quality products and services."
-      },
-      "moneyBack": {
-        "title": "Money-Back Guarantee",
-        "description": "Return your item for a full refund if it doesn't meet your expectations."
-      },
-      "support": {
-        "title": "24/7 Customer Support",
-        "description": "Our team is available 24/7 to address your inquiries."
-      },
-      "reliability": {
-        "title": "Reliability",
-        "description": "Count on us for timely delivery and consistent service excellence ever..."
-      }
-    },
     "categories": {
       "title": "Browse Categories",
       "empty": "No categories available",
@@ -217,89 +199,111 @@
       "subCategories_one": "{count} sub-category",
       "subCategories_other": "{count} sub-categories"
     },
-    "footer": {
-      "brandDescription": "Your trusted fashion company",
-      "navigation": "Navigation",
-      "categories": "Categories",
-      "legals": "Legals",
-      "home": "Home",
-      "shop": "Shop",
-      "about": "About",
-      "contact": "Contact",
-      "men": "Men",
-      "women": "Women",
-      "kids": "Kids",
-      "privacy": "Privacy Policy",
-      "terms": "Terms & Conditions",
-      "other": "Other",
-      "copyright": "© Brand Name {year} | All rights reserved.",
-      "madeIn": "Made in"
-    },
-    "headerFooter": {
-      "home": "Home",
-      "shop": "Shop",
-      "category": "Category",
-      "about": "About",
-      "contact": "Contact",
-      "men": "Men",
-      "women": "Women",
-      "kids": "Kids",
-      "privacy": "Privacy Policy",
-      "terms": "Terms & Conditions",
-      "other": "Other"
-    },
-    "buttons": {
+    "product": {
+      "tile": "All Products",
       "addToCart": "Add to Cart",
-      "maxQuantity": "Max Quantity",
-      "buyNow": "Buy Now",
-      "shopNow": "Shop Now",
+      "orderNow": "Order Now",
+      "outOfStock": "Out of Stock",
+      "maxQuantityReached": "Max Quantity Reached",
+      "description": "Description",
+      "relatedProducts": "Related Products",
+      "inStock": "In Stock"
+    },
+    "footer": {
+      "trustedText": "Your trusted online shopping destination",
+      "storeAddress": "Store Address",
+      "contactNumber": "Contact Number",
+      "privacyPolicy": "Privacy Policy",
+      "termsConditions": "Terms & Conditions",
+      "joinSocial": "Join Us On Social Media",
+      "allRightsReserved": "All Rights Reserved",
+      "developedBy": "System developed by"
+    },
+    "shop": {
       "filters": "Filters",
-      "viewAllProducts": "View All Products",
-      "seeMore": "See More",
-      "loading": "Loading...",
-      "placeOrder": "Place Order",
-      "placingOrder": "Placing Order...",
-      "continueShopping": "Continue Shopping"
+      "clearAll": "Clear All",
+      "activeFilters": "Active Filters",
+      "categories": "Categories",
+      "allCategories": "All Categories",
+      "priceRange": "Price Range",
+      "inStockOnly": "In Stock Only",
+      "products": "Products",
+      "filterCount": "filter",
+      "filterCountPlural": "filters",
+      "gridView": "Grid view",
+      "listView": "List view",
+      "searchPlaceholder": "Search products...",
+      "noProductsFound": "No products found",
+      "noProductsDescription": "We couldn't find any products matching your criteria. Try adjusting your filters.",
+      "clearAllFilters": "Clear All Filters",
+      "applyFilters": "Apply Filters",
+
+      "sort": {
+        "default": "Default",
+        "priceLow": "Price: Low to High",
+        "priceHigh": "Price: High to Low",
+        "newest": "Newest First",
+        "discount": "Best Discount"
+      },
+
+      "priceRanges": {
+        "all": "All Prices",
+        "under1000": "Under ৳1,000",
+        "1000to5000": "৳1,000 - ৳5,000",
+        "5000to10000": "৳5,000 - ৳10,000",
+        "10000to50000": "৳10,000 - ৳50,000",
+        "above50000": "Above ৳50,000"
+      }
     },
     "checkout": {
-      "title": "Checkout",
-      "subtitle": "Almost there — complete your order securely.",
-      "yourOrder": "Your Order",
-      "subtotal": "Subtotal",
-      "discount": "Discount",
-      "tax": "Tax",
-      "shipping": "Shipping",
-      "total": "Total",
-      "checkout": "Checkout",
-      "billingDetails": "Billing Details",
-      "fullName": "Full Name",
-      "fullNamePlaceholder": "John Doe",
-      "phoneNumber": "Phone number",
-      "phoneNumberPlaceholder": "+880123456789",
-      "deliveryAddress": "Delivery Address",
-      "deliveryAddressPlaceholder": "Write here",
-      "orderNote": "Order Note(Optional)",
-      "orderNotePlaceholder": "Write here",
-      "shippingMethod": "Shipping method",
-      "insideDhaka": "Inside Dhaka",
-      "aroundDhaka": "Around Dhaka",
-      "outsideDhaka": "Outside Dhaka",
-      "paymentMethod": "Payment Method",
-      "sslcommerz": "SSLCOMMERZ(Free Delivery)",
-      "cashOnDelivery": "Cash on delivery",
-      "bkash": "bKash(Free Delivery)",
-      "validation": {
-        "fullNameMin": "Full name must be at least 2 characters",
-        "fullNameMax": "Full name must be less than 100 characters",
-        "fullNameRegex": "Full name can only contain letters, spaces, hyphens, and apostrophes",
-        "phoneRequired": "Phone number is required",
-        "phoneInvalid": "Please enter a valid Bangladesh phone number (e.g., 01712345678 or +8801712345678)",
-        "deliveryAddressMin": "Delivery address must be at least 10 characters",
-        "deliveryAddressMax": "Delivery address must be less than 500 characters",
-        "orderNoteMax": "Order note must be less than 1000 characters",
-        "shippingMethodRequired": "Please select a shipping method",
-        "paymentMethodRequired": "Please select a payment method"
-      }
+      "steps": {
+        "cart": "Cart",
+        "information": "Information",
+        "payment": "Payment"
+      },
+      "emptyCart": {
+        "title": "Your cart is empty",
+        "description": "Add some products to your cart to continue checkout.",
+        "continueShopping": "Continue Shopping"
+      },
+      "contact": {
+        "title": "Contact Information",
+        "name": "Name *",
+        "phone": "Phone Number *",
+        "address": "Address *",
+        "orderNotes": "Order Notes (Optional)",
+        "orderNotesPlaceholder": "Special instructions, delivery notes, etc."
+      },
+      "payment": {
+        "title": "Payment Method",
+        "sslcommerz": "SSLCommerz",
+        "sslcommerzDesc": "Pay via cards, mobile banking",
+        "cod": "Cash on Delivery",
+        "codDesc": "Pay when you receive the order",
+        "bkash": "bKash",
+        "bkashDesc": "bKash mobile payment"
+      },
+      "summary": {
+        "title": "Order Summary",
+        "subtotal": "Subtotal",
+        "shippingMethod": "Shipping Method",
+        "insideDhaka": "Inside Dhaka",
+        "outsideDhaka": "Outside Dhaka",
+        "subArea": "Sub Area",
+        "discount": "Discount",
+        "total": "Total",
+        "includingTax": "Including all taxes and fees"
+      },
+      "security": {
+        "secureCheckout": "Secure checkout",
+        "encrypted": "Your information is encrypted and protected"
+      },
+      "buttons": {
+        "placeOrder": "Place Order",
+        "processing": "Processing order…"
+      },
+      "returnPolicy": "30-Day Return Policy",
+      "removeItem": "Remove item"
     }
   }
 }

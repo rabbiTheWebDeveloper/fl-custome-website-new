@@ -6,8 +6,6 @@ import { ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
 
-const NO_ITEMS = 0
-
 export const CartPopover = ({
   isCartOpen,
   setIsCartOpen,
@@ -15,7 +13,7 @@ export const CartPopover = ({
   isCartOpen: boolean
   setIsCartOpen: (open: boolean) => void
 }) => {
-   const t = useTranslations("Theme3.header")
+  const t = useTranslations("Theme3.header")
   const { updateItem, removeItem } = useCart()
   // Get cart items and totals from store (reactive)
   const items = useCartStore((state) => state.items)
@@ -46,7 +44,9 @@ export const CartPopover = ({
         >
           <ShoppingCart className="w-6 h-6 text-gray-600 group-hover:text-green-600 transition-colors" />
           <div className="text-left">
-            <div className="text-sm text-gray-500">{t("cart.shoppingCart")}</div>
+            <div className="text-sm text-gray-500">
+              {t("cart.shoppingCart")}
+            </div>
             <div className="font-semibold text-gray-900">
               ৳{totals?.subtotal?.toLocaleString()}
             </div>
@@ -216,7 +216,9 @@ export const CartPopover = ({
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-white">
               <div className="flex justify-between mb-4">
-                <span className="text-lg font-semibold">{t("cart.total")}:</span>
+                <span className="text-lg font-semibold">
+                  {t("cart.total")}:
+                </span>
                 <span className="text-2xl font-bold text-green-600">
                   ${totals?.subtotal?.toLocaleString()}
                 </span>

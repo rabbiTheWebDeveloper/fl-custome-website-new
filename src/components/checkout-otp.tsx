@@ -119,9 +119,14 @@ const CheckoutOtp: React.FC<CheckoutOtpProps> = ({
         toast.error("Invalid OTP")
         setLoading(false)
       }
-    } catch (_err) {
+    } catch (_err: unknown) {
       setLoading(false)
-      toast.error("Server error")
+      const errorMessage =
+        _err instanceof Error && "response" in _err
+          ? (_err as { response?: { message?: string } }).response?.message ||
+            "Server error"
+          : "Server error"
+      toast.error(errorMessage)
     }
   }
 

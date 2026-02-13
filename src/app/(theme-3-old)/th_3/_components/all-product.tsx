@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl"
 import { IProduct } from "../types/product"
 import Pagination from "./pagination"
 import { ProductCard } from "./products/product-card"
@@ -10,12 +11,13 @@ const AllProduct = ({
   products: IProduct[]
   totalPages: number
 }) => {
+  const t = useTranslations("Theme3.product")
   return (
-      <section className="py-8 bg-gray-50 dark:bg-gray-900 transition-colors">
+    <section className="py-8 bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container mx-auto px-4">
         {/* Heading */}
         <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-gray-900 dark:text-white">
-          All Products
+          {t("tile")}
         </h2>
 
         {/* Products Grid */}

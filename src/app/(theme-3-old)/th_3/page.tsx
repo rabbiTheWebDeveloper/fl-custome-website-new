@@ -7,11 +7,13 @@ import { getDomainHeaders } from "@/lib/domain"
 import { api } from "@/lib/api-client"
 import { IProductsApiResponse } from "./types/product"
 
-
-
-export default async function Home({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
   // await searchParams before using it
-  const { page = '1'} = await searchParams
+  const { page = "1" } = await searchParams
 
   const headers = await getDomainHeaders()
   const { data: response } = await api.get<IProductsApiResponse>(
@@ -24,7 +26,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
 
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-x-hidden transition-colors duration-500">
-
       {/* Decorative blobs */}
       <div
         className="blob blob-1 fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full opacity-60 blur-[80px] -z-10
@@ -44,6 +45,5 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ p
       <AllProduct products={products} totalPages={totalPages} />
       <Scroll />
     </div>
-
   )
 }
