@@ -68,10 +68,6 @@ export function proxy(request: NextRequest) {
     rewriteUrl.search = request.nextUrl.search
     return NextResponse.rewrite(rewriteUrl)
   }
-  //   if (pathname.startsWith("/p/")) {
-  //   const rewriteUrl = new URL(`/${pathname}`, request.url)
-  //   return NextResponse.rewrite(rewriteUrl)
-  // }
     if (pathname.startsWith("/order-successfull/")) {
     return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
   }

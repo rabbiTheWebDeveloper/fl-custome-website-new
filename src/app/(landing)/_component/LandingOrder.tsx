@@ -23,6 +23,7 @@ import { getDomainHeadersFromCookies } from "@/app/(theme-3-old)/th_3/_component
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { LandingOrderProps } from "@/type/landing"
+import CheckoutOtp from "@/components/checkout-otp"
 
 // Define form validation schema
 const orderFormSchema = z.object({
@@ -77,6 +78,12 @@ const LandingOrder = ({
   const [selectedPayment, setSelectedPayment] = useState<"cod" | "bkash">("cod")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  // OTP Modal State
+    const [timeLeft, setTimeLeft] = useState(0)
+    const [show, setShow] = useState(false)
+    const handleClose = () => setShow(false)
+    const handleShow = () => setShow(true)
+    const [resendLoading, setResendLoading] = useState(false)
 
   // Early return if product is undefined
   if (!product) {
@@ -360,8 +367,9 @@ const LandingOrder = ({
           window.location.href = responseOrderData.payment_url
         } else if (order?.otp_sent) {
           toast.success("OTP sent successfully")
-          // Handle OTP verification flow here if needed
-          // router.push(`/order-successfull/${order?.id}`)
+         toast.success("OTP sent successfully")
+                   setTimeLeft(120)
+                   handleShow()
         } else if (responseData.message) {
           toast.success(responseData.message)
         }
@@ -407,6 +415,45 @@ const LandingOrder = ({
 
     return options
   }
+const customerPhone = watch("phone")
+   const handleResendOtp = async () => {
+      setResendLoading(true)
+      const headers = getDomainHeadersFromCookies()
+      const shopId = headers["shop-id"]
+      try {
+        const res = await api.post(
+          "/customer/resend-otp",
+          { phone: customerPhone },
+          undefined,
+          {
+            headers: {
+              ...(shopId && { "shop-id": shopId }),
+            },
+          }
+        )
+        const responseData = res.data as {
+          data: {
+            otp_sent: boolean
+          }
+        }
+        if (responseData.data.otp_sent) {
+          toast.success("OTP sent successfully")
+          setTimeLeft(120)
+        }
+      } catch (error) {
+        console.error("Error resending OTP:", error)
+      } finally {
+        setResendLoading(false)
+      }
+    }
+  
+    useEffect(() => {
+      if (!timeLeft) return
+      const intervalId = setInterval(() => {
+        setTimeLeft(timeLeft - 1)
+      }, 1000)
+      return () => clearInterval(intervalId)
+    }, [show, timeLeft])
   const hasSocialMedia = fb || twitter || linkedin || instagram || youtube
   return (
     <section className="py-12 min-h-screen" style={{ backgroundColor }}>
@@ -1314,6 +1361,14 @@ const LandingOrder = ({
           </div>
         </div>
       </div>
+          <CheckoutOtp
+              timeLeft={timeLeft}
+              show={show}
+              onClose={handleClose}
+              customerPhone={customerPhone}
+              resendLoading={resendLoading}
+              onResendOtp={handleResendOtp}
+            />
     </section>
   )
 }
