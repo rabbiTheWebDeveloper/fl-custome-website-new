@@ -72,7 +72,7 @@ export const ProductCard = ({
     <>
       {/* Product Image */}
       <Link
-        href={`/product/${slug}?id=${id}`}
+        href={`/product/${ulid}?${slug}`}
         className="relative w-full aspect-square bg-white dark:bg-gray-800 rounded-t-xl overflow-hidden"
       >
         <Image
