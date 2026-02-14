@@ -264,35 +264,78 @@ export default function Header() {
                   {/* Categories Mega Menu */}
                   {isCategoriesOpen && categories && (
                     <div
-                      className="absolute top-full left-0 w-[800px] bg-white dark:bg-gray-800 rounded-b-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                      className="absolute top-full left-0 w-[280px] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 "
                       onMouseLeave={() => setIsCategoriesOpen(false)}
                     >
-                      <div className="grid grid-cols-1 gap-0">
-                        {/* Main Categories */}
-                        <div className="col-span-1 bg-gray-50 dark:bg-gray-900 p-4">
-                          <div className="flex flex-col gap-1">
-                            {categories.map((category) => (
-                              <button
-                                key={category.id}
-                                onClick={() =>
-                                  router.push(`/shop?search=${category.name}`)
-                                }
-                                onMouseEnter={() =>
-                                  setHoveredCategory(category.name)
-                                }
-                                className={`w-full text-left px-3 py-2.5 rounded-lg transition-all ${
-                                  hoveredCategory === category.name
-                                    ? "bg-[#3bb77e] text-white"
-                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                }`}
+                      {/* Categories List */}
+                      <div className="max-h-[400px] overflow-y-auto py-2">
+                        {categories.map((category) => (
+                          <button
+                            key={category.id}
+                            onClick={() => {
+                              router.push(
+                                `/shop?category=${encodeURIComponent(category.name)}&id=${category.id}`
+                              )
+                              setIsCategoriesOpen(false)
+                            }}
+                            onMouseEnter={() =>
+                              setHoveredCategory(category.name)
+                            }
+                            className={`
+          w-full text-left px-4 py-3 transition-all duration-200
+          flex items-center justify-between group
+          ${
+            hoveredCategory === category.name
+              ? "bg-[#3bb77e] text-white"
+              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          }
+        `}
+                          >
+                            <div className="flex items-center gap-3">
+                              {/* Category Icon/Image */}
+                              <div
+                                className={`
+            w-8 h-8 rounded-lg flex items-center justify-center
+            ${
+              hoveredCategory === category.name
+                ? "bg-white/20"
+                : "bg-gray-100 dark:bg-gray-700 group-hover:bg-white/20"
+            }
+          `}
                               >
-                                <div className="flex items-center justify-between">
-                                  <span>{category.name}</span>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                                {category.image ? (
+                                  <Image
+                                    src={category.image}
+                                    alt={category.name}
+                                    width={24}
+                                    height={24}
+                                    className="object-contain"
+                                  />
+                                ) : (
+                                  <span className="text-sm font-bold">
+                                    {category.name.charAt(0)}
+                                  </span>
+                                )}
+                              </div>
+
+                              <span className="font-medium">
+                                {category.name}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Footer Link */}
+                      <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+                        <Link
+                          href="/shop"
+                          onClick={() => setIsCategoriesOpen(false)}
+                          className="flex items-center justify-center gap-2 text-sm text-[#3bb77e] hover:text-[#2d9c68] font-medium transition"
+                        >
+                          View All Categories
+                          <ChevronRight size={16} />
+                        </Link>
                       </div>
                     </div>
                   )}
