@@ -1,3 +1,4 @@
+import { ICategory } from "./categories"
 export interface IProductsApiResponse {
   message: string
   success: boolean
@@ -56,6 +57,8 @@ export interface IProduct {
   long_description: string | null
   relatedProducts?: IProduct[]
   other_images: string[]
+  category?: ICategory
+  tags?: { name: string }[]
 }
 
 export interface IPaginationLink {
