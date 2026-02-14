@@ -61,7 +61,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
 
   // Use product.relatedProducts if available, otherwise empty array
   const relatedProducts = product?.relatedProducts || []
-  console.log("Related Products:", product) // Debugging log
+  console.log("Related Products:", relatedProducts) // Debugging log
   return (
     <section className="max-w-7xl mx-auto px-4 py-12">
       {/* Product Main Section */}
@@ -309,26 +309,6 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
                     <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-[#3BB77E] transition">
                       {p.product_name}
                     </h3>
-
-                    {/* Rating */}
-                    <div className="flex items-center gap-1 mb-2">
-                      <div className="flex">
-                        {[1, 2, 3, 4].map((star) => (
-                          <Star
-                            key={star}
-                            size={12}
-                            className="fill-yellow-400 text-yellow-400"
-                          />
-                        ))}
-                        <Star
-                          size={12}
-                          className="text-gray-300 dark:text-gray-600"
-                        />
-                      </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        (45)
-                      </span>
-                    </div>
 
                     {/* Price */}
                     <div className="flex items-baseline justify-between">
