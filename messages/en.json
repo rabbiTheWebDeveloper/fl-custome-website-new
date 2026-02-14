@@ -196,6 +196,9 @@
       "title": "Browse Categories",
       "empty": "No categories available",
       "unnamed": "Unnamed Category",
+      "viewAll": "View All Categories",
+      "browseCategories": "Browse Categories",
+      "subtitle": "Explore our wide range of categories to find the perfect products for you.",
       "subCategories_one": "{count} sub-category",
       "subCategories_other": "{count} sub-categories"
     },

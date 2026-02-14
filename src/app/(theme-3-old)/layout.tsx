@@ -47,6 +47,10 @@ export default async function RootLayout({
 
   // Pick font based on locale
   const fontClass = locale === "bn" ? banglaFont.variable : englishFont.variable
+  const messages =
+    locale === "bn"
+      ? (await import("@/messages/bn.json")).default
+      : (await import("@/messages/en.json")).default
 
   return (
     <html lang={locale} className={`${fontClass} antialiased`}>
@@ -62,8 +66,8 @@ export default async function RootLayout({
         data-gr-ext-installed=""
         cz-shortcut-listen="true"
       >
-        <Providers>
-          <NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Providers>
             <Toaster position="top-center" richColors />
             <DynamicMeta />
             <div style={{ display: "contents" }}>
@@ -71,8 +75,8 @@ export default async function RootLayout({
               {children}
               <FooterUI />
             </div>
-          </NextIntlClientProvider>
-        </Providers>
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

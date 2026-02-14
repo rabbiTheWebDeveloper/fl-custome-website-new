@@ -1,14 +1,15 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState, useCallback } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import useEmblaCarousel from "embla-carousel-react"
+import { ChevronLeft, ChevronRight, Grid3x3 } from "lucide-react"
 import { useCategories } from "../store/categories"
 import { ICategory } from "../types/categories"
 import { useTranslations } from "next-intl"
 
-const CATEGORY_ICON_SIZE = 80
+const CATEGORY_ICON_SIZE = 100
 const PLACEHOLDER_IMAGE = "/placeholder-category.png"
 
 export default function Category() {
@@ -18,13 +19,17 @@ export default function Category() {
   )
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: false,
-    align: "start",
+    loop: true,
+    align: "center",
     skipSnaps: false,
+    dragFree: false,
+    containScroll: "trimSnaps",
+    duration: 30, // Smoother transition
   })
 
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [snapCount, setSnapCount] = useState(0)
+  const [isHovering, setIsHovering] = useState(false)
 
   /* ----------------------------
    Transform categories to slides
@@ -32,7 +37,7 @@ export default function Category() {
   const slides = useMemo(() => {
     if (!categories?.length) return []
 
-    return categories?.map((item) => {
+    return categories.map((item) => {
       const slug = (item.name || "category")
         .toLowerCase()
         .replace(/[^\w\s-]/g, "")
@@ -78,22 +83,44 @@ export default function Category() {
   }, [emblaApi])
 
   /* ----------------------------
-   Autoplay (optional)
+   Smooth Autoplay
   ----------------------------- */
   useEffect(() => {
-    if (!emblaApi || snapCount <= 1) return
+    if (!emblaApi || snapCount <= 1 || isHovering) return
 
-    const interval = setInterval(() => {
-      emblaApi.scrollNext()
-    }, 5000)
+    const autoplay = setInterval(() => {
+      if (emblaApi.canScrollNext()) {
+        emblaApi.scrollNext()
+      } else {
+        emblaApi.scrollTo(0)
+      }
+    }, 4000) // Slower autoplay for better UX
 
-    return () => clearInterval(interval)
-  }, [emblaApi, snapCount])
+    return () => clearInterval(autoplay)
+  }, [emblaApi, snapCount, isHovering])
+
+  /* ----------------------------
+   Navigation handlers
+  ----------------------------- */
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev()
+  }, [emblaApi])
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext()
+  }, [emblaApi])
+
+  const scrollTo = useCallback(
+    (index: number) => {
+      if (emblaApi) emblaApi.scrollTo(index)
+    },
+    [emblaApi]
+  )
 
   /* ----------------------------
    Helpers
   ----------------------------- */
-  const truncate = (text: string, len = 28) =>
+  const truncate = (text: string, len = 25) =>
     text.length > len ? text.slice(0, len) + "…" : text
 
   const handleImageError = (
@@ -107,124 +134,272 @@ export default function Category() {
   ----------------------------- */
   if (!slides.length) {
     return (
-      <section className="py-8 bg-gray-50">
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-6">{t("title")}</h2>
-          <p className="text-gray-500">{t("empty")}</p>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
+            <Grid3x3 className="w-8 h-8 text-gray-500 dark:text-gray-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+            {t("title")}
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400">{t("empty")}</p>
         </div>
       </section>
     )
   }
 
   return (
-    <section className="py-8 bg-gray-50 dark:bg-gray-900">
+    <section className="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4">
-        {/* Title */}
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">
-          {t("title")}
-        </h2>
+        {/* Header with decorative elements */}
+        <div className="text-center mb-12">
+          <span className="inline-block px-4 py-1.5 bg-[#38B27A]/20 dark:bg-[#38B27A]/30 text-[#38B27A] dark:text-[#38B27A] rounded-full text-sm font-medium mb-4">
+            {t("browseCategories")}
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+            {t("title")}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            {t("subtitle") ||
+              "Explore our wide range of categories and find what you're looking for"}
+          </p>
+        </div>
 
-        <div className="relative">
-          {/* ================= Carousel ================= */}
-          <div ref={emblaRef} className="overflow-hidden">
-            <div className="flex gap-4 py-2">
+        {/* Carousel Container */}
+        <div
+          className="relative max-w-6xl mx-auto"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
+          {/* Main Carousel */}
+          <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
+            <div className="flex gap-6 py-4 px-2">
               {slides.map((item, index) => (
                 <div
                   key={item.id}
-                  style={{ width: 140 }}
-                  className="
+                  className={`
                     flex-shrink-0
-                    sm:w-[160px]
-                    md:w-[180px]
-                    bg-white dark:bg-gray-800
-                    rounded-xl
-                    p-4
-                    text-center
-                    border border-gray-200 dark:border-gray-700
-                    hover:shadow-lg dark:hover:shadow-black/40
-                    transition
-                  "
+                    w-[160px] sm:w-[180px] md:w-[200px]
+                    transform transition-all duration-300
+                    ${selectedIndex === index ? "scale-105" : "scale-100"}
+                  `}
                 >
-                  {/* Image */}
-                  <div
-                    className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden
-                                  bg-gray-100 dark:bg-gray-700"
-                  >
-                    <Image
-                      src={item.image}
-                      alt={item.displayName}
-                      width={CATEGORY_ICON_SIZE}
-                      height={CATEGORY_ICON_SIZE}
-                      className="w-full h-full object-cover"
-                      onError={handleImageError}
-                      priority={index < 4}
-                    />
-                  </div>
-
-                  {/* Title */}
                   <Link href={item.href}>
-                    <h5
-                      className="text-sm font-semibold
-                                   text-gray-800 dark:text-gray-100
-                                   hover:text-blue-600 dark:hover:text-blue-400
-                                   line-clamp-2 h-10"
+                    <div
+                      className="
+                      bg-white dark:bg-gray-800
+                      rounded-2xl
+                      p-6
+                      text-center
+                      border-2 border-transparent
+                      hover:border-[#38B27A] dark:hover:border-[#38B27A]
+                      shadow-lg hover:shadow-xl
+                      dark:shadow-gray-900/30
+                      transition-all duration-300
+                      group
+                      cursor-pointer
+                      h-full
+                      flex flex-col
+                      items-center
+                      justify-center
+                    "
                     >
-                      {truncate(item.displayName)}
-                    </h5>
-                  </Link>
+                      {/* Image Container with Gradient */}
+                      <div
+                        className="
+                        relative
+                        w-24 h-24
+                        mb-4
+                        rounded-2xl
+                        overflow-hidden
+                        bg-gradient-to-br from-blue-100 to-purple-100
+                        dark:from-blue-900/30 dark:to-purple-900/30
+                        group-hover:scale-110
+                        transition-transform duration-300
+                      "
+                      >
+                        <Image
+                          src={item.image}
+                          alt={item.displayName}
+                          width={CATEGORY_ICON_SIZE}
+                          height={CATEGORY_ICON_SIZE}
+                          className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal"
+                          onError={handleImageError}
+                          priority={index < 6}
+                        />
 
-                  {/* Sub-category count */}
-                  {item.sub_categories?.length > 0 && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {item.sub_categories.length} sub-categories
-                    </p>
-                  )}
+                        {/* Overlay on Hover */}
+                        <div
+                          className="
+                          absolute inset-0
+                          bg-gradient-to-t from-blue-600/20 to-transparent
+                          opacity-0 group-hover:opacity-100
+                          transition-opacity duration-300
+                        "
+                        />
+                      </div>
+
+                      {/* Category Name */}
+                      <h3
+                        className="
+                        text-sm font-bold
+                        text-gray-800 dark:text-gray-100
+                        group-hover:text-[#38B27A] dark:group-hover:text-[#38B27A]
+                        transition-colors duration-300
+                        mb-2
+                        line-clamp-2
+                        min-h-[2.5rem]
+                      "
+                      >
+                        {truncate(item.displayName)}
+                      </h3>
+
+                      {/* Sub-category Count Badge */}
+                      {item.sub_categories?.length > 0 && (
+                        <span
+                          className="
+                          inline-flex
+                          items-center
+                          px-2.5 py-0.5
+                          rounded-full
+                          text-xs font-medium
+                          bg-gray-100 dark:bg-gray-700
+                          text-gray-600 dark:text-gray-300
+                          group-hover:bg-[#38B27A]/20 dark:group-hover:bg-[#38B27A]/50
+                          group-hover:text-[#38B27A] dark:group-hover:text-[#38B27A]
+                          transition-colors duration-300
+                        "
+                        >
+                          {item.sub_categories.length} items
+                        </span>
+                      )}
+                    </div>
+                  </Link>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ================= Arrows ================= */}
+          {/* Navigation Arrows - Only show if more than one slide */}
           {snapCount > 1 && (
             <>
               <button
-                onClick={() => emblaApi?.scrollPrev()}
-                className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2
-                           bg-white dark:bg-gray-800
-                           text-gray-800 dark:text-gray-100
-                           p-2 rounded-full shadow hover:scale-110 transition"
+                onClick={scrollPrev}
+                className="
+                  absolute
+                  left-0
+                  top-1/2
+                  -translate-y-1/2
+                  -translate-x-4
+                  w-12 h-12
+                  bg-white dark:bg-gray-800
+                  text-gray-800 dark:text-gray-200
+                  rounded-full
+                  shadow-lg
+                  hover:shadow-xl
+                  hover:scale-110
+                  hover:bg-[#38B27A] hover:text-white
+                  dark:hover:bg-[#38B27A]
+                  transition-all
+                  duration-300
+                  flex
+                  items-center
+                  justify-center
+                  border-2 border-gray-200 dark:border-gray-700
+                  hover:border-[#38B27A] dark:hover:border-[#38B27A]
+                  z-10
+                  hidden md:flex
+                "
+                aria-label="Previous categories"
               >
-                ◀
+                <ChevronLeft size={24} />
               </button>
               <button
-                onClick={() => emblaApi?.scrollNext()}
-                className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2
-                           bg-white dark:bg-gray-800
-                           text-gray-800 dark:text-gray-100
-                           p-2 rounded-full shadow hover:scale-110 transition"
+                onClick={scrollNext}
+                className="
+                  absolute
+                  right-0
+                  top-1/2
+                  -translate-y-1/2
+                  translate-x-4
+                  w-12 h-12
+                  bg-white dark:bg-gray-800
+                  text-gray-800 dark:text-gray-200
+                  rounded-full
+                  shadow-lg
+                  hover:shadow-xl
+                  hover:scale-110
+                  hover:bg-[#38B27A] hover:text-white
+                  dark:hover:bg-[#38B27A]
+                  transition-all
+                  duration-300
+                  flex
+                  items-center
+                  justify-center
+                  border-2 border-gray-200 dark:border-gray-700
+                  hover:border-[#38B27A] dark:hover:border-[#38B27A]
+                  z-10
+                  hidden md:flex
+                "
+                aria-label="Next categories"
               >
-                ▶
+                <ChevronRight size={24} />
               </button>
             </>
           )}
         </div>
 
-        {/* ================= Pagination ================= */}
+        {/* Pagination Dots */}
         {snapCount > 1 && (
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="flex justify-center items-center gap-3 mt-10">
             {Array.from({ length: snapCount }).map((_, index) => (
               <button
                 key={index}
-                onClick={() => emblaApi?.scrollTo(index)}
-                className={`h-2 rounded-full transition-all ${
-                  selectedIndex === index
-                    ? "bg-blue-600 dark:bg-blue-400 w-6"
-                    : "bg-gray-300 dark:bg-gray-600 w-2"
-                }`}
+                onClick={() => scrollTo(index)}
+                className={`
+                  rounded-full
+                  transition-all
+                  duration-300
+                  hover:scale-110
+                  ${
+                    selectedIndex === index
+                      ? "bg-[#38B27A] dark:bg-[#38B27A] w-10 h-3 shadow-lg shadow-[#38B27A]/50"
+                      : "bg-gray-300 dark:bg-gray-600 w-3 h-3 hover:bg-gray-400 dark:hover:bg-gray-500"
+                  }
+                `}
+                aria-label={`Go to slide ${index + 1}`}
               />
             ))}
           </div>
         )}
+
+        {/* View All Categories Link */}
+        <div className="text-center mt-8">
+          <Link
+            href="/shop"
+            className="
+              inline-flex
+              items-center
+              gap-2
+              px-6 py-3
+              bg-gray-100 dark:bg-gray-800
+              hover:bg-[#38B27A] dark:hover:bg-[#38B27A]
+              text-gray-700 dark:text-gray-300
+              hover:text-white
+              rounded-full
+              transition-all
+              duration-300
+              font-medium
+              group
+            "
+          >
+            <Grid3x3
+              size={18}
+              className="group-hover:rotate-90 transition-transform duration-300"
+            />
+            {t("viewAll") || "View All Categories"}
+          </Link>
+        </div>
       </div>
     </section>
   )
