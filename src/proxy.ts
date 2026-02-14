@@ -73,7 +73,9 @@ export function proxy(request: NextRequest) {
   }
 
   if (pathname === "/") {
-    return NextResponse.rewrite(new URL(`/${theme}`, request.url))
+    const rewriteUrl = new URL(`/${theme}`, request.url)
+    rewriteUrl.search = request.nextUrl.search
+    return NextResponse.rewrite(rewriteUrl)
   }
 
   // If the condition is not met, let the request proceed to the default '/' page
