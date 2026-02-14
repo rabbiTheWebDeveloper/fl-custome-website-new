@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   ShoppingCart,
   Menu,
@@ -10,6 +10,9 @@ import {
   ChevronDown,
   X,
   ChevronRight,
+  Phone,
+  Mail,
+  MapPin,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -25,6 +28,8 @@ import ThemeToggle from "./ThemeToggle"
 import { LanguageSelector } from "@/app/(theme-2)/th_2/_components/header/language-selector"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
+import { WhatsApp } from "@/app/(theme-2)/th_2/_components/ui/social-icons"
+
 export default function Header() {
   const t = useTranslations("Theme3.header")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -33,11 +38,14 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
+
   const domain = useDomain((state) => state.domain)
   const setDomain = useDomain((state) => state.setDomain)
   const categories: ICategory[] | null = useCategories(
     (state) => state.categories
   )
+  const categoriesDropdownRef = useRef<HTMLDivElement>(null)
 
   const router = useRouter()
   const setCategories = useCategories((state) => state.setCategories)
@@ -56,13 +64,18 @@ export default function Header() {
   // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (!(event.target as Element).closest(".dropdown")) {
+      if (
+        categoriesDropdownRef.current &&
+        !categoriesDropdownRef.current.contains(event.target as Node)
+      ) {
         setIsCategoriesOpen(false)
+      }
+      if (!(event.target as Element).closest(".cart-popover")) {
         setIsCartOpen(false)
       }
     }
-    document.addEventListener("click", handleClickOutside)
-    return () => document.removeEventListener("click", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
   useEffect(() => {
@@ -104,177 +117,223 @@ export default function Header() {
     }
   }, [domain, setCategories])
 
-  const handleSearch = () => {
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
     if (!searchQuery.trim()) return
-
     router.push(`/shop?search=${encodeURIComponent(searchQuery)}`)
+    setIsSearchOpen(false)
   }
-  console.log(categories, "categories")
+
+  console.log("Domain in Header:", domain)
   return (
     <>
-      {/* ================= MAIN HEADER ================= */}
-      <header
-        className={`sticky top-0 z-50 transition-all
-      ${isScrolled ? "shadow-lg" : "shadow-sm"}
-      bg-white dark:bg-gray-900`}
-      >
-        {/* ================= DESKTOP ================= */}
-        <div className="hidden lg:block">
-          {/* TOP BAR */}
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative w-12 h-12">
-                <Image
-                  src={domain?.shop_logo || "/placeholder.png"}
-                  alt="Logo"
-                  fill
-                  className="object-contain"
-                />
+      {/* Top Bar - Hidden on mobile */}
+      <div className="hidden lg:block bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-6 py-2">
+          <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <Phone size={14} className="text-[#3bb77e]" />
+                <span>{domain?.phone || "+1 (555) 123-4567"}</span>
               </div>
-            </Link>
-
-            {/* Search */}
-            <div className="flex-1 max-w-2xl mx-8 relative">
-              <div
-                className="flex rounded-full border-2 border-[#3bb77e]
-                            bg-white dark:bg-gray-800 overflow-hidden"
-              >
-                <input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setIsSearchOpen(true)}
-                  onBlur={() => setTimeout(() => setIsSearchOpen(false), 150)}
-                  placeholder={t("search")}
-                  className="flex-1 px-6 py-3 bg-transparent outline-none
-                           text-gray-900 dark:text-white
-                           placeholder-gray-400"
-                />
-                <button
-                  className="px-6 bg-[#3bb77e] text-white"
-                  onClick={handleSearch}
-                >
-                  <Search size={20} />
-                </button>
-              </div>
-
-              {isSearchOpen && searchQuery && (
-                <div
-                  className="absolute top-full mt-2 w-full
-                              bg-white dark:bg-gray-800
-                              border border-gray-200 dark:border-gray-700
-                              rounded-xl shadow-xl p-4 z-50"
-                >
-                  <h3 className="mb-2 text-gray-700 dark:text-gray-300 font-semibold">
-                    {t("popularSearches")}
-                  </h3>
-                  <div className="flex gap-2 flex-wrap">
-                    {categories?.map((s) => (
-                      <button
-                        key={s.id}
-                        onClick={() => setSearchQuery(s.name)}
-                        className="px-3 py-1.5 rounded-full text-sm
-                                 bg-gray-100 dark:bg-gray-700
-                                 text-gray-900 dark:text-white
-                                 hover:bg-gray-200 dark:hover:bg-gray-600"
-                      >
-                        {s.name}
-                      </button>
-                    ))}
-                  </div>
+              {domain?.whatsapp && (
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                  <WhatsApp className="text-[#3bb77e]" />
+                  <span>{domain?.whatsapp || "WhatsApp not available"}</span>
                 </div>
               )}
             </div>
-
-            {/* Actions */}
             <div className="flex items-center gap-4">
               <LanguageSelector />
               <ThemeToggle />
-              <CartPopover
-                isCartOpen={isCartOpen}
-                setIsCartOpen={setIsCartOpen}
-              />
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* NAV BAR */}
-          <div className="border-t border-gray-200 dark:border-gray-800">
-            <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-              {/* Categories */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                  className="flex items-center gap-2 px-6 py-3
-                           bg-[#3bb77e] text-white rounded-lg"
-                >
-                  <Menu size={18} />
-                  {t("allCategories")}
-                  <ChevronDown size={16} />
-                </button>
+      {/* ================= MAIN HEADER ================= */}
+      <header
+        className={`sticky top-0 z-50 transition-all duration-300
+          ${isScrolled ? "shadow-lg bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm" : "shadow-sm bg-white dark:bg-gray-900"}`}
+      >
+        {/* ================= DESKTOP ================= */}
+        <div className="hidden lg:block">
+          {/* MAIN HEADER */}
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between gap-8">
+              {/* Logo */}
+              <Link href="/" className="flex-shrink-0 group">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-[#3bb77e] transition-all">
+                    <Image
+                      src={domain?.shop_logo || "/placeholder.png"}
+                      alt={domain?.name || "Logo"}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <div>
+                    <h1 className="font-bold text-xl text-gray-900 dark:text-white">
+                      {domain?.name || "Store Name"}
+                    </h1>
+                  </div>
+                </div>
+              </Link>
 
-                {isCategoriesOpen && (
-                  <div
-                    className="absolute top-full mt-2 w-[700px]
-                                bg-white dark:bg-gray-800
-                                border dark:border-gray-700
-                                rounded-xl shadow-xl p-6 z-50"
-                  >
-                    <div className="grid grid-cols-2 gap-4">
-                      {categories?.map((c: ICategory) => (
-                        <Link
-                          key={c.id}
-                          href={`/category/${c.id}`}
-                          className="flex justify-between items-center p-3
-                                   hover:bg-gray-50 dark:hover:bg-gray-700
-                                   rounded-lg text-gray-900 dark:text-white"
+              {/* Search - Enhanced */}
+              <form
+                onSubmit={handleSearch}
+                className="flex-1 max-w-2xl relative"
+              >
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#3bb77e] to-[#2d9c68] rounded-full blur opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                  <div className="relative flex rounded-full border-2 border-transparent bg-gradient-to-r from-[#3bb77e] to-[#2d9c68] p-0.5">
+                    <div className="flex-1 flex rounded-full bg-white dark:bg-gray-800 overflow-hidden">
+                      <input
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => setIsSearchOpen(true)}
+                        placeholder={t("search")}
+                        className="flex-1 px-6 py-3 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                      />
+                      <button
+                        type="submit"
+                        className="px-8 bg-gradient-to-r from-[#3bb77e] to-[#2d9c68] text-white font-medium hover:from-[#2d9c68] hover:to-[#3bb77e] transition-all flex items-center gap-2"
+                      >
+                        <Search size={20} />
+                        <span className="hidden xl:inline">Search</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Search Suggestions */}
+                {isSearchOpen && searchQuery && categories && (
+                  <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 z-50">
+                    <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                      {t("popularCategories")}
+                    </h3>
+                    <div className="flex gap-2 flex-wrap">
+                      {categories.slice(0, 5).map((category) => (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => {
+                            setSearchQuery(category.name)
+                            router.push(`/shop?search=${category.name}`)
+                          }}
+                          className="px-4 py-2 rounded-full text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-[#3bb77e] hover:text-white transition-colors"
                         >
-                          {c.name}
-                          <ChevronRight size={18} />
-                        </Link>
+                          {category.name}
+                        </button>
                       ))}
                     </div>
                   </div>
                 )}
+              </form>
+
+              {/* Actions */}
+              <div className="flex items-center gap-3">
+                <CartPopover
+                  isCartOpen={isCartOpen}
+                  setIsCartOpen={setIsCartOpen}
+                />
               </div>
+            </div>
+          </div>
 
-              {/* Links */}
-              <nav className="flex gap-8">
-                <Link
-                  href="/"
-                  className="text-gray-700 dark:text-gray-300
-                             hover:text-green-600 font-medium"
-                >
-                  {t("home")}
-                </Link>
-                <Link
-                  href="/shop"
-                  className="text-gray-700 dark:text-gray-300
-                             hover:text-green-600 font-medium"
-                >
-                  {t("shop")}
-                </Link>
+          {/* NAVIGATION BAR */}
+          <div className="border-t border-gray-200 dark:border-gray-800">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="flex items-center justify-between">
+                {/* Categories Dropdown */}
+                <div className="relative" ref={categoriesDropdownRef}>
+                  <button
+                    onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
+                    onMouseEnter={() => setIsCategoriesOpen(true)}
+                    className={`flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#3bb77e] to-[#2d9c68] text-white font-medium transition-all ${
+                      isCategoriesOpen ? "rounded-t-xl" : "rounded-b-xl"
+                    }`}
+                  >
+                    <Menu size={20} />
+                    <span>{t("allCategories")}</span>
+                    <ChevronDown
+                      size={18}
+                      className={`transition-transform duration-300 ${
+                        isCategoriesOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
-                <Link
-                  href="/about"
-                  className="text-gray-700 dark:text-gray-300
-                             hover:text-green-600 font-medium"
-                >
-                  {t("about")}
-                </Link>
-              </nav>
-
-              {/* Support */}
-              <div className="flex items-center gap-6">
-                <div className="text-right">
-                  <div className="font-semibold text-gray-900 dark:text-white">
-                    {t("support")}
-                  </div>
-                  <div className="text-sm text-gray-500">{domain?.phone}</div>
+                  {/* Categories Mega Menu */}
+                  {isCategoriesOpen && categories && (
+                    <div
+                      className="absolute top-full left-0 w-[800px] bg-white dark:bg-gray-800 rounded-b-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                      onMouseLeave={() => setIsCategoriesOpen(false)}
+                    >
+                      <div className="grid grid-cols-1 gap-0">
+                        {/* Main Categories */}
+                        <div className="col-span-1 bg-gray-50 dark:bg-gray-900 p-4">
+                          <div className="flex flex-col gap-1">
+                            {categories.map((category) => (
+                              <button
+                                key={category.id}
+                                onClick={() =>
+                                  router.push(`/shop?search=${category.name}`)
+                                }
+                                onMouseEnter={() =>
+                                  setHoveredCategory(category.name)
+                                }
+                                className={`w-full text-left px-3 py-2.5 rounded-lg transition-all ${
+                                  hoveredCategory === category.name
+                                    ? "bg-[#3bb77e] text-white"
+                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{category.name}</span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-4">
-                  <Facebook className="text-gray-600 dark:text-gray-400" />
-                  <Instagram className="text-gray-600 dark:text-gray-400" />
-                  <Youtube className="text-gray-600 dark:text-gray-400" />
+
+                {/* Navigation Links */}
+                <nav className="flex items-center gap-1">
+                  {[
+                    { href: "/", label: t("home") },
+                    { href: "/shop", label: t("shop") },
+                    { href: "/about", label: t("about") },
+                  ].map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="px-4 py-2 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-[#3bb77e] transition-all"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </nav>
+
+                {/* Contact Info */}
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#3bb77e]/10 flex items-center justify-center">
+                      <Phone size={16} className="text-[#3bb77e]" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {t("support")}
+                      </div>
+                      <div className="font-semibold text-gray-900 dark:text-white">
+                        {domain?.phone || "24/7 Support"}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -282,30 +341,102 @@ export default function Header() {
         </div>
 
         {/* ================= MOBILE ================= */}
-        <div className="lg:hidden bg-white dark:bg-gray-900">
+        <div className="lg:hidden">
+          {/* Mobile Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-800">
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-              {isMobileMenuOpen ? <X /> : <Menu />}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <span className="font-bold text-gray-900 dark:text-white">
-              {domain?.name}
-            </span>
-            <ShoppingCart />
+
+            <Link href="/" className="flex items-center gap-2">
+              <div className="relative w-8 h-8">
+                <Image
+                  src={domain?.shop_logo || "/placeholder.png"}
+                  alt="Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <span className="font-bold text-gray-900 dark:text-white">
+                {domain?.name || "Store"}
+              </span>
+            </Link>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <Search size={20} />
+              </button>
+              <CartPopover
+                isCartOpen={isCartOpen}
+                setIsCartOpen={setIsCartOpen}
+              />
+            </div>
           </div>
 
-          {isMobileMenuOpen && (
-            <div className="p-4 space-y-2">
-              {["Home", "Shop", "About Us"].map((item) => (
-                <Link
-                  key={item}
-                  href="/"
-                  className="block p-3 rounded-lg
-                           hover:bg-gray-100 dark:hover:bg-gray-800
-                           text-gray-900 dark:text-white"
+          {/* Mobile Search */}
+          {isSearchOpen && (
+            <form
+              onSubmit={handleSearch}
+              className="p-4 border-b dark:border-gray-800"
+            >
+              <div className="flex gap-2">
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t("search")}
+                  className="flex-1 px-4 py-2 rounded-lg border dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#3bb77e] text-white rounded-lg"
                 >
-                  {item}
+                  <Search size={20} />
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="p-4 space-y-2 bg-white dark:bg-gray-900 border-b dark:border-gray-800">
+              {categories?.map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/category/${category.id}`}
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <span>{category.name}</span>
+                  <ChevronRight size={18} className="text-gray-400" />
                 </Link>
               ))}
+
+              <div className="border-t dark:border-gray-800 my-2 pt-2">
+                {["Home", "Shop", "About", "Contact"].map((item) => (
+                  <Link
+                    key={item}
+                    href={`/${item.toLowerCase()}`}
+                    className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Mobile Social Links */}
+              <div className="flex items-center justify-center gap-4 pt-4 mt-2 border-t dark:border-gray-800">
+                <Facebook className="text-gray-600 dark:text-gray-400 hover:text-[#3bb77e] cursor-pointer" />
+                <Instagram className="text-gray-600 dark:text-gray-400 hover:text-[#3bb77e] cursor-pointer" />
+                <Youtube className="text-gray-600 dark:text-gray-400 hover:text-[#3bb77e] cursor-pointer" />
+              </div>
             </div>
           )}
         </div>
