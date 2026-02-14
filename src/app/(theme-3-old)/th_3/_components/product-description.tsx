@@ -6,10 +6,17 @@ import {
   Facebook,
   Twitter,
   Smartphone,
+  Heart,
+  Share2,
+  Star,
+  ShoppingBag,
+  Eye,
+  ChevronRight,
 } from "lucide-react"
 import { IProduct } from "../types/product"
 import { ProductCartControls } from "./product/product-cart-controls"
 import { ProductImageCarousel } from "./product/product-image-carousel"
+
 const swatches = [
   {
     type: "color" as const,
@@ -36,142 +43,326 @@ const swatches = [
     ],
   },
 ]
+
 const ProductDescription = ({ product }: { product: IProduct | null }) => {
   const colorFromAPI = "#3BB77E"
   // sample theme color
 
   if (!product) {
-    return <div className="p-10 text-center">Loading product...</div>
+    return (
+      <div className="min-h-[400px] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#3BB77E] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading product...</p>
+        </div>
+      </div>
+    )
   }
 
   // Use product.relatedProducts if available, otherwise empty array
   const relatedProducts = product?.relatedProducts || []
-
+  console.log("Related Products:", product) // Debugging log
   return (
-    <section className="max-w-7xl mx-auto px-4 py-10">
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Product Image */}
-        <ProductImageCarousel
-          images={[product.main_image ?? "", ...product.other_images]}
-        />
+    <section className="max-w-7xl mx-auto px-4 py-12">
+      {/* Product Main Section */}
+      <div className="grid lg:grid-cols-2 gap-12">
+        {/* Product Image with Badges */}
+        <div className="relative">
+          {product.discounted_price < product.price && (
+            <div className="absolute top-4 left-4 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+              {Math.round(
+                ((product.price - product.discounted_price) / product.price) *
+                  100
+              )}
+              % OFF
+            </div>
+          )}
+          {product.product_qty <= 5 && product.product_qty > 0 && (
+            <div className="absolute top-4 right-4 z-10 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+              Only {product.product_qty} left
+            </div>
+          )}
+          <ProductImageCarousel
+            images={[product.main_image ?? "", ...product.other_images]}
+          />
+        </div>
 
         {/* Product Details */}
-        <div className="space-y-4">
-          {/* Stock Status */}
-          <h4
-            className={`font-bold flex items-center gap-1 ${
-              product.product_qty > 0
-                ? "text-green-600 dark:text-green-400"
-                : "text-red-500 dark:text-red-400"
-            }`}
-          >
-            {product.product_qty > 0 ? (
-              <>
-                <CheckCircle size={18} /> In Stock
-              </>
-            ) : (
-              <>
-                <XCircle size={18} /> Out of Stock
-              </>
-            )}
-          </h4>
+        <div className="space-y-6">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <Link href="/" className="hover:text-[#3BB77E] transition">
+              Home
+            </Link>
+            <ChevronRight size={14} />
+            <Link href="/shop" className="hover:text-[#3BB77E] transition">
+              Shop
+            </Link>
+            <ChevronRight size={14} />
+            <span className="text-gray-900 dark:text-gray-100 font-medium">
+              {product.product_name}
+            </span>
+          </div>
 
           {/* Product Name */}
-          <h3 className="text-2xl font-bold" style={{ color: colorFromAPI }}>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             {product.product_name}
-          </h3>
+          </h1>
 
           {/* Price */}
-          <h3 className="text-xl font-semibold">
-            ৳ {product.discounted_price}{" "}
+          <div className="flex items-baseline gap-3">
+            <span className="text-3xl font-bold text-[#3BB77E]">
+              ৳ {product.discounted_price}
+            </span>
             {product.price > product.discounted_price && (
-              <span className="line-through text-gray-500 dark:text-gray-400 ml-2">
-                ৳ {product.price}
-              </span>
+              <>
+                <span className="text-xl text-gray-400 dark:text-gray-500 line-through">
+                  ৳ {product.price}
+                </span>
+                <span className="text-sm text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">
+                  Save ৳ {product.price - product.discounted_price}
+                </span>
+              </>
             )}
-          </h3>
+          </div>
+
+          {/* Stock Status */}
+          <div className="flex items-center gap-4">
+            <h4
+              className={`font-semibold flex items-center gap-2 px-4 py-2 rounded-lg ${
+                product.product_qty > 0
+                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+                  : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+              }`}
+            >
+              {product.product_qty > 0 ? (
+                <>
+                  <CheckCircle size={20} /> In Stock ({product.product_qty}{" "}
+                  available)
+                </>
+              ) : (
+                <>
+                  <XCircle size={20} /> Out of Stock
+                </>
+              )}
+            </h4>
+            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+              <ShoppingBag size={18} />
+              <span className="text-sm">Sold: 120+</span>
+            </div>
+          </div>
 
           {/* Short Description */}
           {product.short_description && (
-            <div
-              className="prose max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: product.short_description }}
-            />
+            <div className="prose max-w-none dark:prose-invert text-gray-600 dark:text-gray-400 border-t border-b border-gray-200 dark:border-gray-700 py-4">
+              <div
+                dangerouslySetInnerHTML={{ __html: product.short_description }}
+              />
+            </div>
           )}
 
           {/* Cart Controls */}
           <ProductCartControls product={product} swatches={swatches} />
-
           {/* Social Share */}
-          <div className="flex gap-4 mt-4">
-            <div className="p-2 bg-blue-600 rounded-full text-white hover:bg-blue-700 transition">
-              <Facebook size={20} />
+          <div className="flex items-center gap-4 pt-4">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Share:
+            </span>
+            <div className="flex gap-2">
+              <button className="p-2 bg-[#1877f2] text-white rounded-full hover:scale-110 transition">
+                <Facebook size={18} />
+              </button>
+              <button className="p-2 bg-[#25D366] text-white rounded-full hover:scale-110 transition">
+                <Smartphone size={18} />
+              </button>
+              <button className="p-2 bg-[#1DA1F2] text-white rounded-full hover:scale-110 transition">
+                <Twitter size={18} />
+              </button>
             </div>
-            <div className="p-2 bg-green-500 rounded-full text-white hover:bg-green-600 transition">
-              <Smartphone size={20} /> {/* WhatsApp placeholder */}
+          </div>
+
+          {/* Product Meta */}
+          <div className="grid grid-cols-2 gap-4 pt-4 text-sm border-t border-gray-200 dark:border-gray-700">
+            <div>
+              <span className="text-gray-500 dark:text-gray-400">SKU:</span>
+              <span className="ml-2 text-gray-900 dark:text-white font-medium">
+                {product.product_code || "N/A"}
+              </span>
             </div>
-            <div className="p-2 bg-sky-400 rounded-full text-white hover:bg-sky-500 transition">
-              <Twitter size={20} />
+            <div>
+              <span className="text-gray-500 dark:text-gray-400">
+                Category:
+              </span>
+              <span className="ml-2 text-gray-900 dark:text-white font-medium">
+                {product?.category?.name || "Uncategorized"}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500 dark:text-gray-400">Tags:</span>
+              <span className="ml-2 text-gray-900 dark:text-white font-medium">
+                {product?.tags?.map((tag) => tag.name).join(", ") || "N/A"}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="mt-10">
-        <div className="border-b border-gray-300 dark:border-gray-600 mb-4">
-          <button className="px-4 py-2 border-b-2 border-green-500 text-green-500 font-semibold">
-            Description
-          </button>
+      {/* Tabs Section */}
+      <div className="mt-16">
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <div className="flex gap-8">
+            <button className="px-1 py-4 border-b-2 border-[#3BB77E] text-[#3BB77E] font-semibold">
+              Description
+            </button>
+          </div>
         </div>
-        {product.long_description && (
-          <div
-            className="prose max-w-none dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: product.long_description }}
-          />
-        )}
+        <div className="py-8">
+          {product.long_description && (
+            <div
+              className="prose max-w-none dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: product.long_description }}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Related Products */}
+      {/* Related Products - Professional Design */}
       {relatedProducts.length > 0 && (
-        <div className="mt-12">
-          <h3
-            className="text-xl font-bold mb-6"
-            style={{ color: colorFromAPI }}
-          >
-            Related Products
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {relatedProducts.map((p) => (
-              <Link key={p.id} href={`/details/${p.slug}?id=${p.id}`}>
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 hover:shadow-lg transition flex flex-col">
-                  <div className="h-40 mb-4 flex items-center justify-center">
+        <div className="mt-20">
+          {/* Section Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                You might also like
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Hand-picked products based on your interest
+              </p>
+            </div>
+            <Link
+              href="/shop"
+              className="hidden sm:flex items-center gap-2 text-[#3BB77E] hover:text-[#2a9d64] font-medium transition group"
+            >
+              View All
+              <ChevronRight
+                size={18}
+                className="group-hover:translate-x-1 transition"
+              />
+            </Link>
+          </div>
+
+          {/* Related Products Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {relatedProducts.map((p, index) => (
+              <Link
+                key={p.id}
+                href={`/product/${p.ulid}?${p.slug}`}
+                className="group"
+              >
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 hover:border-[#3BB77E] dark:hover:border-[#3BB77E]">
+                  {/* Image Container */}
+                  <div className="relative aspect-square overflow-hidden bg-gray-50 dark:bg-gray-900">
                     {p.main_image ? (
                       <Image
                         src={p.main_image}
                         alt={p.product_name}
-                        width={150}
-                        height={150}
-                        className="object-contain"
+                        fill
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="w-[150px] h-[150px] bg-gray-200 dark:bg-gray-700"></div>
+                      <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center">
+                        <ShoppingBag
+                          size={40}
+                          className="text-gray-400 dark:text-gray-600"
+                        />
+                      </div>
                     )}
-                  </div>
-                  <h5 className="text-sm font-medium mb-2 line-clamp-2 text-gray-900 dark:text-gray-100">
-                    {p.product_name}
-                  </h5>
-                  <div className="font-bold text-green-500 dark:text-green-400 text-lg">
-                    ৳ {p.discounted_price}{" "}
-                    {p.price > p.discounted_price && (
-                      <span className="text-gray-400 dark:text-gray-500 line-through text-sm ml-1">
-                        ৳ {p.price}
+
+                    {/* Overlay with Quick View */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <span className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        <Eye size={16} />
+                        Quick View
                       </span>
+                    </div>
+
+                    {/* Discount Badge */}
+                    {p.price > p.discounted_price && (
+                      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        -
+                        {Math.round(
+                          ((p.price - p.discounted_price) / p.price) * 100
+                        )}
+                        %
+                      </div>
                     )}
+
+                    {/* Wishlist Button */}
+                    <button className="absolute top-2 right-2 w-8 h-8 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-[#3BB77E] hover:text-white">
+                      <Heart size={16} />
+                    </button>
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="p-4">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-2 group-hover:text-[#3BB77E] transition">
+                      {p.product_name}
+                    </h3>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-1 mb-2">
+                      <div className="flex">
+                        {[1, 2, 3, 4].map((star) => (
+                          <Star
+                            key={star}
+                            size={12}
+                            className="fill-yellow-400 text-yellow-400"
+                          />
+                        ))}
+                        <Star
+                          size={12}
+                          className="text-gray-300 dark:text-gray-600"
+                        />
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        (45)
+                      </span>
+                    </div>
+
+                    {/* Price */}
+                    <div className="flex items-baseline justify-between">
+                      <div>
+                        <span className="text-lg font-bold text-[#3BB77E]">
+                          ৳ {p.discounted_price}
+                        </span>
+                        {p.price > p.discounted_price && (
+                          <span className="text-xs text-gray-400 dark:text-gray-500 line-through ml-2">
+                            ৳ {p.price}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Add to Cart Button */}
+                      <button className="w-8 h-8 bg-[#3BB77E] hover:bg-[#2a9d64] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
+                        <ShoppingBag size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </Link>
             ))}
+          </div>
+
+          {/* Mobile View All Link */}
+          <div className="sm:hidden text-center mt-6">
+            <Link
+              href="/shop"
+              className="inline-flex items-center gap-2 text-[#3BB77E] font-medium"
+            >
+              View All Related Products
+              <ChevronRight size={16} />
+            </Link>
           </div>
         </div>
       )}
