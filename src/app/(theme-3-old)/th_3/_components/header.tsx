@@ -62,20 +62,16 @@ export default function Header() {
   }, [])
 
   // Close dropdowns on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        categoriesDropdownRef.current &&
-        !categoriesDropdownRef.current.contains(event.target as Node)
-      ) {
+      if (!(event.target as Element).closest(".dropdown")) {
         setIsCategoriesOpen(false)
-      }
-      if (!(event.target as Element).closest(".cart-popover")) {
         setIsCartOpen(false)
       }
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    document.addEventListener("click", handleClickOutside)
+    return () => document.removeEventListener("click", handleClickOutside)
   }, [])
 
   useEffect(() => {
