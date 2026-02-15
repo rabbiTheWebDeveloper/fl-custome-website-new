@@ -34,6 +34,7 @@ import { useTranslations } from "next-intl"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import CheckoutOtp from "./checkout-otp"
 import { toast } from "sonner"
+import { useDomain } from "../../store/domain"
 
 // Client-side function to get domain headers from cookies
 export function getDomainHeadersFromCookies(): {
@@ -171,6 +172,7 @@ const Checkout = () => {
   const items = useCartStore((state) => state.items)
   const cartTotals = useCartStore((state) => state.totals)
   const tValidation = useTranslations("Theme2.checkout.validation")
+  const domain = useDomain((state) => state.domain)
   const [timeLeft, setTimeLeft] = useState(0)
   const [shippingSettings, setShippingSettings] =
     useState<ShippingSetting | null>(null)
@@ -216,7 +218,7 @@ const Checkout = () => {
       deliveryAddress: "",
       orderNote: "",
       shippingMethod: "inside-dhaka",
-      paymentMethod: "bkash",
+      paymentMethod: "cash-on-delivery",
     },
   })
 
@@ -827,7 +829,23 @@ const Checkout = () => {
     }, 1000)
     return () => clearInterval(intervalId)
   }, [show, timeLeft])
+  const availablePaymentMethods = useMemo(() => {
+    if (!domain?.gateways || domain.gateways.length === 0) {
+      return paymentMethods.filter((m) => m.id === "cash-on-delivery")
+    }
 
+    const activeProviders = domain.gateways
+      .filter((g) => g.status === "active")
+      .map((g) => g.provider)
+
+    if (activeProviders.length === 0) {
+      return paymentMethods.filter((m) => m.id === "cash-on-delivery")
+    }
+
+    return paymentMethods.filter(
+      (m) => m.id === "cash-on-delivery" || activeProviders.includes(m.id)
+    )
+  }, [domain])
   // Show empty state if cart is empty
   if (items.length === 0) {
     return (
@@ -845,6 +863,9 @@ const Checkout = () => {
       </div>
     )
   }
+
+  console.log(domain, "domain")
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Progress Bar - Mobile Optimized */}
@@ -997,7 +1018,7 @@ const Checkout = () => {
                     }
                     className="grid sm:grid-cols-2 gap-4"
                   >
-                    {paymentMethods.map((method) => (
+                    {availablePaymentMethods.map((method) => (
                       <label
                         key={method.id}
                         htmlFor={method.id}
@@ -1033,7 +1054,7 @@ const Checkout = () => {
 
                           <div className="flex-1">
                             <h3 className="font-semibold text-sm sm:text-base">
-                              {method.name}
+                              {method.name.toUpperCase()}
                             </h3>
                             <p className="text-xs sm:text-sm opacity-80">
                               {method.description}
