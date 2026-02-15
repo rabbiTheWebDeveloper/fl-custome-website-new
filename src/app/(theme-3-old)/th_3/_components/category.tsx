@@ -153,9 +153,6 @@ export default function Category() {
       <div className="container mx-auto px-4">
         {/* Header with decorative elements */}
         <div className="text-center mb-12">
-          <span className="inline-block px-4 py-1.5 bg-[#38B27A]/20 dark:bg-[#38B27A]/30 text-[#38B27A] dark:text-[#38B27A] rounded-full text-sm font-medium mb-4">
-            {t("browseCategories")}
-          </span>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
             {t("title")}
           </h2>
@@ -347,58 +344,6 @@ export default function Category() {
               </button>
             </>
           )}
-        </div>
-
-        {/* Pagination Dots */}
-        {snapCount > 1 && (
-          <div className="flex justify-center items-center gap-3 mt-10">
-            {Array.from({ length: snapCount }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => scrollTo(index)}
-                className={`
-                  rounded-full
-                  transition-all
-                  duration-300
-                  hover:scale-110
-                  ${
-                    selectedIndex === index
-                      ? "bg-[#38B27A] dark:bg-[#38B27A] w-10 h-3 shadow-lg shadow-[#38B27A]/50"
-                      : "bg-gray-300 dark:bg-gray-600 w-3 h-3 hover:bg-gray-400 dark:hover:bg-gray-500"
-                  }
-                `}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* View All Categories Link */}
-        <div className="text-center mt-8">
-          <Link
-            href="/shop"
-            className="
-              inline-flex
-              items-center
-              gap-2
-              px-6 py-3
-              bg-gray-100 dark:bg-gray-800
-              hover:bg-[#38B27A] dark:hover:bg-[#38B27A]
-              text-gray-700 dark:text-gray-300
-              hover:text-white
-              rounded-full
-              transition-all
-              duration-300
-              font-medium
-              group
-            "
-          >
-            <Grid3x3
-              size={18}
-              className="group-hover:rotate-90 transition-transform duration-300"
-            />
-            {t("viewAll") || "View All Categories"}
-          </Link>
         </div>
       </div>
     </section>
