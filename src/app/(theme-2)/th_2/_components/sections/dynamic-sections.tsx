@@ -10,6 +10,9 @@ import { useSections } from "../../store/sections"
 import { ISectionItem, ISectionProduct } from "../../types/sections"
 import Image from "next/image"
 import { CountdownTimer } from "../ui/countdown-timer"
+import { useRouter } from "next/navigation"
+import { useCart } from "@/lib/cart"
+import { toast } from "sonner"
 
 interface SectionProductCardProps {
   product: ISectionProduct
@@ -17,16 +20,65 @@ interface SectionProductCardProps {
 
 const SectionProductCard = ({ product }: SectionProductCardProps) => {
   const t = useTranslations("Theme2.buttons")
+  const tToast = useTranslations("Theme2.toast")
+  const router = useRouter()
+  const { addItem, getItemByProduct } = useCart()
+
   const discountedPrice = product.discounted_price ?? product.price
   const originalPrice = product.price
   const discountPercent = product.flat_discount_percent || product.discount || 0
   const hasDiscount = discountPercent > 0
   const image = product.main_image || product.wp_product_image_url
 
+  // Check current quantity in cart
+  const cartItem = getItemByProduct(product.id)
+  const currentQuantity = cartItem?.quantity ?? 0
+
+  const isAtMax =
+    product.product_qty === 0 ||
+    (product.product_qty ? currentQuantity >= product.product_qty : false)
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+
+    if (product.product_qty === 0) {
+      toast.error(tToast("outOfStock"))
+      return
+    }
+
+    if (product.product_qty && currentQuantity >= product.product_qty) {
+      toast.warning(tToast("maxQuantityReached"))
+      return
+    }
+
+    try {
+      await addItem({
+        productId: product.id,
+        name: product.product_name,
+        price: product.price,
+        discountedPrice: product.discounted_price,
+        quantity: 1,
+        metadata: {
+          image: product.main_image,
+          sku: product.product_code,
+          ulid: product.ulid,
+          maxQuantity: product.product_qty,
+        },
+        mergeIfExists: true,
+        maxQuantity: product.product_qty,
+      })
+      toast.success(tToast("addedToCart"))
+    } catch (error) {
+      console.error("Failed to add item to cart:", error)
+      toast.error(tToast("addToCartError"))
+    }
+  }
+
   return (
-    <Link
-      href={`/product/${product.slug}?id=${product.ulid}`}
-      className="group relative cursor-pointer block"
+    <div
+      className="group relative cursor-pointer"
+      onClick={() => router.push(`/product/${product.slug}?id=${product.ulid}`)}
     >
       {/* Product Image Container */}
       <div className="relative aspect-3/4 rounded-2xl overflow-hidden mb-3 bg-gray-100">
@@ -56,8 +108,10 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
           <Button
             size="lg"
             className="w-full bg-white text-black hover:bg-gray-100 rounded-xl py-6 md:text-base"
+            onClick={handleAddToCart}
+            disabled={isAtMax}
           >
-            {t("addToCart")}
+            {isAtMax ? "Stock Out" : t("addToCart")}
           </Button>
         </div>
       </div>
@@ -84,7 +138,7 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
           )}
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
 
@@ -98,14 +152,14 @@ const SectionDescription = ({ description }: { description: string }) => {
     : description
 
   return (
-    <p className="text-muted-foreground mt-2">
+    <p className="text-muted-foreground mt-2 break-words">
       {truncated}
       {isTruncated && (
         <span className="relative group/desc inline">
           <span className="cursor-pointer text-muted-foreground/70 hover:text-muted-foreground">
             ...
           </span>
-          <span className="invisible group-hover/desc:visible absolute left-0 top-full mt-1 z-50 w-64 rounded-lg border bg-popover p-3 text-sm text-popover-foreground shadow-md">
+          <span className="invisible group-hover/desc:visible absolute left-0 top-full mt-1 z-50 w-64 rounded-lg border bg-popover p-3 text-sm text-popover-foreground shadow-md break-words">
             {description}
           </span>
         </span>
@@ -180,10 +234,12 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
     <section className="py-16">
       <div className="container">
         {/* Header */}
-        <div className="flex md:items-center justify-between mb-8 max-md:flex-col max-md:gap-4">
+        <div className="flex md:items-center justify-between mb-8 max-md:flex-col max-md:items-center max-md:text-center max-md:gap-4 overflow-hidden">
           {/* Title - Left */}
-          <div className="shrink-0 max-w-sm">
-            <h2 className="text-xl md:text-4xl font-bold">{section.name}</h2>
+          <div className="min-w-0 md:shrink-0 md:max-w-sm">
+            <h2 className="text-xl md:text-4xl font-bold break-words">
+              {section.name}
+            </h2>
             {section.description && (
               <SectionDescription description={section.description} />
             )}
@@ -216,7 +272,7 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
           )}
 
           {/* Buttons - Right */}
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-4 shrink-0 flex-wrap max-md:justify-center">
             <Button
               size="lg"
               className="md:text-base font-semibold py-6"

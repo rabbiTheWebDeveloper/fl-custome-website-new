@@ -51,7 +51,11 @@ export default async function RootLayout({
       className={`${inter.variable} ${geistMono.variable} antialiased`}
     >
       <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
+        <NextIntlClientProvider
+          locale={locale}
+          messages={messages}
+          timeZone="Asia/Dhaka"
+        >
           <ThemeBrandProvider>
             <Toaster position="top-center" richColors />
             <DynamicMeta />

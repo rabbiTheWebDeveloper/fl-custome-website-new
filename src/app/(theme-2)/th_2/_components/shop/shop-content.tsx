@@ -66,6 +66,7 @@ function mapSectionProductToProduct(sp: ISectionProduct): IProduct {
     short_description: null,
     long_description: null,
     other_images: [],
+    video_url: [],
   }
 }
 

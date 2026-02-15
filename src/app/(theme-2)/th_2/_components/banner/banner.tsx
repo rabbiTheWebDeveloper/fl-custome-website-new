@@ -36,7 +36,18 @@ export const Banner = () => {
     [emblaApi]
   )
 
-  if (slides.length === 0) return null
+  // Show default banner when no slides are configured
+  if (slides.length === 0) {
+    return (
+      <Link href="/shop" className="block">
+        <img
+          src="/default-banner.png"
+          alt="Welcome! Happy Shopping!"
+          className="w-full h-auto object-cover"
+        />
+      </Link>
+    )
+  }
 
   return (
     <div className="relative overflow-hidden">

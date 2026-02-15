@@ -5,6 +5,7 @@ import { linkHrefs } from "../../_constants"
 import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import { ChevronRight } from "lucide-react"
 import { api } from "@/lib/api-client"
 import { ICategoriesApiResponse } from "../../types/categories"
 import { useCategories } from "../../store/categories"
@@ -25,7 +26,19 @@ export const Header = () => {
   const domain = useDomain((state) => state.domain)
   const setDomain = useDomain((state) => state.setDomain)
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
+  const [hoveredCategoryId, setHoveredCategoryId] = useState<number | null>(
+    null
+  )
   const categories = useCategories((state) => state.categories)
+
+  // Only show top-level categories (those without a parent_id)
+  const topLevelCategories = categories?.filter((cat) => !cat.parent_id)
+
+  // Get the hovered category's sub_categories
+  const hoveredCategory = topLevelCategories?.find(
+    (cat) => cat.id === hoveredCategoryId
+  )
+  const subCategories = hoveredCategory?.sub_categories ?? []
   const setCategories = useCategories((state) => state.setCategories)
   const setDomainAddress = useDomain((state) => state.setDomainAddress)
   const setSections = useSections((state) => state.setSections)
@@ -127,18 +140,48 @@ export const Header = () => {
 
               {link.key === "category" && showCategoryDropdown && (
                 <div className="absolute top-full -left-[calc(50%+25px)] pt-2 z-50">
-                  <div className="bg-white shadow-lg min-w-[250px] p-1 rounded-[12px] border">
-                    <ScrollArea className="h-80">
-                      {categories?.map((category, idx) => (
-                        <Link
-                          key={idx}
-                          href={`/shop?category=${category.slug}`}
-                          className="block rounded-[8px] px-3 py-2.5 text-sm hover:text-primary hover:bg-primary/10 transition-colors font-semibold"
-                        >
-                          {category.name}
-                        </Link>
-                      ))}
-                    </ScrollArea>
+                  <div className="flex bg-white shadow-lg rounded-[12px] border">
+                    {/* Main category list */}
+                    <div className="min-w-[250px] p-1">
+                      <ScrollArea className="h-80">
+                        {topLevelCategories?.map((category) => (
+                          <Link
+                            key={category.id}
+                            href={`/shop?category=${category.slug}`}
+                            className={`flex items-center justify-between rounded-[8px] px-3 py-2.5 text-sm font-semibold transition-colors ${
+                              hoveredCategoryId === category.id
+                                ? "text-primary bg-primary/10"
+                                : "hover:text-primary hover:bg-primary/10"
+                            }`}
+                            onMouseEnter={() =>
+                              setHoveredCategoryId(category.id)
+                            }
+                          >
+                            <span>{category.name}</span>
+                            {category.sub_categories?.length > 0 && (
+                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </Link>
+                        ))}
+                      </ScrollArea>
+                    </div>
+
+                    {/* Sub-category panel */}
+                    {subCategories.length > 0 && (
+                      <div className="min-w-[250px] border-l p-1">
+                        <ScrollArea className="h-80">
+                          {subCategories.map((sub) => (
+                            <Link
+                              key={sub.id}
+                              href={`/shop?category=${sub.slug}`}
+                              className="block rounded-[8px] px-3 py-2.5 text-sm hover:text-primary hover:bg-primary/10 transition-colors font-medium"
+                            >
+                              {sub.name}
+                            </Link>
+                          ))}
+                        </ScrollArea>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

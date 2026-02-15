@@ -5,28 +5,36 @@ import type { NextRequest } from "next/server"
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // const defaultTheme = "th_3"
-  const theme = "th_3"
+  const defaultTheme = process.env.NEXT_PUBLIC_DEFAULT_THEME || "th_3" // default theme
+  let theme = defaultTheme
 
-  // const domainCookie = request.cookies.get("domain")?.value
-  // if (domainCookie) {
-  //   try {
-  //     const raw = domainCookie.includes("%7B")
-  //       ? decodeURIComponent(domainCookie)
-  //       : domainCookie
-  //     const parsed = JSON.parse(raw)
-  //     const domain = parsed?.state?.domain
+  const domainCookie = request.cookies.get("domain")?.value
+  if (domainCookie) {
+    try {
+      const raw = domainCookie.includes("%7B")
+        ? decodeURIComponent(domainCookie)
+        : domainCookie
+      const parsed = JSON.parse(raw)
+      const domain = parsed?.state?.domain
 
-  //     const themeName = domain?.theme_settings?.theme_name
-  //     if (typeof themeName === "string" && themeName.trim() !== "") {
-  //       theme = themeName.trim()
-  //     } else if (domain?.theme_id) {
-  //       theme = String(domain.theme_id).trim()
-  //     }
-  //   } catch {
-  //     // fall back to defaultTheme
-  //   }
-  // }
+      const themeName = domain?.theme_settings?.theme_name
+      const themeId = domain?.theme_id ? String(domain.theme_id).trim() : ""
+
+      // Map theme identifiers to route folders
+      const resolvedName =
+        typeof themeName === "string" && themeName.trim() !== ""
+          ? themeName.trim()
+          : themeId
+
+      if (resolvedName === "201") {
+        theme = "th_3"
+      } else if (resolvedName) {
+        theme = resolvedName
+      }
+    } catch {
+      // fall back to defaultTheme
+    }
+  }
 
   if (
     pathname === "/default" ||

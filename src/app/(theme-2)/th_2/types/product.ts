@@ -50,6 +50,7 @@ export interface IProduct {
   relatedProducts?: IProduct[]
   related_products?: IProduct[]
   other_images: string[]
+  video_url: string[]
 }
 
 interface IAttributeValues {

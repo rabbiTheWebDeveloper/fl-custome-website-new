@@ -274,10 +274,7 @@ export const Filters = ({
       </Collapsible>
 
       {categories.length > 0 && (
-        <Collapsible
-          className="group rounded-[12px] p-4 md:bg-[#F0F0F0]"
-          defaultOpen
-        >
+        <Collapsible className="group rounded-[12px] p-4 md:bg-[#F0F0F0]">
           <CollapsibleTrigger className="flex items-center justify-between w-full">
             <span className="text-sm font-bold uppercase">Category</span>
             <ChevronDownIcon className="size-6 mr-0.5 group-data-[state=open]:hidden" />

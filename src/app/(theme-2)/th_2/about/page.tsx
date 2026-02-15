@@ -126,7 +126,7 @@ export default async function AboutPage() {
       </div>
 
       {/* CTA */}
-      <PromoBanner />
+      {/* <PromoBanner /> */}
     </main>
   )
 }

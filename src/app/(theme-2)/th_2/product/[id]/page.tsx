@@ -132,6 +132,20 @@ export default async function ProductPage({
   const product: IProduct | undefined = (response.data as { data: IProduct })
     ?.data
   console.log("Product Details: ", product)
+  console.log(
+    "Product video_url:",
+    product?.video_url,
+    "type:",
+    typeof product?.video_url
+  )
+
+  // Normalize video_url: API may return string[], string, or null at runtime
+  const rawVideoUrl = product?.video_url as unknown
+  const videoUrls: string[] = Array.isArray(rawVideoUrl)
+    ? rawVideoUrl
+    : typeof rawVideoUrl === "string" && rawVideoUrl.trim()
+      ? [rawVideoUrl]
+      : []
 
   return (
     <main>
@@ -140,6 +154,7 @@ export default async function ProductPage({
           <div className="col-span-3">
             <ProductImageCarousel
               images={[product.main_image ?? "", ...product.other_images]}
+              videoUrls={videoUrls}
             />
           </div>
           <div className="max-md:overflow-hidden col-span-4">
@@ -208,8 +223,7 @@ export default async function ProductPage({
       <ProductsCarousel title="You may also like" product={product} />
 
       {/* CTA */}
-      <PromoBanner />
-      <CustomStoreExample />
+      {/* <PromoBanner /> */}
     </main>
   )
 }

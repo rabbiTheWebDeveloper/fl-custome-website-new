@@ -3,7 +3,13 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { MenuIcon, ChevronDown, ChevronUp, Globe2 } from "lucide-react"
+import {
+  MenuIcon,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  Globe2,
+} from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
@@ -35,7 +41,13 @@ export function MobileNav() {
   const categories = useCategories((state) => state.categories)
   const domain = useDomain((state) => state.domain)
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
+  const [expandedSubCategoryId, setExpandedSubCategoryId] = useState<
+    number | null
+  >(null)
   const [open, setOpen] = useState(false)
+
+  // Only show top-level categories (those without a parent_id)
+  const topLevelCategories = categories?.filter((cat) => !cat.parent_id)
   const locale = useLocale()
   const router = useRouter()
   const current = localeMap[locale] ?? localeMap.en
@@ -105,16 +117,54 @@ export function MobileNav() {
                     {/* Category submenu */}
                     {isCategoryOpen && (
                       <div className="bg-accent/50">
-                        {categories && categories.length > 0 ? (
-                          categories.map((category, idx) => (
-                            <SheetClose asChild key={idx}>
-                              <Link
-                                href={`/shop?category=${category.slug}`}
-                                className="block px-8 py-2.5 text-sm text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
-                              >
-                                {category.name}
-                              </Link>
-                            </SheetClose>
+                        {topLevelCategories && topLevelCategories.length > 0 ? (
+                          topLevelCategories.map((category) => (
+                            <div key={category.id}>
+                              <div className="flex items-center">
+                                <SheetClose asChild>
+                                  <Link
+                                    href={`/shop?category=${category.slug}`}
+                                    className="flex-1 block px-8 py-2.5 text-sm text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                                  >
+                                    {category.name}
+                                  </Link>
+                                </SheetClose>
+                                {category.sub_categories?.length > 0 && (
+                                  <button
+                                    onClick={() =>
+                                      setExpandedSubCategoryId(
+                                        expandedSubCategoryId === category.id
+                                          ? null
+                                          : category.id
+                                      )
+                                    }
+                                    className="px-3 py-2.5 text-muted-foreground hover:text-primary"
+                                  >
+                                    {expandedSubCategoryId === category.id ? (
+                                      <ChevronDown className="size-3.5" />
+                                    ) : (
+                                      <ChevronRight className="size-3.5" />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                              {/* Sub-categories */}
+                              {expandedSubCategoryId === category.id &&
+                                category.sub_categories?.length > 0 && (
+                                  <div className="bg-accent/80">
+                                    {category.sub_categories.map((sub) => (
+                                      <SheetClose asChild key={sub.id}>
+                                        <Link
+                                          href={`/shop?category=${sub.slug}`}
+                                          className="block px-12 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
+                                        >
+                                          {sub.name}
+                                        </Link>
+                                      </SheetClose>
+                                    ))}
+                                  </div>
+                                )}
+                            </div>
                           ))
                         ) : (
                           <p className="px-8 py-2.5 text-sm text-muted-foreground">

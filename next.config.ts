@@ -17,7 +17,12 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-    domains: ["eiclgroup.com", "via.placeholder.com", "images.unsplash.com"],
+    domains: [
+      "eiclgroup.com",
+      "via.placeholder.com",
+      "images.unsplash.com",
+      "img.youtube.com",
+    ],
   },
   logging: {
     fetches: {

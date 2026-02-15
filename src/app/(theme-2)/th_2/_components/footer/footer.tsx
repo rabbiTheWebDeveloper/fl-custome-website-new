@@ -56,20 +56,20 @@ export async function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <a
-          href="https://funnelliner.com/"
-          target="_blank"
-          className="pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4"
-        >
+        <div className="pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4">
           <FooterCopyright />
           <div className="flex items-center gap-2 bg-[#894bca] rounded-[8px] text-white p-1">
             <p className="pl-1">Made by</p>
 
-            <div className="py-1 px-2 bg-white text-primary rounded-[6px]">
+            <a
+              href="https://funnelliner.com/"
+              target="_blank"
+              className="py-1 px-2 bg-white text-[#8c00ff] rounded-[6px]"
+            >
               <FunnellinerLogo className="h-5" />
-            </div>
+            </a>
           </div>
-        </a>
+        </div>
       </div>
     </footer>
   )
