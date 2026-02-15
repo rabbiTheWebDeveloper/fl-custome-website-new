@@ -47,7 +47,12 @@ const swatches = [
 const ProductDescription = ({ product }: { product: IProduct | null }) => {
   const colorFromAPI = "#3BB77E"
   // sample theme color
-
+  const rawVideoUrl = product?.video_url as unknown
+  const videoUrls: string[] = Array.isArray(rawVideoUrl)
+    ? rawVideoUrl
+    : typeof rawVideoUrl === "string" && rawVideoUrl.trim()
+      ? [rawVideoUrl]
+      : []
   if (!product) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
@@ -84,6 +89,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
           )}
           <ProductImageCarousel
             images={[product.main_image ?? "", ...product.other_images]}
+            videoUrls={videoUrls}
           />
         </div>
 

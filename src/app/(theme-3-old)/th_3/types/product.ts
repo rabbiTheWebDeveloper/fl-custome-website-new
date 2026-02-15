@@ -37,6 +37,7 @@ export interface IProduct {
   slug: string
   ulid?: string
   price: number
+  video_url: string | string[] | null
   discount: number
   discounted_price: number
   discount_type: string | null
