@@ -30,31 +30,32 @@ export const ProductCard = ({
 
     if (variations) {
       router.push(`/product/${ulid}?${slug}`)
-    }
-    const maxQty = product_qty
-    if (maxQty && currentQuantity >= maxQty) {
-      return // Don't add if at max
-    }
+    } else {
+      const maxQty = product_qty
+      if (maxQty && currentQuantity >= maxQty) {
+        return // Don't add if at max
+      }
 
-    try {
-      await addItem({
-        productId: id,
-        name: name,
-        price: originalPrice,
-        discountedPrice: discountedPrice,
-        quantity: 1, // Always add 1, mergeIfExists will handle incrementing
-        metadata: {
-          image: main_image,
-          sku: product_code,
+      try {
+        await addItem({
+          productId: id,
+          name: name,
+          price: originalPrice,
+          discountedPrice: discountedPrice,
+          quantity: 1, // Always add 1, mergeIfExists will handle incrementing
+          metadata: {
+            image: main_image,
+            sku: product_code,
+            maxQuantity: maxQty,
+            // Note: inside_dhaka and outside_dhaka are not available in ProductCard props
+            // They will be fetched from API if needed in checkout
+          },
+          mergeIfExists: true, // Merge with existing item if variant matches (increments quantity)
           maxQuantity: maxQty,
-          // Note: inside_dhaka and outside_dhaka are not available in ProductCard props
-          // They will be fetched from API if needed in checkout
-        },
-        mergeIfExists: true, // Merge with existing item if variant matches (increments quantity)
-        maxQuantity: maxQty,
-      })
-    } catch (error) {
-      console.error("Failed to add item to cart:", error)
+        })
+      } catch (error) {
+        console.error("Failed to add item to cart:", error)
+      }
     }
   }
 

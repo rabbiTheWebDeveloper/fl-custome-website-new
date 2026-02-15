@@ -122,7 +122,6 @@ export default function Header() {
     setIsSearchOpen(false)
   }
 
-  console.log("Domain in Header:", domain)
   return (
     <>
       {/* Top Bar - Hidden on mobile */}
@@ -326,18 +325,6 @@ export default function Header() {
                             </div>
                           </button>
                         ))}
-                      </div>
-
-                      {/* Footer Link */}
-                      <div className="p-3 border-t border-gray-200 dark:border-gray-700">
-                        <Link
-                          href="/shop"
-                          onClick={() => setIsCategoriesOpen(false)}
-                          className="flex items-center justify-center gap-2 text-sm text-[#3bb77e] hover:text-[#2d9c68] font-medium transition"
-                        >
-                          View All Categories
-                          <ChevronRight size={16} />
-                        </Link>
                       </div>
                     </div>
                   )}

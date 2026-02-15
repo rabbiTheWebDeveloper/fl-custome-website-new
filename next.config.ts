@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
       "via.placeholder.com",
       "images.unsplash.com",
       "img.youtube.com",
+      "funnelliner.s3.ap-southeast-1.amazonaws.com",
     ],
   },
   logging: {

@@ -12,6 +12,7 @@ const AllProduct = ({
   totalPages: number
 }) => {
   const t = useTranslations("Theme3.product")
+  console.log(products, "products")
   return (
     <section className="py-8 bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container mx-auto px-4">

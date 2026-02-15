@@ -149,10 +149,9 @@ export default function Category() {
   }
 
   return (
-    <section className="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4">
-        {/* Header with decorative elements */}
-        <div className="text-center mb-12">
+    <section className="py-8 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto px-2">
+        <div className="text-center mb-6">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
             {t("title")}
           </h2>
