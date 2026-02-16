@@ -28,7 +28,7 @@ export const ProductCard = ({
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent navigation to product page
 
-    if (variations) {
+    if (Array.isArray(variations) && variations.length > 0) {
       router.push(`/product/${ulid}?${slug}`)
     } else {
       const maxQty = product_qty
@@ -63,7 +63,7 @@ export const ProductCard = ({
   const isAtMax = product_qty ? currentQuantity >= product_qty : false
   const OrderNow = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (variations) {
+    if (Array.isArray(variations) && variations.length > 0) {
       router.push(`/product/${ulid}?${slug}`)
     } else {
       handleAddToCart(e)
