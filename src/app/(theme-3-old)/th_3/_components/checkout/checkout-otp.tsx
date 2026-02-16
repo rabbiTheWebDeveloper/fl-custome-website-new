@@ -127,23 +127,24 @@ const CheckoutOtp: React.FC<CheckoutOtpProps> = ({
 
   return (
     <Dialog open={show} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md rounded-xl">
+      <DialogContent className="sm:max-w-md rounded-xl bg-white text-gray-900 dark:bg-gray-900 dark:text-white border dark:border-gray-700">
         <DialogHeader>
           <div className="relative">
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="absolute left-0 top-0 h-8 w-8 text-gray-600 hover:text-black"
+              className="absolute left-0 top-0 h-8 w-8 text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white"
             >
               <ArrowLeft size={20} />
             </Button>
+
             <div className="flex flex-col items-center gap-2">
               <ShieldCheck size={28} className="text-[#3BB77E]" />
               <DialogTitle className="text-xl font-semibold">
                 OTP Verification
               </DialogTitle>
-              <DialogDescription className="text-center">
+              <DialogDescription className="text-center text-gray-600 dark:text-gray-400">
                 Enter the 6-digit OTP sent to your phone
               </DialogDescription>
             </div>
@@ -151,6 +152,7 @@ const CheckoutOtp: React.FC<CheckoutOtpProps> = ({
         </DialogHeader>
 
         <div className="mt-4 flex flex-col gap-4" onPaste={handlePaste}>
+          {/* OTP Inputs */}
           <div className="flex justify-center gap-2">
             {otp.map((digit, index) => (
               <Input
@@ -162,16 +164,22 @@ const CheckoutOtp: React.FC<CheckoutOtpProps> = ({
                 value={digit}
                 onChange={(e) => handleOtpChange(e.target.value, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
-                className="h-12 w-12 text-center text-lg font-semibold"
                 maxLength={1}
                 inputMode="numeric"
+                className="
+              h-12 w-12 text-center text-lg font-semibold
+              bg-gray-100 text-gray-900 border-gray-300
+              focus:border-[#3BB77E] focus:ring-[#3BB77E]
+              dark:bg-gray-800 dark:text-white dark:border-gray-600
+            "
               />
             ))}
           </div>
 
+          {/* Timer & Resend */}
           <div className="flex items-center justify-between text-sm">
             {timeLeft > 0 ? (
-              <span className="text-gray-600">
+              <span className="text-gray-600 dark:text-gray-400">
                 Time remaining: <b className="text-[#3BB77E]">{timeLeft}s</b>
               </span>
             ) : (
@@ -183,17 +191,21 @@ const CheckoutOtp: React.FC<CheckoutOtpProps> = ({
               size="sm"
               disabled={resendLoading || timeLeft > 0}
               onClick={onResendOtp}
-              className="h-auto p-0 text-[#3BB77E] hover:text-[#34a46f] hover:bg-transparent"
+              className="h-auto p-0 text-[#3BB77E] hover:text-[#34a46f] hover:bg-transparent disabled:opacity-50"
             >
               <RefreshCcw size={14} className="mr-1" />
               {resendLoading ? "Sending..." : "Resend"}
             </Button>
           </div>
 
+          {/* Submit Button */}
           <Button
             onClick={handleVerifyOtp}
             disabled={loading || otpString.length < 6 || timeLeft === 0}
-            className="h-12 w-full bg-[#3BB77E] hover:bg-[#34a46f] text-white font-semibold"
+            className="
+          h-12 w-full bg-[#3BB77E] hover:bg-[#34a46f]
+          text-white font-semibold disabled:opacity-60
+        "
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">
