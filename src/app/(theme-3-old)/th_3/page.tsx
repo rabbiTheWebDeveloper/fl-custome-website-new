@@ -16,6 +16,7 @@ export default async function Home({
   const { page = "1" } = await searchParams
 
   const headers = await getDomainHeaders()
+
   const { data: response } = await api.get<IProductsApiResponse>(
     `/customer/products?page=${page}`,
     { headers }

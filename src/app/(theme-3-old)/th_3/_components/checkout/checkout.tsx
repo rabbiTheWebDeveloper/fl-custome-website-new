@@ -736,23 +736,27 @@ const Checkout = () => {
           id?: number
           otp_sent?: boolean
         }
-        data?: {
-          order?: {
-            id?: number
-          }
-          payment_url?: string
-        }
+        data?:
+          | {
+              order?: {
+                id?: number
+              }
+              payment_url?: string | undefined
+            }
+          | undefined
       }
 
       const { order, data: responseOrderData } = responseData
       if (response.data && typeof response.data === "object") {
-        if (responseOrderData?.order?.id) {
-          toast.success("Order placed successfully")
-          clearCart()
-          router.push(`/order-successfull/${responseOrderData?.order?.id}`)
-        } else if (responseOrderData?.payment_url) {
-          router.push(responseOrderData?.payment_url)
-          clearCart()
+        if (responseOrderData) {
+          if (responseOrderData?.payment_url) {
+            router.push(responseOrderData?.payment_url)
+            clearCart()
+          } else {
+            toast.success("Order placed successfully")
+            router.push(`/order-successfull/${responseOrderData?.order?.id}`)
+            clearCart()
+          }
         } else if (order?.otp_sent) {
           toast.success("OTP sent successfully")
           setTimeLeft(120)
