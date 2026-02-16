@@ -71,8 +71,10 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL(`/${theme}/order-success`, request.url))
   }
 
-  if (pathname === "/online-payment-failed/") {
-    return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
+  if (pathname === "/online-payment-failed") {
+    return NextResponse.rewrite(
+      new URL(`/${theme}/online-payment-failed`, request.url)
+    )
   }
 
   if (pathname.startsWith("/product/")) {
