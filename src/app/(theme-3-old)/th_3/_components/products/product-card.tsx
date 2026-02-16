@@ -67,6 +67,7 @@ export const ProductCard = ({
       router.push(`/product/${ulid}?${slug}`)
     } else {
       handleAddToCart(e)
+      router.push(`/checkout`)
     }
   }
 
