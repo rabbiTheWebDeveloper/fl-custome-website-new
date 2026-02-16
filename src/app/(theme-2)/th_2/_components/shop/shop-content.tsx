@@ -650,7 +650,7 @@ export function ShopContent({
         />
       </div>
 
-      <div className="md:grid md:grid-cols-3 xl:grid-cols-5 mt-10 gap-12 md:gap-16 items-start">
+      <div className="md:grid md:grid-cols-3 xl:grid-cols-5 mt-6 md:mt-10 gap-6 md:gap-12 lg:gap-16 items-start">
         <div className="max-md:hidden">
           <Filters
             categories={categories}

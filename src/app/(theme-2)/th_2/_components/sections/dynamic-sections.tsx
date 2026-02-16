@@ -316,14 +316,14 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
             {slides.map((slide, slideIndex) => (
               <div key={slideIndex} className="flex-[0_0_100%] min-w-0">
                 {/* Row 1 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-3 md:mb-6">
                   {slide.row1.map((product) => (
                     <SectionProductCard key={product.id} product={product} />
                   ))}
                 </div>
                 {/* Row 2 */}
                 {slide.row2.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                     {slide.row2.map((product) => (
                       <SectionProductCard key={product.id} product={product} />
                     ))}

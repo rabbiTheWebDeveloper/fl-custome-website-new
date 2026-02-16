@@ -74,7 +74,7 @@ export function MobileNav() {
         </Button>
       </SheetTrigger>
 
-      <SheetContent side="left" className="w-[300px] p-0">
+      <SheetContent side="left" className="w-[85vw] max-w-[300px] p-0">
         {/* Header with logo */}
         <SheetHeader className="border-b px-5 py-4">
           <SheetTitle className="flex items-center">

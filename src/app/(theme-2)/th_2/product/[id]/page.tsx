@@ -149,17 +149,17 @@ export default async function ProductPage({
 
   return (
     <main>
-      <div className="py-10 container">
-        <div className="grid md:grid-cols-7 gap-24">
+      <div className="py-6 md:py-10 container">
+        <div className="grid md:grid-cols-7 gap-6 md:gap-12 lg:gap-24">
           <div className="col-span-3">
             <ProductImageCarousel
               images={[product.main_image ?? "", ...product.other_images]}
               videoUrls={videoUrls}
             />
           </div>
-          <div className="max-md:overflow-hidden col-span-4">
+          <div className="overflow-hidden col-span-4">
             <div>
-              <h1 className="text-2xl md:text-[44px] font-semibold mt-3">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[44px] font-semibold mt-3">
                 {product.product_name}
               </h1>
               {/* <h2 className="mt-3 text-xl md:text-3xl font-semibold text-primary">
@@ -179,13 +179,13 @@ export default async function ProductPage({
             <ProductCartControls product={product} swatches={swatches} />
 
             <div
-              className="mt-8 space-y-8 w-3xl wrap-break-word"
+              className="mt-6 md:mt-8 space-y-4 md:space-y-8 w-full max-w-3xl break-words"
               dangerouslySetInnerHTML={{
                 __html: product.short_description || "",
               }}
             />
             <div
-              className="mt-8 space-y-8 w-3xl wrap-break-word"
+              className="mt-6 md:mt-8 space-y-4 md:space-y-8 w-full max-w-3xl break-words"
               dangerouslySetInnerHTML={{
                 __html: product.long_description || "",
               }}

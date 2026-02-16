@@ -48,9 +48,9 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${inter.variable} ${geistMono.variable} antialiased`}
+      className={`${inter.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
     >
-      <body>
+      <body className="overflow-x-hidden">
         <NextIntlClientProvider
           locale={locale}
           messages={messages}
@@ -59,7 +59,7 @@ export default async function RootLayout({
           <ThemeBrandProvider>
             <Toaster position="top-center" richColors />
             <DynamicMeta />
-            <div style={{ display: "contents" }}>
+            <div className="overflow-x-hidden">
               <Header />
               {children}
               <Footer />
