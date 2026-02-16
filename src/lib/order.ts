@@ -22,7 +22,7 @@ export interface OrderSubmissionData {
   formData: OrderFormData
   items: CartItem[]
   shippingMethod: "inside_dhaka" | "outside_dhaka"
-  paymentMethod: "sslcommerz" | "cash-on-delivery" | "bkash"
+  paymentMethod: string
   storeUrl: string
   visitorId?: string
   otpVerified?: number

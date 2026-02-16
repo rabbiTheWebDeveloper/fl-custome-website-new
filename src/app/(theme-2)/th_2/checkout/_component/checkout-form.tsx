@@ -19,6 +19,10 @@ import { api } from "@/lib/api-client"
 import { prepareOrderData, getStoreUrlFromCookie } from "@/lib/order"
 import { useTranslations } from "next-intl"
 import type { ShippingSetting } from "../../types/shipping"
+import { useDomain } from "../../store/domain"
+import type { PaymentGateway } from "../../types/shop"
+import CheckoutOtp from "./checkout-otp"
+import { toast } from "sonner"
 
 // Client-side function to get domain headers from cookies
 function getDomainHeadersFromCookies(): {
@@ -82,6 +86,37 @@ function getDomainHeadersFromCookies(): {
   return { "shop-id": "", "user-id": "" }
 }
 
+// Known payment provider display config
+const PAYMENT_PROVIDER_CONFIG: Record<
+  string,
+  { label: string; logo: string | null; logoWidth: number; logoHeight: number }
+> = {
+  bkash: {
+    label: "bKash",
+    logo: "/bkash.png",
+    logoWidth: 68,
+    logoHeight: 24,
+  },
+  nagad: {
+    label: "Nagad",
+    logo: "/nagad.png",
+    logoWidth: 68,
+    logoHeight: 24,
+  },
+  sslcommerz: {
+    label: "SSLCommerz",
+    logo: "/sslcommerz.png",
+    logoWidth: 111,
+    logoHeight: 24,
+  },
+  stripe: {
+    label: "Stripe",
+    logo: "/stripe.png",
+    logoWidth: 68,
+    logoHeight: 24,
+  },
+}
+
 // Function to create Zod schema with localized error messages
 function createCheckoutFormSchema(tValidation: (key: string) => string) {
   return z.object({
@@ -118,9 +153,11 @@ function createCheckoutFormSchema(tValidation: (key: string) => string) {
     shippingMethod: z.enum(["inside-dhaka", "subarea", "outside-dhaka"], {
       message: tValidation("shippingMethodRequired"),
     }),
-    paymentMethod: z.enum(["sslcommerz", "cash-on-delivery", "bkash"], {
-      message: tValidation("paymentMethodRequired"),
-    }),
+    paymentMethod: z
+      .string({
+        message: tValidation("paymentMethodRequired"),
+      })
+      .min(1, tValidation("paymentMethodRequired")),
   })
 }
 
@@ -137,6 +174,13 @@ export function CheckoutForm() {
   const tCheckout = useTranslations("Theme2.checkout")
   const tValidation = useTranslations("Theme2.checkout.validation")
 
+  // Payment gateways from domain store
+  const domain = useDomain((state) => state.domain)
+  const activeGateways: PaymentGateway[] = useMemo(() => {
+    if (!domain?.gateways || !Array.isArray(domain.gateways)) return []
+    return domain.gateways.filter((g) => g.status === "active")
+  }, [domain?.gateways])
+
   // Shipping settings state
   const [shippingSettings, setShippingSettings] =
     useState<ShippingSetting | null>(null)
@@ -147,6 +191,12 @@ export function CheckoutForm() {
     null
   )
   const incompleteOrderSentRef = useRef(false)
+
+  // OTP state
+  const [showOtp, setShowOtp] = useState(false)
+  const [otpTimeLeft, setOtpTimeLeft] = useState(0)
+  const [resendLoading, setResendLoading] = useState(false)
+  const [otpPhone, setOtpPhone] = useState("")
 
   // Create schema with localized messages
   const checkoutFormSchema = useMemo(
@@ -170,7 +220,7 @@ export function CheckoutForm() {
       deliveryAddress: "",
       orderNote: "",
       shippingMethod: "inside-dhaka",
-      paymentMethod: "bkash",
+      paymentMethod: "cash-on-delivery",
     },
   })
 
@@ -606,14 +656,71 @@ export function CheckoutForm() {
         }
       )
 
-      console.log("Order submitted successfully:", response.data)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const responseData = response?.data as any
+      const responseOrderData = responseData?.data
+      const responseOrder = responseData?.order
 
-      // Clear cart and redirect to success page
+      // Check if OTP verification is required
+      if (responseOrder?.otp_sent) {
+        toast.success(responseData?.message || "OTP sent successfully")
+        setOtpPhone(data.phone)
+        setOtpTimeLeft(120)
+        setShowOtp(true)
+        return
+      }
+
+      // Clear cart after successful order
       await clearCart()
-      router.push("/order-success")
+
+      // If payment_url exists in response, redirect to payment gateway
+      const paymentUrl = responseOrderData?.payment_url
+      if (paymentUrl && typeof paymentUrl === "string") {
+        window.location.href = paymentUrl
+      } else {
+        router.push("/order-success")
+      }
     } catch (error) {
       console.error("Error submitting order:", error)
       throw error // Re-throw to let react-hook-form handle it
+    }
+  }
+
+  // OTP timer countdown
+  useEffect(() => {
+    if (!otpTimeLeft) return
+    const intervalId = setInterval(() => {
+      setOtpTimeLeft((prev) => prev - 1)
+    }, 1000)
+    return () => clearInterval(intervalId)
+  }, [showOtp, otpTimeLeft])
+
+  // Resend OTP handler
+  const handleResendOtp = async () => {
+    setResendLoading(true)
+    try {
+      const shopId = domain?.shop_id
+      const res = await api.post(
+        "/customer/resend-otp",
+        { phone: otpPhone },
+        undefined,
+        {
+          headers: {
+            ...(shopId && { "shop-id": String(shopId) }),
+          },
+        }
+      )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resData = res.data as any
+      if (resData?.data?.otp_sent) {
+        toast.success("OTP sent successfully")
+        setOtpTimeLeft(120)
+      }
+    } catch (error) {
+      console.error("Error resending OTP:", error)
+      toast.error("Failed to resend OTP")
+    } finally {
+      setResendLoading(false)
     }
   }
 
@@ -641,370 +748,378 @@ export function CheckoutForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Left Column */}
-        <div className="space-y-6">
-          {/* Billing Details */}
-          <div className="space-y-6 bg-white rounded-2xl pb-5">
-            <h2 className="text-lg md:text-xl font-bold p-5 border-b">
-              {tCheckout("billingDetails")}
-            </h2>
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Billing Details */}
+            <div className="space-y-6 bg-white rounded-2xl pb-5">
+              <h2 className="text-lg md:text-xl font-bold p-5 border-b">
+                {tCheckout("billingDetails")}
+              </h2>
 
-            <div className="space-y-4 px-5">
-              {/* Full Name */}
-              <div>
-                <label htmlFor="fullName" className="block font-medium mb-2">
-                  {tCheckout("fullName")}
-                </label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder={tCheckout("fullNamePlaceholder")}
-                  className={cn(
-                    "w-full px-4 py-6 text-base",
-                    errors.fullName &&
-                      "border-red-500 focus-visible:ring-red-500"
+              <div className="space-y-4 px-5">
+                {/* Full Name */}
+                <div>
+                  <label htmlFor="fullName" className="block font-medium mb-2">
+                    {tCheckout("fullName")}
+                  </label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder={tCheckout("fullNamePlaceholder")}
+                    className={cn(
+                      "w-full px-4 py-6 text-base",
+                      errors.fullName &&
+                        "border-red-500 focus-visible:ring-red-500"
+                    )}
+                    {...register("fullName")}
+                  />
+                  {errors.fullName && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.fullName.message}
+                    </p>
                   )}
-                  {...register("fullName")}
-                />
-                {errors.fullName && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.fullName.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Phone Number */}
-              <div>
-                <label htmlFor="phone" className="block font-medium mb-2">
-                  {tCheckout("phoneNumber")}
-                </label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder={tCheckout("phoneNumberPlaceholder")}
-                  className={cn(
-                    "w-full px-4 py-6 text-base",
-                    errors.phone && "border-red-500 focus-visible:ring-red-500"
-                  )}
-                  {...register("phone")}
-                />
-                {errors.phone && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.phone.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Delivery Address */}
-              <div>
-                <label
-                  htmlFor="deliveryAddress"
-                  className="block font-medium mb-2"
-                >
-                  {tCheckout("deliveryAddress")}
-                </label>
-                <Input
-                  id="deliveryAddress"
-                  type="text"
-                  placeholder={tCheckout("deliveryAddressPlaceholder")}
-                  className={cn(
-                    "w-full px-4 py-6 text-base",
-                    errors.deliveryAddress &&
-                      "border-red-500 focus-visible:ring-red-500"
-                  )}
-                  {...register("deliveryAddress")}
-                />
-                {errors.deliveryAddress && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.deliveryAddress.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Order Note */}
-              <div>
-                <label htmlFor="orderNote" className="block font-medium mb-2">
-                  {tCheckout("orderNote")}
-                </label>
-                <Textarea
-                  id="orderNote"
-                  placeholder={tCheckout("orderNotePlaceholder")}
-                  className={cn(
-                    "w-full min-h-[100px]",
-                    errors.orderNote &&
-                      "border-red-500 focus-visible:ring-red-500"
-                  )}
-                  {...register("orderNote")}
-                />
-                {errors.orderNote && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.orderNote.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Shipping Method */}
-          <div className="space-y-6 bg-white rounded-2xl pb-5">
-            <h3 className="text-lg md:text-xl font-bold mb-4 p-5 border-b">
-              {tCheckout("shippingMethod")}
-            </h3>
-            <div className="px-5">
-              <RadioGroup
-                value={shippingMethod}
-                onValueChange={(value) =>
-                  setValue(
-                    "shippingMethod",
-                    value as CheckoutFormData["shippingMethod"]
-                  )
-                }
-                className="gap-0 rounded-xl border overflow-hidden divide-y"
-              >
-                <label
-                  htmlFor="inside-dhaka"
-                  className={cn(
-                    "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                    shippingMethod === "inside-dhaka" && "bg-[#F6E5FF]"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem value="inside-dhaka" id="inside-dhaka" />
-                    <span className="text-[#595959]">
-                      {tCheckout("insideDhaka")}
-                    </span>
-                  </div>
-                  <span className="font-semibold">
-                    ৳
-                    {loadingShippingSettings
-                      ? "0.00"
-                      : getInsideDhakaPrice.toFixed(2)}
-                  </span>
-                </label>
-
-                <label
-                  htmlFor="subarea"
-                  className={cn(
-                    "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                    shippingMethod === "subarea" && "bg-[#F6E5FF]"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem value="subarea" id="subarea" />
-                    <span className="text-[#595959]">
-                      {tCheckout("subarea")}
-                    </span>
-                  </div>
-                  <span className="font-semibold">
-                    ৳
-                    {loadingShippingSettings
-                      ? "0.00"
-                      : getSubareaPrice.toFixed(2)}
-                  </span>
-                </label>
-
-                <label
-                  htmlFor="outside-dhaka"
-                  className={cn(
-                    "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                    shippingMethod === "outside-dhaka" && "bg-[#F6E5FF]"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem value="outside-dhaka" id="outside-dhaka" />
-                    <span className="text-[#595959]">
-                      {tCheckout("outsideDhaka")}
-                    </span>
-                  </div>
-                  <span className="font-semibold">
-                    ৳
-                    {loadingShippingSettings
-                      ? "0.00"
-                      : getOutsideDhakaPrice.toFixed(2)}
-                  </span>
-                </label>
-              </RadioGroup>
-              {errors.shippingMethod && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.shippingMethod.message}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column - Your Order */}
-        <div className="space-y-6">
-          {/* Your Order Container */}
-          <div className="space-y-6 bg-white rounded-2xl pb-5">
-            <h2 className="text-lg md:text-xl font-bold p-5 border-b">
-              {tCheckout("yourOrder")}
-            </h2>
-
-            <div className="px-5 space-y-6">
-              {/* Cart Items List */}
-              {items.map((item) => (
-                <CartItem
-                  key={item.id}
-                  id={item.id}
-                  name={item.name}
-                  size={formatVariants(item)}
-                  price={item.discountedPrice ?? item.price}
-                  quantity={item.quantity}
-                  image={
-                    (item.metadata?.image as string) ||
-                    "/product-placehoder.png"
-                  }
-                  maxQuantity={
-                    (item.metadata?.maxQuantity as number) ?? undefined
-                  }
-                  onQuantityChange={(quantity) =>
-                    handleQuantityChange(item.id, quantity)
-                  }
-                  onRemove={() => handleRemoveProduct(item.id)}
-                />
-              ))}
-
-              {/* Order Summary */}
-              <div className="rounded-xl border overflow-hidden divide-y">
-                <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm">
-                  <span>{tCheckout("subtotal")}</span>
-                  <span className="font-semibold">
-                    ৳{finalTotals.subtotal.toFixed(2)}
-                  </span>
                 </div>
-                {finalTotals.discount > 0 && (
-                  <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm">
-                    <span>{tCheckout("discount")}</span>
-                    <span className="font-semibold text-green-600">
-                      -৳{finalTotals.discount.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-                {finalTotals.tax > 0 && (
-                  <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm">
-                    <span>{tCheckout("tax")}</span>
+
+                {/* Phone Number */}
+                <div>
+                  <label htmlFor="phone" className="block font-medium mb-2">
+                    {tCheckout("phoneNumber")}
+                  </label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder={tCheckout("phoneNumberPlaceholder")}
+                    className={cn(
+                      "w-full px-4 py-6 text-base",
+                      errors.phone &&
+                        "border-red-500 focus-visible:ring-red-500"
+                    )}
+                    {...register("phone")}
+                  />
+                  {errors.phone && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.phone.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Delivery Address */}
+                <div>
+                  <label
+                    htmlFor="deliveryAddress"
+                    className="block font-medium mb-2"
+                  >
+                    {tCheckout("deliveryAddress")}
+                  </label>
+                  <Input
+                    id="deliveryAddress"
+                    type="text"
+                    placeholder={tCheckout("deliveryAddressPlaceholder")}
+                    className={cn(
+                      "w-full px-4 py-6 text-base",
+                      errors.deliveryAddress &&
+                        "border-red-500 focus-visible:ring-red-500"
+                    )}
+                    {...register("deliveryAddress")}
+                  />
+                  {errors.deliveryAddress && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.deliveryAddress.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Order Note */}
+                <div>
+                  <label htmlFor="orderNote" className="block font-medium mb-2">
+                    {tCheckout("orderNote")}
+                  </label>
+                  <Textarea
+                    id="orderNote"
+                    placeholder={tCheckout("orderNotePlaceholder")}
+                    className={cn(
+                      "w-full min-h-[100px]",
+                      errors.orderNote &&
+                        "border-red-500 focus-visible:ring-red-500"
+                    )}
+                    {...register("orderNote")}
+                  />
+                  {errors.orderNote && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.orderNote.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Method */}
+            <div className="space-y-6 bg-white rounded-2xl pb-5">
+              <h3 className="text-lg md:text-xl font-bold mb-4 p-5 border-b">
+                {tCheckout("shippingMethod")}
+              </h3>
+              <div className="px-5">
+                <RadioGroup
+                  value={shippingMethod}
+                  onValueChange={(value) =>
+                    setValue(
+                      "shippingMethod",
+                      value as CheckoutFormData["shippingMethod"]
+                    )
+                  }
+                  className="gap-0 rounded-xl border overflow-hidden divide-y"
+                >
+                  <label
+                    htmlFor="inside-dhaka"
+                    className={cn(
+                      "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
+                      shippingMethod === "inside-dhaka" && "bg-[#F6E5FF]"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem value="inside-dhaka" id="inside-dhaka" />
+                      <span className="text-[#595959]">
+                        {tCheckout("insideDhaka")}
+                      </span>
+                    </div>
                     <span className="font-semibold">
-                      ৳{finalTotals.tax.toFixed(2)}
+                      ৳
+                      {loadingShippingSettings
+                        ? "0.00"
+                        : getInsideDhakaPrice.toFixed(2)}
                     </span>
-                  </div>
+                  </label>
+
+                  <label
+                    htmlFor="subarea"
+                    className={cn(
+                      "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
+                      shippingMethod === "subarea" && "bg-[#F6E5FF]"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem value="subarea" id="subarea" />
+                      <span className="text-[#595959]">
+                        {tCheckout("subarea")}
+                      </span>
+                    </div>
+                    <span className="font-semibold">
+                      ৳
+                      {loadingShippingSettings
+                        ? "0.00"
+                        : getSubareaPrice.toFixed(2)}
+                    </span>
+                  </label>
+
+                  <label
+                    htmlFor="outside-dhaka"
+                    className={cn(
+                      "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
+                      shippingMethod === "outside-dhaka" && "bg-[#F6E5FF]"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem
+                        value="outside-dhaka"
+                        id="outside-dhaka"
+                      />
+                      <span className="text-[#595959]">
+                        {tCheckout("outsideDhaka")}
+                      </span>
+                    </div>
+                    <span className="font-semibold">
+                      ৳
+                      {loadingShippingSettings
+                        ? "0.00"
+                        : getOutsideDhakaPrice.toFixed(2)}
+                    </span>
+                  </label>
+                </RadioGroup>
+                {errors.shippingMethod && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.shippingMethod.message}
+                  </p>
                 )}
-                <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm">
-                  <span>{tCheckout("shipping")}</span>
-                  <span className="font-semibold">
-                    ৳{finalTotals.shipping.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm font-bold border-t pt-2 mt-2">
-                  <span>{tCheckout("total")}</span>
-                  <span className="font-bold">
-                    ৳{finalTotals.total.toFixed(2)}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
 
-          {/* Payment Method */}
-          <div className="space-y-6 bg-white rounded-2xl pb-5">
-            <h3 className="text-lg md:text-xl font-bold mb-4 p-5 border-b">
-              {tCheckout("paymentMethod")}
-            </h3>
-            <div className="px-5">
-              <RadioGroup
-                value={paymentMethod}
-                onValueChange={(value) =>
-                  setValue(
-                    "paymentMethod",
-                    value as CheckoutFormData["paymentMethod"]
-                  )
-                }
-                className="gap-0 rounded-xl border overflow-hidden divide-y"
-              >
-                <label
-                  htmlFor="sslcommerz"
-                  className={cn(
-                    "px-4 py-2 flex items-center justify-between text-lg cursor-pointer",
-                    paymentMethod === "sslcommerz" && "bg-[#F6E5FF]"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem value="sslcommerz" id="sslcommerz" />
-                    <span className="text-[#595959] max-md:text-sm">
-                      {tCheckout("sslcommerz")}
-                    </span>
-                  </div>
-                  <figure>
-                    <Image
-                      src="/sslcommerz.png"
-                      alt="SSLCommerz"
-                      width="111"
-                      height="24"
-                    />
-                  </figure>
-                </label>
+          {/* Right Column - Your Order */}
+          <div className="space-y-6">
+            {/* Your Order Container */}
+            <div className="space-y-6 bg-white rounded-2xl pb-5">
+              <h2 className="text-lg md:text-xl font-bold p-5 border-b">
+                {tCheckout("yourOrder")}
+              </h2>
 
-                <label
-                  htmlFor="cash-on-delivery"
-                  className={cn(
-                    "px-4 py-2 flex items-center justify-between text-lg cursor-pointer",
-                    paymentMethod === "cash-on-delivery" && "bg-[#F6E5FF]"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem
-                      value="cash-on-delivery"
-                      id="cash-on-delivery"
-                    />
-                    <span className="text-[#595959] max-md:text-sm">
-                      {tCheckout("cashOnDelivery")}
-                    </span>
-                  </div>
-                </label>
+              <div className="px-5 space-y-6">
+                {/* Cart Items List */}
+                {items.map((item) => (
+                  <CartItem
+                    key={item.id}
+                    id={item.id}
+                    name={item.name}
+                    size={formatVariants(item)}
+                    price={item.discountedPrice ?? item.price}
+                    quantity={item.quantity}
+                    image={
+                      (item.metadata?.image as string) ||
+                      "/product-placehoder.png"
+                    }
+                    maxQuantity={
+                      (item.metadata?.maxQuantity as number) ?? undefined
+                    }
+                    onQuantityChange={(quantity) =>
+                      handleQuantityChange(item.id, quantity)
+                    }
+                    onRemove={() => handleRemoveProduct(item.id)}
+                  />
+                ))}
 
-                <label
-                  htmlFor="bkash"
-                  className={cn(
-                    "px-4 py-2 flex items-center justify-between text-lg cursor-pointer",
-                    paymentMethod === "bkash" && "bg-[#F6E5FF]"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem value="bkash" id="bkash" />
-                    <span className="text-[#595959] max-md:text-sm">
-                      {tCheckout("bkash")}
+                {/* Order Summary */}
+                <div className="rounded-xl border overflow-hidden divide-y">
+                  <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm">
+                    <span>{tCheckout("subtotal")}</span>
+                    <span className="font-semibold">
+                      ৳{finalTotals.subtotal.toFixed(2)}
                     </span>
                   </div>
-                  <figure>
-                    <Image
-                      src="/bkash.png"
-                      alt="BKash"
-                      width="68"
-                      height="24"
-                    />
-                  </figure>
-                </label>
-              </RadioGroup>
-              {errors.paymentMethod && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.paymentMethod.message}
-                </p>
-              )}
+                  {finalTotals.discount > 0 && (
+                    <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm">
+                      <span>{tCheckout("discount")}</span>
+                      <span className="font-semibold text-green-600">
+                        -৳{finalTotals.discount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  {finalTotals.tax > 0 && (
+                    <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm">
+                      <span>{tCheckout("tax")}</span>
+                      <span className="font-semibold">
+                        ৳{finalTotals.tax.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm">
+                    <span>{tCheckout("shipping")}</span>
+                    <span className="font-semibold">
+                      ৳{finalTotals.shipping.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-lg px-4 py-2 max-md:text-sm font-bold border-t pt-2 mt-2">
+                    <span>{tCheckout("total")}</span>
+                    <span className="font-bold">
+                      ৳{finalTotals.total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Place Order Button */}
-          <Button
-            type="submit"
-            className="w-full h-12 text-base rounded-2xl"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? t("placingOrder") : t("placeOrder")}
-          </Button>
+            {/* Payment Method */}
+            <div className="space-y-6 bg-white rounded-2xl pb-5">
+              <h3 className="text-lg md:text-xl font-bold mb-4 p-5 border-b">
+                {tCheckout("paymentMethod")}
+              </h3>
+              <div className="px-5">
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={(value) =>
+                    setValue(
+                      "paymentMethod",
+                      value as CheckoutFormData["paymentMethod"]
+                    )
+                  }
+                  className="gap-0 rounded-xl border overflow-hidden divide-y"
+                >
+                  {/* Cash on Delivery - always shown */}
+                  <label
+                    htmlFor="cash-on-delivery"
+                    className={cn(
+                      "px-4 py-2 flex items-center justify-between text-lg cursor-pointer",
+                      paymentMethod === "cash-on-delivery" && "bg-[#F6E5FF]"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem
+                        value="cash-on-delivery"
+                        id="cash-on-delivery"
+                      />
+                      <span className="text-[#595959] max-md:text-sm">
+                        {tCheckout("cashOnDelivery")}
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* Dynamic payment gateways from domain store */}
+                  {activeGateways.map((gateway) => {
+                    const providerConfig =
+                      PAYMENT_PROVIDER_CONFIG[gateway.provider]
+                    if (!providerConfig) return null
+                    return (
+                      <label
+                        key={gateway.provider}
+                        htmlFor={gateway.provider}
+                        className={cn(
+                          "px-4 py-2 flex items-center justify-between text-lg cursor-pointer",
+                          paymentMethod === gateway.provider && "bg-[#F6E5FF]"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <RadioGroupItem
+                            value={gateway.provider}
+                            id={gateway.provider}
+                          />
+                          <span className="text-[#595959] max-md:text-sm">
+                            {providerConfig.label}
+                          </span>
+                        </div>
+                        {providerConfig.logo && (
+                          <figure>
+                            <Image
+                              src={providerConfig.logo}
+                              alt={providerConfig.label}
+                              width={providerConfig.logoWidth}
+                              height={providerConfig.logoHeight}
+                            />
+                          </figure>
+                        )}
+                      </label>
+                    )
+                  })}
+                </RadioGroup>
+                {errors.paymentMethod && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.paymentMethod.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Place Order Button */}
+            <Button
+              type="submit"
+              className="w-full h-12 text-base rounded-2xl"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? t("placingOrder") : t("placeOrder")}
+            </Button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+
+      {/* OTP Modal */}
+      <CheckoutOtp
+        show={showOtp}
+        onClose={() => setShowOtp(false)}
+        customerPhone={otpPhone}
+        timeLeft={otpTimeLeft}
+        resendLoading={resendLoading}
+        onResendOtp={handleResendOtp}
+      />
+    </>
   )
 }

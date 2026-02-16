@@ -103,6 +103,7 @@ export function ShopContent({
   const t = useTranslations("Theme2.buttons")
 
   const sectionUlid = searchParams.get("section") ?? null
+  const sectionName = searchParams.get("sectionName") ?? null
 
   const [products, setProducts] = useState<IProduct[]>(
     Array.isArray(initialProducts) ? initialProducts : []
@@ -400,8 +401,28 @@ export function ShopContent({
   // Handle URL changes (browser back/forward, direct navigation)
   useEffect(() => {
     const catId = searchParams.get("catId")
+    const categorySlug = searchParams.get("category")
     const search = searchParams.get("search")
-    const currentCatId = catId ? Number(catId) : null
+
+    // Resolve category ID from either catId or category slug
+    let currentCatId: number | null = catId ? Number(catId) : null
+    if (!currentCatId && categorySlug) {
+      // Find category by slug (check top-level and sub-categories)
+      const findBySlug = (
+        cats: typeof categories,
+        slug: string
+      ): number | null => {
+        for (const cat of cats) {
+          if (cat.slug === slug) return cat.id
+          if (cat.sub_categories?.length) {
+            const found = findBySlug(cat.sub_categories, slug)
+            if (found) return found
+          }
+        }
+        return null
+      }
+      currentCatId = findBySlug(categories, categorySlug)
+    }
 
     // Handle search query changes
     if (search !== searchQuery) {
@@ -424,7 +445,7 @@ export function ShopContent({
       if (currentCatId && !isNaN(currentCatId)) {
         loadCategoryProducts(currentCatId)
       } else if (currentCatId === null && selectedCategoryId !== null) {
-        // If catId was removed from URL, show all products
+        // If category was removed from URL, show all products
         setProducts(Array.isArray(initialProducts) ? initialProducts : [])
         setPagination(initialPagination)
         setSelectedCategoryId(null)
@@ -535,6 +556,11 @@ export function ShopContent({
     return (
       <>
         <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
+          {sectionName && (
+            <h1 className="text-xl md:text-3xl font-semibold text-foreground truncate min-w-0">
+              {sectionName}
+            </h1>
+          )}
           <Button
             variant="secondary"
             size="lg"

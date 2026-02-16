@@ -215,7 +215,7 @@ export const Filters = ({
                   type="number"
                   min={0}
                   max={1000000}
-                  value={priceRange.min === 0 ? "" : priceRange.min}
+                  value={priceRange.min}
                   onChange={(e) =>
                     handlePriceRangeChange("min", e.target.value)
                   }

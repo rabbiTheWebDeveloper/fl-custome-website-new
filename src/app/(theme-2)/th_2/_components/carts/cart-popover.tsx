@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { ShoppingCartIcon } from "lucide-react"
 import { Button } from "../ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
@@ -12,6 +13,7 @@ import { useTranslations } from "next-intl"
 const NO_ITEMS = 0
 
 export const CartPopover = () => {
+  const [open, setOpen] = useState(false)
   const { updateItem, removeItem } = useCart()
   const tCheckout = useTranslations("Theme2.checkout")
 
@@ -38,7 +40,7 @@ export const CartPopover = () => {
   const totalProducts = totals.itemCount
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="secondary" size="icon" className="size-10.5 relative">
           <span className="sr-only">Cart</span>
@@ -133,7 +135,9 @@ export const CartPopover = () => {
               </span>
             </div>
             <Button className="w-full text-base" size="lg" asChild>
-              <Link href="/checkout">{tCheckout("checkout")}</Link>
+              <Link href="/checkout" onClick={() => setOpen(false)}>
+                {tCheckout("checkout")}
+              </Link>
             </Button>
           </div>
         )}

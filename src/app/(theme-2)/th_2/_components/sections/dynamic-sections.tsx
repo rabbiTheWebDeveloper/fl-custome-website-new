@@ -279,7 +279,11 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
               variant="secondary"
               asChild
             >
-              <Link href={`/shop?section=${section.ulid}`}>{t("seeAll")}</Link>
+              <Link
+                href={`/shop?section=${section.ulid}&sectionName=${encodeURIComponent(section.name)}`}
+              >
+                {t("seeAll")}
+              </Link>
             </Button>
             <div className="flex gap-2">
               <Button

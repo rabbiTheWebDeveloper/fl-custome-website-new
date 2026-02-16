@@ -32,14 +32,18 @@ export interface IShopResponse {
   featured: number
   flash: number
   arrival: number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  gateways: any[]
+  gateways: PaymentGateway[]
   theme_id: string
   shop_logo: string
   shop_favicon: string
   addons_info: AddonsInfo[]
   other_script: OtherScript
   theme_settings?: ThemeSettings
+}
+
+export interface PaymentGateway {
+  provider: string
+  status: "active" | "inactive"
 }
 
 export interface ThemeSettingsBannerSlide {
