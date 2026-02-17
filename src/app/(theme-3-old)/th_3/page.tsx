@@ -6,22 +6,22 @@ import Scroll from "./_components/Scroll"
 import { getDomainHeaders } from "@/lib/domain"
 import { api } from "@/lib/api-client"
 import { IProductsApiResponse } from "./types/product"
+import { headers } from "next/headers"
+import { getDomainInfo } from "@/utils/api-helpers"
 
 export default async function Home({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>
 }) {
-  // await searchParams before using it
+  const host = (await headers()).get("host") || ""
+  const cleanDomain = host.replace(/^www\./, "")
+  const shopInfo = await getDomainInfo(cleanDomain)
   const { page = "1" } = await searchParams
-
-  const headers = await getDomainHeaders()
-
   const { data: response } = await api.get<IProductsApiResponse>(
     `/customer/products?page=${page}`,
-    { headers }
+    { headers: { "shop-id": shopInfo?.shop_id || "" } }
   )
-
   const products = response.data
   const totalPages = response.last_page
 

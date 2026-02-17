@@ -1,4 +1,5 @@
-const headerHostNname = process.env.NEXT_HOST_NAME || "test.funnelliner.store"
+const headerHostNname =
+  process.env.NEXT_PUBLIC_HOST_NAME || "test.funnelliner.store"
 // https://giftvaly.com/
 // https://fldemo.xyz/
 // bestbabybd.com
