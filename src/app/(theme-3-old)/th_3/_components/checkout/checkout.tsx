@@ -1319,20 +1319,6 @@ const Checkout = () => {
                     </div>
                   )}
                 </button>
-
-                {/* Return Policy */}
-                <div className="mt-4 pt-4 border-t border-gray-100 text-center">
-                  <Link
-                    href="/return-policy"
-                    className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#3bb77e] transition-colors group"
-                  >
-                    <RotateCcw className="w-4 h-4 transition-transform group-hover:-rotate-45" />
-                    <span className="font-medium">30-Day Return Policy</span>
-                    <span className="text-gray-400 group-hover:text-[#3bb77e]">
-                      →
-                    </span>
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
