@@ -434,29 +434,28 @@ export default function Header() {
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
             <div className="p-4 space-y-2 bg-white dark:bg-gray-900 border-b dark:border-gray-800">
-              {categories?.map((category) => (
+              <div className="border-t dark:border-gray-800 my-2 pt-2">
                 <Link
-                  key={category.id}
-                  href={`/category/${category.id}`}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
+                  href={`/`}
+                  className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <span>{category.name}</span>
-                  <ChevronRight size={18} className="text-gray-400" />
+                  Home
                 </Link>
-              ))}
-
-              <div className="border-t dark:border-gray-800 my-2 pt-2">
-                {["Home", "Shop", "About", "Contact"].map((item) => (
-                  <Link
-                    key={item}
-                    href={`/${item.toLowerCase()}`}
-                    className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item}
-                  </Link>
-                ))}
+                <Link
+                  href={`/shop`}
+                  className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Shop
+                </Link>
+                <Link
+                  href={`/about`}
+                  className="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
               </div>
 
               {/* Mobile Social Links */}

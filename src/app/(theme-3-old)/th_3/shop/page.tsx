@@ -15,7 +15,6 @@ const ShopPage = async ({
   const { page = "1", search } = await searchParams
   let response: IProductsApiResponse
   if (search && search.trim()) {
-    // Use search API when search query is present
     const searchResponse = await api.get<IProductsApiResponse>(
       `/customer/product-search?search=${encodeURIComponent(search.trim())}&page=1`,
       undefined,
