@@ -536,7 +536,6 @@ const Checkout = () => {
             incomplete_order_id: number
           }
         }
-        console.log("Incomplete order created:", responseData)
 
         if (responseData.success && responseData.data?.incomplete_order_id) {
           setIncompleteOrderId(responseData.data.incomplete_order_id)
@@ -613,12 +612,6 @@ const Checkout = () => {
     try {
       // Get store URL from cookie
       const storeUrl = getStoreUrlFromCookie()
-
-      // Prepare order data
-      console.log(
-        "Submitting order with incomplete_order_id:",
-        incompleteOrderId
-      )
       const orderData = prepareOrderData({
         formData: {
           customer_name: data.fullName,
@@ -637,18 +630,9 @@ const Checkout = () => {
 
       // Debug: Check if incomplete_order_id is in FormData
       if (incompleteOrderId) {
-        console.log(
-          "incomplete_order_id should be included:",
-          incompleteOrderId
-        )
         const formDataEntries = Array.from(orderData.entries())
         const hasIncompleteOrderId = formDataEntries.some(
           ([key]) => key === "incomplete_order_id"
-        )
-        console.log("incomplete_order_id in FormData:", hasIncompleteOrderId)
-        console.log(
-          "All FormData entries:",
-          formDataEntries.map(([key]) => key)
         )
       }
 
@@ -867,8 +851,6 @@ const Checkout = () => {
       </div>
     )
   }
-
-  console.log(domain, "domain")
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">

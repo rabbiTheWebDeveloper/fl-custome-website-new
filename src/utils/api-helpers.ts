@@ -4,7 +4,7 @@ import { headerHostNname, hostDomain, NEXT_REVALIDATE_TIME } from "@/constant"
 import { api } from "@/lib/api-client"
 
 export const getOtherData = async (shopId: string, typeOfPage: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const response = await api.getTyped<any>(
     `/shops/content?type=${typeOfPage}`,
     {

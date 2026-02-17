@@ -42,13 +42,6 @@ export function VariantSelector({
     onVariantChange?.(optionKey, optionValue)
   }
 
-  console.log("Selected Variants:", selectedVariants)
-
-  // console.log(
-  //   "Product:",
-  //   Array.isArray(product.attributes) ? product.attributes : []
-  // )
-
   return (
     <>
       {Array.isArray(product.attributes) &&

@@ -71,7 +71,6 @@ export const ProductCard = ({
     }
   }
 
-  console.log(variations)
   return (
     <>
       {/* Product Image */}

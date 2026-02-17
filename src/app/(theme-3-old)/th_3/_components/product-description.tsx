@@ -66,7 +66,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
 
   // Use product.relatedProducts if available, otherwise empty array
   const relatedProducts = product?.relatedProducts || []
-  console.log("Related Products:", relatedProducts) // Debugging log
+  // Debugging log
   return (
     <section className="max-w-7xl mx-auto px-4 py-12">
       {/* Product Main Section */}

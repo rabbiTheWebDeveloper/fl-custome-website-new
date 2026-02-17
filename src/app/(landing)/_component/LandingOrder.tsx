@@ -346,8 +346,6 @@ const LandingOrder = ({
     try {
       const formDataPayload = prepareOrderPayload(formData)
 
-      console.log("Order payload:", Object.fromEntries(formDataPayload))
-
       // Call your API
       const response = await api.post(
         "/customer/order/store",
@@ -373,8 +371,6 @@ const LandingOrder = ({
           payment_url?: string
         }
       }
-
-      console.log("Order response:", responseData)
 
       if (response.data && typeof response.data === "object") {
         const { order, data: responseOrderData } = responseData

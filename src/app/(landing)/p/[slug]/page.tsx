@@ -26,11 +26,10 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     checkout_button_text,
   } = landingPageInfo || {}
 
-  console.log("landingPageInfo", landingPageInfo)
+  console.log("landingPageInfo", landingPageInfo.page_link)
   if (!landingPageInfo) return notFound()
 
   let htmlContent = landingPageInfo?.page_content || ""
-
   // If no page_content, fetch template
   if (!htmlContent) {
     try {
@@ -56,7 +55,15 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
   //   const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
   //   const headContent = headMatch ? headMatch[1] : "";
   //   const bodyContent = bodyMatch ? bodyMatch[1] : "";
+  const res = await fetch(
+    "https://funnelliner-bucket.s3.ap-southeast-1.amazonaws.com/funnelliner/xauCbvJq6hx0E03pjQsCeowdUmTx0FCpUVv3xGbD.html",
+    {
+      cache: "no-store", // important for dynamic pages
+    }
+  )
 
+  const html = await res.text()
+  // console.log("html", html)
   return (
     <>
       <LandingRenderer html={htmlContent} />
