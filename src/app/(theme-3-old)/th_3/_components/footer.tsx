@@ -8,14 +8,18 @@ import {
   Twitter,
   // Whatsapp,
 } from "lucide-react"
-
 import Link from "next/link"
-import { useDomain } from "../store/domain"
 import { useTranslations } from "next-intl"
+type FooterShopInfo = {
+  shop_logo?: string | null
+  name?: string | null
+  shop_address?: string | null
+  phone?: string | null
+} | null
 
-export default function FooterUI() {
+export default function FooterUI({ shopInfo }: { shopInfo: FooterShopInfo }) {
   const t = useTranslations("Theme3.footer")
-  const domain = useDomain((state) => state.domain)
+
   return (
     <footer className="relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-t border-[#3bb77e] mt-6 transition-colors duration-500">
       {/* Top gradient line */}
@@ -32,13 +36,13 @@ export default function FooterUI() {
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#3bb77e] to-[#3bb77e]" />
 
             <img
-              src={domain?.shop_logo || "/shop-logo.png"}
-              alt={domain?.name || "Shop Logo"}
+              src={shopInfo?.shop_logo || "/shop-logo.png"}
+              alt={shopInfo?.name || "Shop Logo"}
               className="w-36 h-36 object-contain mx-auto rounded-xl transition-transform duration-300 hover:scale-110"
             />
 
             <h4 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">
-              {domain?.name || "Your Shop Name"}
+              {shopInfo?.name || "Your Shop Name"}
             </h4>
             <p className="text-sm text-gray-500 dark:text-gray-300 italic">
               {t("trustedText")}
@@ -57,7 +61,7 @@ export default function FooterUI() {
                   {t("storeAddress")}
                 </h5>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {domain?.shop_address || "123 Main St, City, Country"}
+                  {shopInfo?.shop_address || "123 Main St, City, Country"}
                 </p>
               </div>
             </div>
@@ -72,7 +76,7 @@ export default function FooterUI() {
                   {t("contactNumber")}
                 </h5>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {domain?.phone || "+880 17xxxxxxx"}
+                  {shopInfo?.phone || "+880 17xxxxxxx"}
                 </p>
               </div>
             </div>
@@ -133,7 +137,8 @@ export default function FooterUI() {
 
         {/* Tiny Footer */}
         <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8 transition-colors duration-500">
-          © 2026 {domain?.name || "Shop Name"}. {t("allRightsReserved")}. <br />
+          © 2026 {shopInfo?.name || "Shop Name"}. {t("allRightsReserved")}.{" "}
+          <br />
           {t("developedBy")}{" "}
           <Link
             href="https://funnelliner.com/"

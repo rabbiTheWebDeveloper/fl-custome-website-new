@@ -5,7 +5,15 @@ import type { NextRequest } from "next/server"
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  const defaultTheme = process.env.NEXT_PUBLIC_DEFAULT_THEME || "th_3" // default theme
+  const THEME_MAP: Record<string, string> = {
+    "201": "th_3",
+  }
+
+  const resolveTheme = (name: string) => THEME_MAP[name] || name
+
+  const defaultTheme = resolveTheme(
+    process.env.NEXT_PUBLIC_DEFAULT_THEME || "th_3"
+  )
   let theme = defaultTheme
 
   const domainCookie = request.cookies.get("domain")?.value
@@ -20,16 +28,13 @@ export function proxy(request: NextRequest) {
       const themeName = domain?.theme_settings?.theme_name
       const themeId = domain?.theme_id ? String(domain.theme_id).trim() : ""
 
-      // Map theme identifiers to route folders
       const resolvedName =
         typeof themeName === "string" && themeName.trim() !== ""
           ? themeName.trim()
           : themeId
 
-      if (resolvedName === "201") {
-        theme = "th_3"
-      } else if (resolvedName) {
-        theme = resolvedName
+      if (resolvedName) {
+        theme = resolveTheme(resolvedName)
       }
     } catch {
       // fall back to defaultTheme

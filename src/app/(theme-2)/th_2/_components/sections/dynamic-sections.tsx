@@ -26,8 +26,12 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
 
   const discountedPrice = product.discounted_price ?? product.price
   const originalPrice = product.price
-  const discountPercent = product.flat_discount_percent || product.discount || 0
-  const hasDiscount = discountPercent > 0
+  const discountLabel = product.flat_discount_percent ?? product.discount ?? 0
+  const hasDiscount =
+    typeof discountLabel === "string"
+      ? discountLabel !== "0%" && discountLabel !== "0"
+      : Number(discountLabel) > 0
+  const isStockOut = product.product_qty <= 0
   const image = product.main_image || product.wp_product_image_url
 
   // Check current quantity in cart
@@ -86,7 +90,16 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
         {hasDiscount && (
           <div className="absolute top-5 left-3 z-10">
             <span className="bg-[#FFA01C] text-black text-sm font-semibold px-3 py-2 rounded-lg">
-              {discountPercent} OFF
+              {discountLabel} OFF
+            </span>
+          </div>
+        )}
+
+        {/* Stock Out Badge */}
+        {isStockOut && (
+          <div className="absolute top-5 right-3 z-10">
+            <span className="bg-red-600 text-white text-sm font-semibold px-3 py-2 rounded-lg">
+              STOCK OUT
             </span>
           </div>
         )}
@@ -122,7 +135,7 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
           {product.product_name}
         </h3>
         <div className="flex items-center gap-2">
-          {hasDiscount ? (
+          {originalPrice > discountedPrice ? (
             <>
               <span className="text-sm text-gray-500 line-through">
                 ৳{originalPrice}
@@ -194,6 +207,7 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false })
   const [canScrollPrev, setCanScrollPrev] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(false)
+  const [isCountdownComplete, setIsCountdownComplete] = useState(false)
 
   const { section, products, countdown } = sectionItem
 
@@ -227,8 +241,8 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
 
   if (products.length === 0) return null
 
-  // Check if countdown should be shown
-  const showCountdown = section.has_countdown && countdown?.end
+  const showCountdown =
+    section.has_countdown && countdown?.end && !isCountdownComplete
 
   return (
     <section className="py-16">
@@ -254,6 +268,7 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
               <CountdownTimer
                 targetDate={countdown.end}
                 variant="default"
+                onComplete={() => setIsCountdownComplete(true)}
                 labels={{
                   days: tCountdown("days"),
                   hours: tCountdown("hours"),

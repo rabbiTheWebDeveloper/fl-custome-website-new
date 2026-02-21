@@ -49,6 +49,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       className={`${inter.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
+      suppressHydrationWarning
     >
       <body className="overflow-x-hidden">
         <NextIntlClientProvider

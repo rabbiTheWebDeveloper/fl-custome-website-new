@@ -5,11 +5,12 @@ import "./globals.css"
 import FooterUI from "./th_3/_components/footer"
 import dynamic from "next/dynamic"
 import { Providers } from "./th_3/providers"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { DynamicMeta } from "./th_3/_components/dynamic-meta"
 import { getDomainMeta } from "@/lib/domain"
 import { Toaster } from "sonner"
 import { GoogleTagManager } from "@next/third-parties/google"
+import { getDomainInfo } from "@/utils/api-helpers"
 
 const Header = dynamic(() => import("./th_3/_components/header"), { ssr: true })
 
@@ -41,6 +42,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const host = (await headers()).get("host") || ""
+  const cleanDomain = host.replace(/^www\./, "")
+  const shopInfo = await getDomainInfo(cleanDomain)
   const { other_script } = await getDomainMeta()
   const cookieStore = await cookies()
   const locale = (cookieStore.get("NEXT_LOCALE")?.value || "en") as "en" | "bn"
@@ -52,12 +56,13 @@ export default async function RootLayout({
       ? (await import("@/messages/bn.json")).default
       : (await import("@/messages/en.json")).default
 
+  console.log(shopInfo?.other_script?.gtm_head, "shopInfo")
   return (
     <html lang={locale} className={`${fontClass} antialiased`}>
       <GoogleTagManager
         gtmId={
-          typeof other_script?.gtm_head === "string"
-            ? other_script.gtm_head
+          typeof shopInfo?.other_script?.gtm_head === "string"
+            ? shopInfo?.other_script?.gtm_head
             : ""
         }
       />
@@ -73,7 +78,7 @@ export default async function RootLayout({
             <div style={{ display: "contents" }}>
               <Header />
               {children}
-              <FooterUI />
+              <FooterUI shopInfo={shopInfo} />
             </div>
           </Providers>
         </NextIntlClientProvider>

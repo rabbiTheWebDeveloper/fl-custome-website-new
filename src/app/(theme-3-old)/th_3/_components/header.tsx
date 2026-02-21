@@ -32,7 +32,6 @@ import { WhatsApp } from "@/app/(theme-2)/th_2/_components/ui/social-icons"
 
 export default function Header() {
   const t = useTranslations("Theme3.header")
-
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)

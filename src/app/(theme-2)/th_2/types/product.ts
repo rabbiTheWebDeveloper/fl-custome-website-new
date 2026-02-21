@@ -32,7 +32,7 @@ export interface IProduct {
   discount: number
   discounted_price: number
   discount_type: string | null
-  flat_discount_percent: number
+  flat_discount_percent: number | string
   delivery_charge: string
   inside_dhaka: number
   outside_dhaka: number

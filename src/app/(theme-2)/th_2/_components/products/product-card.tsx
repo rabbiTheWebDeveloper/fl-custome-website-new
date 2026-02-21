@@ -27,6 +27,12 @@ export const ProductCard = ({
   const t = useTranslations("Theme2.buttons")
   const tToast = useTranslations("Theme2.toast")
 
+  const hasDiscount =
+    typeof flat_discount_percent === "string"
+      ? flat_discount_percent !== "0%" && flat_discount_percent !== "0"
+      : Number(flat_discount_percent) > 0
+  const isStockOut = product_qty <= 0
+
   // Check current quantity in cart
   const cartItem = getItemByProduct(id)
   const currentQuantity = cartItem?.quantity ?? 0
@@ -81,10 +87,19 @@ export const ProductCard = ({
       {/* Product Image Container */}
       <div className="relative aspect-3/4 rounded-2xl overflow-hidden mb-3 bg-gray-100">
         {/* Discount Badge */}
-        {discount > 0 && (
+        {hasDiscount && (
           <div className="absolute top-5 left-3 z-10">
             <span className="bg-[#FFA01C] text-black text-sm font-semibold px-3 py-2 rounded-lg">
               {flat_discount_percent} OFF
+            </span>
+          </div>
+        )}
+
+        {/* Stock Out Badge */}
+        {isStockOut && (
+          <div className="absolute top-5 right-3 z-10">
+            <span className="bg-red-600 text-white text-sm font-semibold px-3 py-2 rounded-lg">
+              STOCK OUT
             </span>
           </div>
         )}
@@ -135,18 +150,20 @@ export const ProductCard = ({
       <div className="space-y-1">
         <h3 className="text-sm font-medium text-gray-900">{name}</h3>
         <div className="flex items-center gap-2">
-          {discount > 0 ? (
-            <span className="text-sm text-gray-500 line-through">
+          {originalPrice > discountedPrice ? (
+            <>
+              <span className="text-sm text-gray-500 line-through">
+                ৳{originalPrice}
+              </span>
+              <span className="text-lg font-semibold text-primary">
+                ৳{discountedPrice}
+              </span>
+            </>
+          ) : (
+            <span className="text-lg font-semibold text-primary">
               ৳{originalPrice}
             </span>
-          ) : (
-            <span className="text-sm text-gray-500">৳{originalPrice}</span>
           )}
-          {discount > 0 ? (
-            <span className="text-lg font-semibold text-primary">
-              ৳{discountedPrice}
-            </span>
-          ) : null}
         </div>
       </div>
     </div>

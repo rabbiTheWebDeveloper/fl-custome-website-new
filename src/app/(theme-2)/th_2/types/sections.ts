@@ -72,5 +72,5 @@ export interface ISectionProduct {
   tags: string[]
   // Additional fields that might be present
   discounted_price?: number
-  flat_discount_percent?: number
+  flat_discount_percent?: number | string
 }

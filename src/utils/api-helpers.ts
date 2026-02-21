@@ -4,7 +4,6 @@ import { headerHostNname, hostDomain, NEXT_REVALIDATE_TIME } from "@/constant"
 import { api } from "@/lib/api-client"
 
 export const getOtherData = async (shopId: string, typeOfPage: string) => {
-   
   const response = await api.getTyped<any>(
     `/shops/content?type=${typeOfPage}`,
     {
@@ -34,6 +33,10 @@ interface DomainInfo {
   shop_logo?: string
   theme_id?: string
   fb_pixel?: string
+  other_script?: {
+    gtm_head?: string
+    [key: string]: string | undefined
+  }
 }
 
 interface ApiResponse<T = any> {

@@ -177,13 +177,7 @@ export function CountdownTimer({
   }
 
   if (timeLeft.isComplete) {
-    return (
-      <div className="flex items-center justify-center rounded-lg bg-destructive/10 px-4 py-3 sm:px-6 sm:py-4">
-        <p className="text-center font-semibold text-destructive">
-          {labels.offerEnded}
-        </p>
-      </div>
-    )
+    return null
   }
 
   if (variant === "minimal") {
