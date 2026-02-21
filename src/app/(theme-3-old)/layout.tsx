@@ -78,8 +78,8 @@ export default async function RootLayout({
             <DynamicMeta />
             <div style={{ display: "contents" }}>
               <Header />
-              {modal}
               {children}
+              {modal}
               <FooterUI shopInfo={shopInfo} />
             </div>
           </Providers>
