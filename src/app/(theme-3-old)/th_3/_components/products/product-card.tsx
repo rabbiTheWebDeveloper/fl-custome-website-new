@@ -77,6 +77,7 @@ export const ProductCard = ({
       <Link
         href={`/product/${ulid}?${slug}`}
         className="relative w-full aspect-square bg-white dark:bg-gray-800 rounded-t-xl overflow-hidden"
+        scroll={false}
       >
         <Image
           src={image || main_image || ""}
@@ -91,7 +92,9 @@ export const ProductCard = ({
       <div className="p-4 flex flex-col flex-1 bg-white dark:bg-gray-800 rounded-b-xl transition-colors">
         {/* Name */}
         <h4 className="text-sm sm:text-base font-semibold mb-1 truncate text-gray-900 dark:text-white">
-          <Link href={`/product/${ulid}?${slug}`}>{name}</Link>
+          <Link href={`/product/${ulid}?${slug}`} scroll={false}>
+            {name}
+          </Link>
         </h4>
 
         {/* Price */}
