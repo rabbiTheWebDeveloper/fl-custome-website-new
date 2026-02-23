@@ -38,7 +38,7 @@ export function CategoryNavigation({
         className={`text-xl md:text-3xl font-semibold ${
           selectedCategoryId === null
             ? "text-foreground"
-            : "text-[#ACACAC] hover:text-primary transition-colors"
+            : "text-muted-foreground/60 hover:text-primary transition-colors"
         }`}
       >
         {onCategorySelect ? (
@@ -59,7 +59,7 @@ export function CategoryNavigation({
           className={`text-xl md:text-3xl font-semibold ${
             selectedCategoryId === category.id
               ? "text-foreground"
-              : "text-[#ACACAC] hover:text-primary transition-colors"
+              : "text-muted-foreground/60 hover:text-primary transition-colors"
           }`}
         >
           {onCategorySelect ? (
@@ -76,7 +76,7 @@ export function CategoryNavigation({
         </li>
       ))}
       {rest.length > 0 && (
-        <li className="text-xl md:text-3xl font-semibold text-[#ACACAC]">
+        <li className="text-xl md:text-3xl font-semibold text-muted-foreground/60">
           <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
               <button

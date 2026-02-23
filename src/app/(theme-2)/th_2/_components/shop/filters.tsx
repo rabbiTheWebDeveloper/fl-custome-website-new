@@ -114,10 +114,7 @@ export const Filters = ({
   return (
     <div className="space-y-5">
       <div className="md:hidden">
-        <Collapsible
-          className="group rounded-[12px] p-4 md:bg-[#F0F0F0]"
-          defaultOpen
-        >
+        <Collapsible className="group rounded-xl p-4 md:bg-muted" defaultOpen>
           <CollapsibleTrigger className="flex items-center justify-between w-full">
             <span className="text-sm font-bold uppercase">Sort By</span>
             <ChevronDownIcon className="size-6 mr-0.5 group-data-[state=open]:hidden" />
@@ -145,15 +142,15 @@ export const Filters = ({
       </div>
 
       <Collapsible
-        className="group rounded-[12px] p-4 md:bg-[#F0F0F0]"
+        className="group rounded-xl p-3 md:bg-muted border md:border-transparent"
         defaultOpen
       >
         <CollapsibleTrigger className="flex items-center justify-between w-full">
-          <span className="text-sm font-bold uppercase">Sort By</span>
-          <ChevronDownIcon className="size-6 mr-0.5 group-data-[state=open]:hidden" />
-          <ChevronUpIcon className="size-6 mr-0.5 group-data-[state=closed]:hidden" />
+          <span className="text-xs font-bold uppercase">Sort By</span>
+          <ChevronDownIcon className="size-4 mr-0.5 group-data-[state=open]:hidden" />
+          <ChevronUpIcon className="size-4 mr-0.5 group-data-[state=closed]:hidden" />
         </CollapsibleTrigger>
-        <CollapsibleContent className="pt-3">
+        <CollapsibleContent className="pt-2">
           <RadioGroup value={sortBy} onValueChange={handleSortChange}>
             {[
               { value: "oldest", label: "Oldest" },
@@ -166,19 +163,19 @@ export const Filters = ({
                 <div
                   key={option.value}
                   className={cn(
-                    "flex items-center gap-3 py-2.5 px-3 rounded-[8px]",
-                    isSelected && "bg-white"
+                    "flex items-center gap-2 py-1.5 px-2 rounded-lg",
+                    isSelected && "bg-background"
                   )}
                 >
                   <RadioGroupItem
                     value={option.value}
                     id={`sort-${option.value}`}
-                    className="size-5"
+                    className="size-4"
                   />
                   <Label
                     htmlFor={`sort-${option.value}`}
                     className={cn(
-                      "text-base cursor-pointer select-none font-medium text-[#595959]",
+                      "text-sm cursor-pointer select-none font-medium text-muted-foreground",
                       isSelected && "text-primary"
                     )}
                   >
@@ -192,21 +189,21 @@ export const Filters = ({
       </Collapsible>
 
       <Collapsible
-        className="group rounded-[12px] p-4 md:bg-[#F0F0F0]"
+        className="group rounded-xl p-3 md:bg-muted border md:border-transparent"
         defaultOpen
       >
         <CollapsibleTrigger className="flex items-center justify-between w-full">
-          <span className="text-sm font-bold uppercase">Price Range</span>
-          <ChevronDownIcon className="size-6 mr-0.5 group-data-[state=open]:hidden" />
-          <ChevronUpIcon className="size-6 mr-0.5 group-data-[state=closed]:hidden" />
+          <span className="text-xs font-bold uppercase">Price Range</span>
+          <ChevronDownIcon className="size-4 mr-0.5 group-data-[state=open]:hidden" />
+          <ChevronUpIcon className="size-4 mr-0.5 group-data-[state=closed]:hidden" />
         </CollapsibleTrigger>
-        <CollapsibleContent className="pt-3">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
+        <CollapsibleContent className="pt-2">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
               <div className="flex-1">
                 <Label
                   htmlFor="price-min"
-                  className="text-xs text-muted-foreground mb-1.5 block"
+                  className="text-[11px] text-muted-foreground mb-1 block"
                 >
                   Min Price (৳)
                 </Label>
@@ -220,13 +217,13 @@ export const Filters = ({
                     handlePriceRangeChange("min", e.target.value)
                   }
                   placeholder="0"
-                  className="w-full"
+                  className="w-full h-8 text-sm"
                 />
               </div>
               <div className="flex-1">
                 <Label
                   htmlFor="price-max"
-                  className="text-xs text-muted-foreground mb-1.5 block"
+                  className="text-[11px] text-muted-foreground mb-1 block"
                 >
                   Max Price (৳)
                 </Label>
@@ -240,19 +237,19 @@ export const Filters = ({
                     handlePriceRangeChange("max", e.target.value)
                   }
                   placeholder="1000000"
-                  className="w-full"
+                  className="w-full h-8 text-sm"
                 />
               </div>
             </div>
-            <div className="text-xs text-muted-foreground text-center">
+            <div className="text-[11px] text-muted-foreground text-center">
               Range: ৳{priceRange.min.toLocaleString()} - ৳
               {priceRange.max.toLocaleString()}
             </div>
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2">
               <Button
                 type="button"
                 size="sm"
-                className="flex-1"
+                className="flex-1 h-8 text-xs"
                 onClick={handlePriceRangeApply}
               >
                 Apply
@@ -262,7 +259,7 @@ export const Filters = ({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 h-8 text-xs"
                   onClick={handlePriceRangeReset}
                 >
                   Reset
@@ -274,33 +271,37 @@ export const Filters = ({
       </Collapsible>
 
       {categories.length > 0 && (
-        <Collapsible className="group rounded-[12px] p-4 md:bg-[#F0F0F0]">
+        <Collapsible className="group rounded-xl p-3 md:bg-muted border md:border-transparent">
           <CollapsibleTrigger className="flex items-center justify-between w-full">
-            <span className="text-sm font-bold uppercase">Category</span>
-            <ChevronDownIcon className="size-6 mr-0.5 group-data-[state=open]:hidden" />
-            <ChevronUpIcon className="size-6 mr-0.5 group-data-[state=closed]:hidden" />
+            <span className="text-xs font-bold uppercase">
+              Category
+              {selectedCategoryIds.length > 0 &&
+                ` (${selectedCategoryIds.length})`}
+            </span>
+            <ChevronDownIcon className="size-4 mr-0.5 group-data-[state=open]:hidden" />
+            <ChevronUpIcon className="size-4 mr-0.5 group-data-[state=closed]:hidden" />
           </CollapsibleTrigger>
-          <CollapsibleContent className="pt-3">
+          <CollapsibleContent className="pt-2">
             {categories.map((cat) => {
               const isChecked = selectedCategoryIds.includes(cat.id)
               return (
                 <div
                   key={cat.id}
                   className={cn(
-                    "flex items-center gap-3 py-2.5 px-3 rounded-[8px]",
-                    isChecked && "bg-white"
+                    "flex items-center gap-2 py-1.5 px-2 rounded-lg",
+                    isChecked && "bg-background"
                   )}
                 >
                   <Checkbox
                     id={`cat-${cat.id}`}
                     checked={isChecked}
                     onCheckedChange={() => handleCategoryToggle(cat.id)}
-                    className="size-5"
+                    className="size-4"
                   />
                   <label
                     htmlFor={`cat-${cat.id}`}
                     className={cn(
-                      "text-base cursor-pointer select-none font-medium text-[#595959]",
+                      "text-sm cursor-pointer select-none font-medium text-muted-foreground",
                       isChecked && "text-primary"
                     )}
                   >
@@ -309,11 +310,11 @@ export const Filters = ({
                 </div>
               )
             })}
-            <div className="flex items-center gap-2 pt-3">
+            <div className="flex items-center gap-2 pt-2">
               <Button
                 type="button"
                 size="sm"
-                className="flex-1"
+                className="flex-1 h-8 text-xs"
                 onClick={handleCategoryApply}
                 disabled={selectedCategoryIds.length === 0}
               >
@@ -324,7 +325,7 @@ export const Filters = ({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 h-8 text-xs"
                   onClick={handleCategoryReset}
                 >
                   Reset

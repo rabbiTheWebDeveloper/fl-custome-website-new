@@ -4,14 +4,7 @@ import type { NextRequest } from "next/server"
 
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const headers = new Headers(request.headers)
-  const isModalNavigation =
-    request.headers.get("next-url")?.includes("/product/") &&
-    request.headers.get("referer")?.includes("/shop")
 
-  if (isModalNavigation) {
-    headers.set("x-modal-navigation", "true")
-  }
   const THEME_MAP: Record<string, string> = {
     "201": "th_3",
   }

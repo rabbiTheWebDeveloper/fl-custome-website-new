@@ -1,116 +1,15 @@
-import { cn } from "@/lib/utils"
 import React from "react"
+import Link from "next/link"
+import { ChevronRight } from "lucide-react"
 import { ProductImageCarousel } from "../../_components/product/product-image-carousel"
-import { PromoBanner } from "../../_components/promo-banner/promo-banner"
 import { ProductsCarousel } from "../../_components/products/products-carousel"
 import { api } from "@/lib/api-client"
 import { IProduct } from "../../types/product"
 import { getDomainHeaders } from "@/lib/domain"
-import { CustomStoreExample } from "@/lib/cart/example"
 import { ProductCartControls } from "../../_components/product/product-cart-controls"
-
-// Fake data - Replace in prod
-const breadcrumbs = [
-  { label: "Shop", href: "#" },
-  { label: "Men", href: "#" },
-  { label: "Hoodie", href: "#" },
-  { label: "Essential Hoodie ", href: "#", current: true },
-]
-
-const productImages = [
-  {
-    id: "1",
-    src: "/temp/slider-1.png",
-    alt: "Essential Hoodie - Main View",
-  },
-  {
-    id: "2",
-    src: "/temp/slider-2.png",
-    alt: "Essential Hoodie - Side View",
-  },
-  {
-    id: "3",
-    src: "/temp/slider-3.png",
-    alt: "Essential Hoodie - Back View",
-  },
-  {
-    id: "4",
-    src: "/temp/slider-4.png",
-    alt: "Essential Hoodie - Detail View",
-  },
-  {
-    id: "5",
-    src: "/temp/temp-slider-1.png",
-    alt: "Essential Hoodie - Lifestyle",
-  },
-]
-
-const swatches = [
-  {
-    type: "color" as const,
-    key: "colors",
-    label: "Colors",
-    options: [
-      { label: "Black", color: "#000000", selected: true },
-      { label: "Blue", color: "#ADD8E6" },
-      { label: "Green", color: "#90EE90" },
-      { label: "Pink", color: "#FFB6C1" },
-      { label: "Yellow", color: "#FFFFE0" },
-    ],
-  },
-  {
-    type: "size" as const,
-    key: "sizes",
-    label: "Size",
-    options: [
-      { label: "XS", selected: true },
-      { label: "S" },
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
-  },
-]
-const productDetails = [
-  {
-    id: 1,
-    title: "Description",
-    type: "paragraph" as const,
-    content:
-      "Soft, airy, and built for all-day chill. This oversized tee gives you that effortless street vibe without trying too hard. Perfect for daily wear, layering, or straight-up lounging.",
-  },
-  {
-    id: 2,
-    title: "Size & Fit",
-    type: "list" as const,
-    items: [
-      "For woman, take your usual size if you want a relaxed fit or a size down if you want a closer fit.",
-      "For man, take your usual size if you want a true to size fit or take a size up if you want a more relaxed fit.",
-      "Our studio model is 5'9'' / 178 cm and wears a size S.",
-      "Our campaign model is 5'8\" 1m73 and wears a size S.",
-    ],
-  },
-  {
-    id: 3,
-    title: "Shipping",
-    type: "list" as const,
-    items: [
-      "During Adidas collaborations the shipping is at customer's charge.",
-      "Ships within 4-6 business days from the order date.",
-      "Worldwide shipping: Duties & taxes included.",
-    ],
-  },
-  {
-    id: 4,
-    title: "Returns",
-    type: "list" as const,
-    items: [
-      "All Adidas items are final sales. Please refer to the size chart before placing your order.",
-      "Refunds available within 14 days of delivery.",
-      "Exchanges available for U.S. customers.",
-    ],
-  },
-]
+import { SocialShareButtons } from "../../_components/product/social-share-buttons"
+import { StickyMobileBar } from "../../_components/product/sticky-mobile-bar"
+import { notFound } from "next/navigation"
 
 export default async function ProductPage({
   params,
@@ -121,35 +20,59 @@ export default async function ProductPage({
 }) {
   const { id: slug } = await params
   const { id: ulid } = await searchParams
-  // Use ?id= query param (ulid) for the API call, fall back to route param (slug)
-  const productId = ulid || slug
-  console.log("Product slug:", slug, "ulid:", ulid, "using:", productId)
+  const validUlid =
+    ulid && ulid !== "undefined" && ulid !== "null" ? ulid : null
+
+  if (!validUlid) {
+    notFound()
+  }
+
   const headers = await getDomainHeaders()
 
-  const response = await api.get(`/customer/products/${productId}`, {
-    headers,
-  })
-  const product: IProduct | undefined = (response.data as { data: IProduct })
-    ?.data
-  console.log("Product Details: ", product)
-  console.log(
-    "Product video_url:",
-    product?.video_url,
-    "type:",
-    typeof product?.video_url
-  )
+  let product: IProduct | undefined
+  try {
+    const response = await api.get(`/customer/products/${validUlid}`, {
+      headers,
+    })
+    product = (response.data as { data: IProduct })?.data
+  } catch {
+    product = undefined
+  }
 
-  // Normalize video_url: API may return string[], string, or null at runtime
-  const rawVideoUrl = product?.video_url as unknown
+  if (!product) {
+    notFound()
+  }
+
+  const rawVideoUrl = product.video_url as unknown
   const videoUrls: string[] = Array.isArray(rawVideoUrl)
     ? rawVideoUrl
     : typeof rawVideoUrl === "string" && rawVideoUrl.trim()
       ? [rawVideoUrl]
       : []
 
+  const hasDiscount = product.price > product.discounted_price
+  const isStockOut = product.product_qty <= 0
+
   return (
-    <main>
+    <main className="animate-in fade-in duration-300">
       <div className="py-6 md:py-10 container">
+        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6">
+          <Link href="/" className="hover:text-foreground transition-colors">
+            Home
+          </Link>
+          <ChevronRight className="size-3.5" />
+          <Link
+            href="/shop"
+            className="hover:text-foreground transition-colors"
+          >
+            Shop
+          </Link>
+          <ChevronRight className="size-3.5" />
+          <span className="text-foreground line-clamp-1">
+            {product.product_name}
+          </span>
+        </nav>
+
         <div className="grid md:grid-cols-7 gap-6 md:gap-12 lg:gap-24">
           <div className="col-span-3">
             <ProductImageCarousel
@@ -159,71 +82,61 @@ export default async function ProductPage({
           </div>
           <div className="overflow-hidden col-span-4">
             <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[44px] font-semibold mt-3">
+              {isStockOut && (
+                <span className="inline-block bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg mb-3">
+                  STOCK OUT
+                </span>
+              )}
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[44px] font-semibold mt-1 leading-tight">
                 {product.product_name}
               </h1>
-              {/* <h2 className="mt-3 text-xl md:text-3xl font-semibold text-primary">
-                {product.price} */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg text-gray-500 line-through">
-                    ৳{product.price}
+              <div className="flex items-center gap-3 mt-3">
+                {hasDiscount ? (
+                  <>
+                    <span className="text-lg text-muted-foreground line-through">
+                      ৳{product.price.toLocaleString()}
+                    </span>
+                    <span className="text-xl md:text-3xl font-semibold text-primary">
+                      ৳{product.discounted_price.toLocaleString()}
+                    </span>
+                    <span className="bg-[#FFA01C] text-black text-xs font-semibold px-2 py-1 rounded-md">
+                      {product.flat_discount_percent} OFF
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xl md:text-3xl font-semibold text-primary">
+                    ৳{product.price.toLocaleString()}
                   </span>
-                  <span className="mt-3 text-xl md:text-3xl font-semibold text-primary">
-                    ৳{product.discounted_price}
-                  </span>
-                </div>
+                )}
               </div>
-              {/* </h2> */}
             </div>
-            <ProductCartControls product={product} swatches={swatches} />
+            <ProductCartControls product={product} />
 
-            <div
-              className="mt-6 md:mt-8 space-y-4 md:space-y-8 w-full max-w-3xl break-words"
-              dangerouslySetInnerHTML={{
-                __html: product.short_description || "",
-              }}
-            />
-            <div
-              className="mt-6 md:mt-8 space-y-4 md:space-y-8 w-full max-w-3xl break-words"
-              dangerouslySetInnerHTML={{
-                __html: product.long_description || "",
-              }}
-            />
-            {/* {productDetails.map((detail) => (
-                <div key={detail.id}>
-                  <h3 className="uppercase font-bold">{detail.title}</h3>
-                  {detail.type === "paragraph" ? (
-                    <p className="mt-3 text-[#595959]">{detail.content}</p>
-                  ) : (
-                    <ul className="list-disc list-inside space-y-1 mt-3 text-[#595959]">
-                      {detail.items.map((item, index) => (
-                        <li className="marker:indent-2" key={index}>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))} */}
-            {/* {product.short_description && (
-                <div>
-                  <h3 className="uppercase font-bold">Description</h3>
-                  <p className="mt-3 text-[#595959]">
-                    {product.short_description}
-                  </p>
-                </div>
-              )} */}
-            {/* </div> */}
+            <SocialShareButtons productName={product.product_name} />
+
+            {product.short_description && (
+              <div
+                className="mt-6 md:mt-8 prose prose-sm max-w-3xl break-words"
+                dangerouslySetInnerHTML={{
+                  __html: product.short_description,
+                }}
+              />
+            )}
+            {product.long_description && (
+              <div
+                className="mt-6 md:mt-8 prose prose-sm max-w-3xl break-words"
+                dangerouslySetInnerHTML={{
+                  __html: product.long_description,
+                }}
+              />
+            )}
           </div>
         </div>
       </div>
 
-      {/* You may also like */}
       <ProductsCarousel title="You may also like" product={product} />
 
-      {/* CTA */}
-      {/* <PromoBanner /> */}
+      <StickyMobileBar product={product} />
     </main>
   )
 }

@@ -14,22 +14,9 @@ import { toast } from "sonner"
 
 interface ProductCartControlsProps {
   product: IProduct
-  swatches?: Array<{
-    type: "color" | "size"
-    key: string
-    label: string
-    options: Array<{ label: string; color?: string; selected?: boolean }>
-  }>
 }
 
-/**
- * Product cart controls component
- * Manages cart input and add to cart button with variant support
- */
-export function ProductCartControls({
-  product,
-  swatches = [],
-}: ProductCartControlsProps) {
+export function ProductCartControls({ product }: ProductCartControlsProps) {
   const router = useRouter()
   const { addItem } = useCart()
   const items = useCartStore((state) => state.items)
@@ -124,11 +111,10 @@ export function ProductCartControls({
 
   return (
     <>
-      {showVariants && swatches.length > 0 && (
+      {showVariants && (
         <div className="mt-8">
           <VariantSelector
             product={product}
-            swatches={swatches}
             onVariantChange={handleVariantChange}
           />
         </div>

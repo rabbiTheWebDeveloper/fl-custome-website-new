@@ -139,6 +139,12 @@ export const CartPopover = () => {
                 {tCheckout("checkout")}
               </Link>
             </Button>
+            <button
+              onClick={() => setOpen(false)}
+              className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer pt-1"
+            >
+              Continue Shopping
+            </button>
           </div>
         )}
       </PopoverContent>

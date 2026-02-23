@@ -20,7 +20,7 @@ interface CountdownTimerProps {
   targetDate: Date | string
   title?: string
   subtitle?: string
-  variant?: "default" | "minimal" | "compact" | "banner"
+  variant?: "default" | "minimal" | "compact" | "banner" | "inline"
   onComplete?: () => void
   labels?: CountdownLabels
 }
@@ -116,6 +116,19 @@ const TimeUnitMinimal = ({
       {String(value).padStart(2, "0")}
     </span>
     <span className="text-xs uppercase tracking-wider text-muted-foreground">
+      {label}
+    </span>
+  </div>
+)
+
+const TimeUnitInline = ({ value, label }: { value: number; label: string }) => (
+  <div className="flex flex-col items-center">
+    <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-md bg-black/30">
+      <span className="text-sm sm:text-base font-bold text-white">
+        {String(value).padStart(2, "0")}
+      </span>
+    </div>
+    <span className="text-[9px] sm:text-[10px] font-medium text-white/70 mt-0.5">
       {label}
     </span>
   </div>
@@ -282,6 +295,35 @@ export function CountdownTimer({
             />
           </div>
         </div>
+      </div>
+    )
+  }
+
+  if (variant === "inline") {
+    return (
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <TimeUnitInline value={timeLeft.days} label={labels.daysShort || "D"} />
+        <span className="text-white/60 font-bold text-sm sm:text-base pb-3">
+          :
+        </span>
+        <TimeUnitInline
+          value={timeLeft.hours}
+          label={labels.hoursShort || "H"}
+        />
+        <span className="text-white/60 font-bold text-sm sm:text-base pb-3">
+          :
+        </span>
+        <TimeUnitInline
+          value={timeLeft.minutes}
+          label={labels.minutesShort || "M"}
+        />
+        <span className="text-white/60 font-bold text-sm sm:text-base pb-3">
+          :
+        </span>
+        <TimeUnitInline
+          value={timeLeft.seconds}
+          label={labels.secondsShort || "S"}
+        />
       </div>
     )
   }
