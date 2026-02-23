@@ -5,7 +5,7 @@ import { linkHrefs } from "../../_constants"
 import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, X } from "lucide-react"
 import { api } from "@/lib/api-client"
 import { ICategoriesApiResponse } from "../../types/categories"
 import { useCategories } from "../../store/categories"
@@ -19,6 +19,26 @@ import { ISectionsApiResponse } from "../../types/sections"
 import { SearchInput } from "./search-input"
 import { LanguageSelector } from "./language-selector"
 import { MobileNav } from "./mobile-nav"
+
+function AnnouncementBar() {
+  const [dismissed, setDismissed] = useState(false)
+  const t = useTranslations("Theme2.header")
+
+  if (dismissed) return null
+
+  return (
+    <div className="bg-primary/70 text-primary-foreground text-center text-xs sm:text-sm py-2 px-4 relative">
+      <span className="font-medium">{t("announcement")}</span>
+      <button
+        onClick={() => setDismissed(true)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-primary-foreground/10 rounded-full transition-colors cursor-pointer"
+        aria-label="Dismiss"
+      >
+        <X className="size-3.5" />
+      </button>
+    </div>
+  )
+}
 
 export const Header = () => {
   const t = useTranslations("Theme2.header")
@@ -96,108 +116,109 @@ export const Header = () => {
   }, [domain, setCategories])
 
   return (
-    <header className="py-4 border-b bg-background border-b-[#E7E7E7] sticky top-0 z-40">
-      <div className="flex items-center justify-between container">
-        {/* Left: Mobile hamburger + Logo */}
-        <div className="flex items-center gap-3">
-          <MobileNav />
-          <Link href="/" className="block">
-            <div className="relative h-12 w-12 md:h-14 md:w-28 max-h-full overflow-hidden">
-              <Image
-                src={
-                  domain?.shop_logo && domain.shop_logo.trim() !== ""
-                    ? domain.shop_logo
-                    : "/placeholder.png"
+    <>
+      <AnnouncementBar />
+      <header className="py-4 border-b bg-background border-b-border sticky top-0 z-40">
+        <div className="flex items-center justify-between container">
+          {/* Left: Mobile hamburger + Logo */}
+          <div className="flex items-center gap-3">
+            <MobileNav />
+            <Link href="/" className="block">
+              <div className="relative h-12 w-12 md:h-14 md:w-28 max-h-full overflow-hidden">
+                <Image
+                  src={
+                    domain?.shop_logo && domain.shop_logo.trim() !== ""
+                      ? domain.shop_logo
+                      : "/placeholder.png"
+                  }
+                  alt={domain?.name || "Shop"}
+                  fill
+                  className="object-contain object-left"
+                  priority
+                />
+              </div>
+            </Link>
+          </div>
+
+          {/* Center: Navigation links (desktop only) */}
+          <ul className="absolute left-1/2 -translate-x-1/2 flex items-center gap-5 font-medium max-md:hidden">
+            {linkHrefs.map((link, index) => (
+              <li
+                key={index}
+                className="relative"
+                onMouseEnter={() =>
+                  link.key === "category" && setShowCategoryDropdown(true)
                 }
-                alt={domain?.name || "Shop"}
-                fill
-                className="object-contain object-left"
-                priority
-              />
-            </div>
-          </Link>
-        </div>
-
-        {/* Center: Navigation links (desktop only) */}
-        <ul className="absolute left-1/2 -translate-x-1/2 flex items-center gap-5 font-medium max-md:hidden">
-          {linkHrefs.map((link, index) => (
-            <li
-              key={index}
-              className="relative"
-              onMouseEnter={() =>
-                link.key === "category" && setShowCategoryDropdown(true)
-              }
-              onMouseLeave={() =>
-                link.key === "category" && setShowCategoryDropdown(false)
-              }
-            >
-              <Link
-                className="hover:text-primary transition-colors whitespace-nowrap"
-                href={link.href}
+                onMouseLeave={() =>
+                  link.key === "category" && setShowCategoryDropdown(false)
+                }
               >
-                {tHeaderFooter(link.key)}
-              </Link>
+                <Link
+                  className="hover:text-primary transition-colors whitespace-nowrap"
+                  href={link.href}
+                >
+                  {tHeaderFooter(link.key)}
+                </Link>
 
-              {link.key === "category" && showCategoryDropdown && (
-                <div className="absolute top-full -left-[calc(50%+25px)] pt-2 z-50">
-                  <div className="flex bg-white shadow-lg rounded-[12px] border">
-                    {/* Main category list */}
-                    <div className="min-w-[250px] p-1">
-                      <ScrollArea className="h-80">
-                        {topLevelCategories?.map((category) => (
-                          <Link
-                            key={category.id}
-                            href={`/shop?category=${category.slug}`}
-                            className={`flex items-center justify-between rounded-[8px] px-3 py-2.5 text-sm font-semibold transition-colors ${
-                              hoveredCategoryId === category.id
-                                ? "text-primary bg-primary/10"
-                                : "hover:text-primary hover:bg-primary/10"
-                            }`}
-                            onMouseEnter={() =>
-                              setHoveredCategoryId(category.id)
-                            }
-                          >
-                            <span>{category.name}</span>
-                            {category.sub_categories?.length > 0 && (
-                              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                            )}
-                          </Link>
-                        ))}
-                      </ScrollArea>
-                    </div>
-
-                    {/* Sub-category panel */}
-                    {subCategories.length > 0 && (
-                      <div className="min-w-[250px] border-l p-1">
+                {link.key === "category" && showCategoryDropdown && (
+                  <div className="absolute top-full -left-[calc(50%+25px)] pt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="flex bg-background shadow-xl rounded-xl border">
+                      <div className="min-w-[250px] p-2">
                         <ScrollArea className="h-80">
-                          {subCategories.map((sub) => (
+                          {topLevelCategories?.map((category) => (
                             <Link
-                              key={sub.id}
-                              href={`/shop?category=${sub.slug}`}
-                              className="block rounded-[8px] px-3 py-2.5 text-sm hover:text-primary hover:bg-primary/10 transition-colors font-medium"
+                              key={category.id}
+                              href={`/shop?category=${category.slug}`}
+                              className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+                                hoveredCategoryId === category.id
+                                  ? "text-primary bg-primary/10"
+                                  : "hover:text-primary hover:bg-primary/5"
+                              }`}
+                              onMouseEnter={() =>
+                                setHoveredCategoryId(category.id)
+                              }
                             >
-                              {sub.name}
+                              <span>{category.name}</span>
+                              {category.sub_categories?.length > 0 && (
+                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                              )}
                             </Link>
                           ))}
                         </ScrollArea>
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2 md:gap-4">
-          <div className="max-md:hidden">
-            <LanguageSelector />
+                      {subCategories.length > 0 && (
+                        <div className="min-w-[250px] border-l p-2">
+                          <ScrollArea className="h-80">
+                            {subCategories.map((sub) => (
+                              <Link
+                                key={sub.id}
+                                href={`/shop?category=${sub.slug}`}
+                                className="block rounded-lg px-3 py-2.5 text-sm hover:text-primary hover:bg-primary/5 transition-colors font-medium"
+                              >
+                                {sub.name}
+                              </Link>
+                            ))}
+                          </ScrollArea>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="max-md:hidden">
+              <LanguageSelector />
+            </div>
+            <SearchInput />
+            <CartPopover />
           </div>
-          <SearchInput />
-          <CartPopover />
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   )
 }

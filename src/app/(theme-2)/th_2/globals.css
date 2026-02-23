@@ -136,4 +136,7 @@
   body {
     @apply bg-background text-foreground overflow-x-hidden;
   }
+  :focus-visible {
+    @apply outline-2 outline-primary/50 outline-offset-2;
+  }
 }

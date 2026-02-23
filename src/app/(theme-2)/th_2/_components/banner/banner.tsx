@@ -2,14 +2,21 @@
 
 import { useCallback, useEffect, useState, useRef } from "react"
 import useEmblaCarousel from "embla-carousel-react"
+import Autoplay from "embla-carousel-autoplay"
 import { Button } from "../ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useDomain } from "../../store/domain"
 import type { ThemeSettingsBannerSlide } from "../../types/shop"
 
 export const Banner = () => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
+  const autoplayPlugin = useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: false, stopOnMouseEnter: true })
+  )
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
+    autoplayPlugin.current,
+  ])
   const [selectedIndex, setSelectedIndex] = useState(0)
   const domain = useDomain((state) => state.domain)
   const slides = (domain?.theme_settings?.banner_slides ?? []).filter((s) =>
@@ -37,7 +44,14 @@ export const Banner = () => {
     [emblaApi]
   )
 
-  // Show default banner when no slides are configured
+  const scrollPrev = useCallback(() => {
+    emblaApi && emblaApi.scrollPrev()
+  }, [emblaApi])
+
+  const scrollNext = useCallback(() => {
+    emblaApi && emblaApi.scrollNext()
+  }, [emblaApi])
+
   if (slides.length === 0) {
     return (
       <Link href="/shop" className="block">
@@ -51,7 +65,7 @@ export const Banner = () => {
   }
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden group/banner">
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
           {slides.map((slide, index) => (
@@ -60,16 +74,36 @@ export const Banner = () => {
         </div>
       </div>
 
+      {/* Navigation Arrows */}
+      {slides.length > 1 && (
+        <>
+          <button
+            onClick={scrollPrev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white rounded-full p-2.5 transition-all opacity-0 group-hover/banner:opacity-100 cursor-pointer"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="size-5 md:size-6" />
+          </button>
+          <button
+            onClick={scrollNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white rounded-full p-2.5 transition-all opacity-0 group-hover/banner:opacity-100 cursor-pointer"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="size-5 md:size-6" />
+          </button>
+        </>
+      )}
+
       {/* Dot Indicators */}
-      <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2 z-10">
+      <div className="absolute bottom-6 md:bottom-8 left-0 right-0 flex justify-center gap-2 z-10">
         {slides.map((_, index) => (
           <button
             key={index}
             type="button"
-            className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
+            className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
               index === selectedIndex
                 ? "bg-white w-8"
-                : "bg-white/50 hover:bg-white/75"
+                : "bg-white/50 hover:bg-white/75 w-2.5"
             }`}
             onClick={() => scrollTo(index)}
             aria-label={`Go to slide ${index + 1}`}

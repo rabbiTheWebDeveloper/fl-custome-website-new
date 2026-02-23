@@ -10,7 +10,7 @@ export function FooterCopyright() {
   const shopName = domain?.name || "Brand Name"
 
   return (
-    <p className="text-sm text-[#595959]">
+    <p className="text-sm text-muted-foreground">
       © {shopName} {currentYear} | {t("allRightsReserved")}
     </p>
   )

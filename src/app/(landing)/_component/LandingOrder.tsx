@@ -2,6 +2,7 @@
 import {
   ShoppingCart,
   Banknote,
+  CreditCard,
   Shield,
   Truck,
   Plus,
@@ -13,7 +14,6 @@ import {
   Instagram,
   Youtube,
 } from "lucide-react"
-import Image from "next/image"
 import { useState, useEffect, CSSProperties } from "react"
 import { useForm, SubmitHandler } from "react-hook-form"
 import { z } from "zod"
@@ -497,12 +497,10 @@ const LandingOrder = ({
               }}
             >
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-xl overflow-hidden relative">
-                  <Image
+                <div className="w-16 h-16 rounded-xl overflow-hidden">
+                  <img
                     src={getProductImage()}
                     alt={product.product_name}
-                    width={64}
-                    height={64}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -579,12 +577,10 @@ const LandingOrder = ({
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <div className="w-20 h-20 rounded-lg overflow-hidden relative">
-                                <Image
+                              <div className="w-20 h-20 rounded-lg overflow-hidden">
+                                <img
                                   src={getProductImage(variant.media)}
                                   alt={variant.variant}
-                                  width={80}
-                                  height={80}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
@@ -965,6 +961,72 @@ const LandingOrder = ({
                   </div>
                 </button>
               </div>
+
+              {/* Online Payment */}
+              <div>
+                <button
+                  onClick={() => setSelectedPayment("bkash")}
+                  className={`w-full p-4 rounded-xl border-2 transition-all mb-4 ${selectedPayment === "bkash" ? "ring-2 ring-offset-2" : "hover:border-gray-400"}`}
+                  style={
+                    {
+                      borderColor:
+                        selectedPayment === "bkash"
+                          ? checkout_button_color || btnColor
+                          : "#e5e7eb",
+                      "--tw-ring-color": checkout_button_color || btnColor,
+                    } as CSSProperties
+                  }
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-12 h-12 flex items-center justify-center rounded-lg text-white font-bold"
+                        style={{
+                          backgroundColor: checkout_button_color || btnColor,
+                        }}
+                      >
+                        bK
+                      </div>
+                      <div className="text-left">
+                        <p
+                          className="font-bold"
+                          style={{ color: checkout_text_color || fontColor }}
+                        >
+                          bKash Payment
+                        </p>
+                        <p
+                          className="text-sm"
+                          style={{
+                            color: checkout_text_color
+                              ? `${checkout_text_color}90`
+                              : "#6b7280",
+                          }}
+                        >
+                          Secure online payment
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedPayment === "bkash" ? "" : "border-gray-300"}`}
+                      style={{
+                        backgroundColor:
+                          selectedPayment === "bkash"
+                            ? checkout_button_color || btnColor
+                            : "transparent",
+                        borderColor:
+                          selectedPayment === "bkash"
+                            ? checkout_button_color || btnColor
+                            : "#d1d5db",
+                      }}
+                    >
+                      {selectedPayment === "bkash" && (
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              </div>
+
               {/* Security Note */}
               <div
                 className="mt-6 pt-6 border-t flex items-start gap-3"
@@ -1390,6 +1452,40 @@ const LandingOrder = ({
                   )}
                 </button>
               </form>
+
+              {/* Additional Info */}
+              <div className="mt-6 space-y-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <Truck
+                    size={16}
+                    style={{ color: checkout_text_color || fontColor }}
+                  />
+                  <p
+                    style={{
+                      color: checkout_text_color
+                        ? `${checkout_text_color}90`
+                        : "#6b7280",
+                    }}
+                  >
+                    Estimated delivery: 2-5 business days
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CreditCard
+                    size={16}
+                    style={{ color: checkout_text_color || fontColor }}
+                  />
+                  <p
+                    style={{
+                      color: checkout_text_color
+                        ? `${checkout_text_color}90`
+                        : "#6b7280",
+                    }}
+                  >
+                    Secure SSL encrypted payment
+                  </p>
+                </div>
+              </div>
 
               {/* Social Media Links */}
               {hasSocialMedia && (

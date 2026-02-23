@@ -32,6 +32,28 @@ import {
   ISectionProduct,
 } from "../../types/sections"
 
+function ProductCardSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="aspect-3/4 rounded-2xl bg-muted mb-3" />
+      <div className="space-y-2 px-1">
+        <div className="h-4 bg-muted rounded w-3/4" />
+        <div className="h-5 bg-muted rounded w-1/3" />
+      </div>
+    </div>
+  )
+}
+
+function ProductGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <ProductCardSkeleton key={i} />
+      ))}
+    </div>
+  )
+}
+
 /**
  * Maps an ISectionProduct to an IProduct with defaults for missing fields
  */
@@ -459,13 +481,7 @@ export function ShopContent({
     const params = new URLSearchParams(searchParams.toString())
 
     if (categoryId === null) {
-      // Clear category, search, price, and category filter when showing all products
-      params.delete("catId")
-      params.delete("search")
-      params.delete("min_price")
-      params.delete("max_price")
-      params.delete("category_ids")
-      router.push(`/shop?${params.toString()}`, { scroll: false })
+      router.push("/shop", { scroll: false })
 
       // Reset to initial state immediately
       setProducts(Array.isArray(initialProducts) ? initialProducts : [])
@@ -572,9 +588,7 @@ export function ShopContent({
         </div>
         <div className="pb-10">
           {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <p className="text-muted-foreground">Loading products...</p>
-            </div>
+            <ProductGridSkeleton />
           ) : products.length === 0 ? (
             <div className="flex flex-col justify-center items-center py-20">
               <p className="text-xl md:text-2xl font-semibold text-muted-foreground mb-2">
@@ -665,9 +679,7 @@ export function ShopContent({
         </div>
         <div className="md:col-span-2 xl:col-span-4 pb-10">
           {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <p className="text-muted-foreground">Loading products...</p>
-            </div>
+            <ProductGridSkeleton />
           ) : categoryFilter &&
             categoryFilter.length > 0 &&
             products.length === 0 ? (
@@ -737,18 +749,24 @@ export function ShopContent({
             </div>
           ) : (
             <>
-              {searchQuery && (
-                <div className="mb-6">
-                  <p className="text-sm text-muted-foreground">
-                    Showing {products.length} result
-                    {products.length !== 1 ? "s" : ""} for &quot;
-                    <span className="font-semibold text-foreground">
-                      {searchQuery}
-                    </span>
-                    &quot;
-                  </p>
-                </div>
-              )}
+              <div className="mb-6">
+                <p className="text-sm text-muted-foreground">
+                  {searchQuery ? (
+                    <>
+                      Showing {products.length} result
+                      {products.length !== 1 ? "s" : ""} for &quot;
+                      <span className="font-semibold text-foreground">
+                        {searchQuery}
+                      </span>
+                      &quot;
+                    </>
+                  ) : (
+                    <>
+                      Showing {products.length} of {pagination.total} products
+                    </>
+                  )}
+                </p>
+              </div>
               <ProductList
                 products={products}
                 hasMore={!!pagination.next_page_url}

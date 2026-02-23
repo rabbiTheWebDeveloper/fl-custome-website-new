@@ -12,7 +12,7 @@ export const FeatureCard = ({
   description,
 }: FeatureCardProps) => {
   return (
-    <div className="bg-[#F9F9F9] rounded-lg p-6">
+    <div className="bg-muted/60 rounded-xl p-6 border border-transparent hover:border-border transition-colors">
       <div className="flex mb-4">
         <div className="flex">
           <Icon className="size-8 text-primary" />

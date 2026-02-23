@@ -1,30 +1,17 @@
 import { API_ENDPOINTS } from "@/config/ApiEndpoints"
 import {
   getDomainAndShopInfoOrderSuccess,
-  getDomainInfo,
   getLandingPageData,
 } from "@/utils/api-helpers"
+import { headers } from "next/headers"
 import { notFound } from "next/navigation"
+import LandingRenderer from "../../_component/LandingRenderer"
 import LandingOrder from "../../_component/LandingOrder"
-import ShadowRoot from "../../_component/ShadowRoot"
-import parse from "html-react-parser"
-import { getCleanDomain } from "@/utils/domain"
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params
-  const cleanDomain = await getCleanDomain()
-  const shopInfo = await getDomainInfo(cleanDomain)
-  return {
-    title: slug + " | " + shopInfo?.shop_meta_title,
-    description: shopInfo?.shop_meta_description || "",
-  }
-}
 const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
+  const headerList = await headers()
+  const host = headerList.get("host") as string
   const { slug } = await params
-  const cleanDomain = await getCleanDomain()
+  const cleanDomain = host.replace(/^www\./, "")
   const domainData = await getDomainAndShopInfoOrderSuccess(cleanDomain)
   if (!domainData) return notFound()
   const { domainInfo, shopId } = domainData
@@ -38,15 +25,11 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     product,
     checkout_button_text,
   } = landingPageInfo || {}
-  let htmlContent = landingPageInfo?.page_content || ""
+
+  console.log("landingPageInfo", landingPageInfo.page_link)
   if (!landingPageInfo) return notFound()
-  if (landingPageInfo.page_url) {
-    const res = await fetch(landingPageInfo.page_url, {
-      cache: "no-store", // important for dynamic pages
-    })
-    const html = await res.text()
-    htmlContent = html
-  }
+
+  let htmlContent = landingPageInfo?.page_content || ""
   // If no page_content, fetch template
   if (!htmlContent) {
     try {
@@ -58,30 +41,33 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
         }
       )
       if (!templateData.ok) {
-        notFound()
+        // notFound();
       }
+      // console.log("Fetching template from:", templateData)
       htmlContent = await templateData.text()
     } catch {
       notFound()
     }
   }
 
-  const headMatch = htmlContent.match(/<head[^>]*>([\s\S]*?)<\/head>/i)
-  const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
-  const headContent = headMatch ? headMatch[1] : ""
-  const bodyContent = bodyMatch ? bodyMatch[1] : ""
-  // Parse HTML strings into React components with trim option to remove whitespace text nodes
-  const reactHead = parse(headContent.trim(), {
-    trim: true,
-  })
-  const reactBody = parse(bodyContent.trim())
+  //   // Extract head and body content
+  //   const headMatch = htmlContent.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+  //   const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  //   const headContent = headMatch ? headMatch[1] : "";
+  //   const bodyContent = bodyMatch ? bodyMatch[1] : "";
+  const res = await fetch(
+    "https://funnelliner-bucket.s3.ap-southeast-1.amazonaws.com/funnelliner/xauCbvJq6hx0E03pjQsCeowdUmTx0FCpUVv3xGbD.html",
+    {
+      cache: "no-store", // important for dynamic pages
+    }
+  )
 
+  const html = await res.text()
+  // console.log("html", html)
   return (
     <>
-      <ShadowRoot>
-        {reactHead}
-        {reactBody}
-      </ShadowRoot>
+      <LandingRenderer html={htmlContent} />
+      {/* <div dangerouslySetInnerHTML={{ __html: htmlContent }} /> */}
       <LandingOrder
         product={product}
         backgroundColor={checkout_b_color || "#f7f7f7"}

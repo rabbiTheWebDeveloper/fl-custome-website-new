@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import useEmblaCarousel from "embla-carousel-react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { Button } from "../ui/button"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
@@ -13,6 +13,7 @@ import { CountdownTimer } from "../ui/countdown-timer"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/lib/cart"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 interface SectionProductCardProps {
   product: ISectionProduct
@@ -23,6 +24,7 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
   const tToast = useTranslations("Theme2.toast")
   const router = useRouter()
   const { addItem, getItemByProduct } = useCart()
+  const [isAdding, setIsAdding] = useState(false)
 
   const discountedPrice = product.discounted_price ?? product.price
   const originalPrice = product.price
@@ -56,6 +58,7 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
       return
     }
 
+    setIsAdding(true)
     try {
       await addItem({
         productId: product.id,
@@ -76,20 +79,39 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
     } catch (error) {
       console.error("Failed to add item to cart:", error)
       toast.error(tToast("addToCartError"))
+    } finally {
+      setIsAdding(false)
     }
   }
 
   return (
     <div
-      className="group relative cursor-pointer"
-      onClick={() => router.push(`/product/${product.slug}?id=${product.ulid}`)}
+      className="group relative cursor-pointer transition-shadow duration-300 hover:shadow-[0_0_15px_rgba(0,0,0,0.1)] rounded-lg border border-border bg-card p-2"
+      onClick={() => {
+        if (product.ulid)
+          router.push(`/product/${product.slug}?id=${product.ulid}`)
+      }}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          if (product.ulid)
+            router.push(`/product/${product.slug}?id=${product.ulid}`)
+        }
+      }}
     >
       {/* Product Image Container */}
-      <div className="relative aspect-3/4 rounded-2xl overflow-hidden mb-3 bg-gray-100">
+      <div
+        className={cn(
+          "relative aspect-square rounded-md overflow-hidden bg-muted",
+          isStockOut && "opacity-60 grayscale"
+        )}
+      >
         {/* Discount Badge */}
         {hasDiscount && (
-          <div className="absolute top-5 left-3 z-10">
-            <span className="bg-[#FFA01C] text-black text-sm font-semibold px-3 py-2 rounded-lg">
+          <div className="absolute top-3 left-3 z-10">
+            <span className="bg-[#FFA01C] text-black text-xs md:text-sm font-semibold px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg">
               {discountLabel} OFF
             </span>
           </div>
@@ -97,8 +119,8 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
 
         {/* Stock Out Badge */}
         {isStockOut && (
-          <div className="absolute top-5 right-3 z-10">
-            <span className="bg-red-600 text-white text-sm font-semibold px-3 py-2 rounded-lg">
+          <div className="absolute top-3 right-3 z-10">
+            <span className="bg-red-600 text-white text-xs md:text-sm font-semibold px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg">
               STOCK OUT
             </span>
           </div>
@@ -116,37 +138,45 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
         )}
         <div className="size-full inset-0 absolute bg-linear-to-b from-transparent via-transparent to-black/20 transition-opacity duration-300 opacity-0 group-hover:opacity-100" />
 
-        {/* Add to Cart Button - appears on hover */}
-        <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Button
-            size="lg"
-            className="w-full bg-white text-black hover:bg-gray-100 rounded-xl py-6 md:text-base"
-            onClick={handleAddToCart}
-            disabled={isAtMax}
-          >
-            {isAtMax ? "Stock Out" : t("addToCart")}
-          </Button>
-        </div>
+        {/* Add to Cart Button - always visible on mobile, hover on desktop */}
+        {!isStockOut && (
+          <div className="absolute bottom-2 left-2 right-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+            <Button
+              size="sm"
+              className="w-full bg-white text-black hover:bg-gray-100 rounded-lg text-xs md:text-sm py-2"
+              onClick={handleAddToCart}
+              disabled={isAtMax || isAdding}
+            >
+              {isAdding ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : isAtMax ? (
+                t("maxQuantity")
+              ) : (
+                t("addToCart")
+              )}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Product Info */}
-      <div className="space-y-1">
-        <h3 className="text-sm font-medium text-gray-900">
+      <div className="space-y-1 pt-2">
+        <h3 className="text-sm md:text-base font-medium text-foreground line-clamp-2">
           {product.product_name}
         </h3>
         <div className="flex items-center gap-2">
           {originalPrice > discountedPrice ? (
             <>
-              <span className="text-sm text-gray-500 line-through">
-                ৳{originalPrice}
+              <span className="text-sm text-muted-foreground line-through">
+                ৳{originalPrice.toLocaleString()}
               </span>
-              <span className="text-lg font-semibold text-primary">
-                ৳{discountedPrice}
+              <span className="text-base md:text-lg font-semibold text-primary">
+                ৳{discountedPrice.toLocaleString()}
               </span>
             </>
           ) : (
-            <span className="text-lg font-semibold text-primary">
-              ৳{originalPrice}
+            <span className="text-base md:text-lg font-semibold text-primary">
+              ৳{originalPrice.toLocaleString()}
             </span>
           )}
         </div>
@@ -181,10 +211,10 @@ const SectionDescription = ({ description }: { description: string }) => {
   )
 }
 
-// Split products into slides with 2 rows of 4 products each
+// Split products into slides with 2 rows of 5 products each
 const createSlides = (products: ISectionProduct[]) => {
   const slides = []
-  const productsPerRow = 4
+  const productsPerRow = 5
   const rowsPerSlide = 2
   const productsPerSlide = productsPerRow * rowsPerSlide
 
@@ -245,29 +275,18 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
     section.has_countdown && countdown?.end && !isCountdownComplete
 
   return (
-    <section className="py-16">
+    <section className="py-10 md:py-16">
       <div className="container">
-        {/* Header */}
-        <div className="flex md:items-center justify-between mb-8 max-md:flex-col max-md:items-center max-md:text-center max-md:gap-4 overflow-hidden">
-          {/* Title - Left */}
-          <div className="min-w-0 md:shrink-0 md:max-w-sm">
-            <h2 className="text-xl md:text-4xl font-bold break-words">
+        {/* Header Bar */}
+        <div className="bg-primary/70 border-b border-border rounded-t-xl px-4 py-3 md:px-6 md:py-4 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-4 md:gap-6 flex-wrap">
+            <h2 className="text-lg md:text-2xl font-bold text-white whitespace-nowrap">
               {section.name}
             </h2>
-            {section.description && (
-              <SectionDescription description={section.description} />
-            )}
-          </div>
-
-          {/* Countdown - Center */}
-          {showCountdown && (
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                {tCountdown("endsIn")}
-              </span>
+            {showCountdown && (
               <CountdownTimer
                 targetDate={countdown.end}
-                variant="default"
+                variant="inline"
                 onComplete={() => setIsCountdownComplete(true)}
                 labels={{
                   days: tCountdown("days"),
@@ -283,15 +302,12 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
                   offerEnded: tCountdown("offerEnded"),
                 }}
               />
-            </div>
-          )}
-
-          {/* Buttons - Right */}
-          <div className="flex items-center gap-4 shrink-0 flex-wrap max-md:justify-center">
+            )}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
             <Button
-              size="lg"
-              className="md:text-base font-semibold py-6"
-              variant="secondary"
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs md:text-sm font-semibold px-4 py-2 rounded-sm shadow-sm"
               asChild
             >
               <Link
@@ -300,54 +316,64 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
                 {t("seeAll")}
               </Link>
             </Button>
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <Button
                 onClick={scrollPrev}
                 disabled={!canScrollPrev}
-                size="lg"
-                className="md:text-base font-semibold py-6"
-                variant="secondary"
+                size="icon"
+                variant="ghost"
+                className="size-8 text-white hover:bg-white/10 disabled:opacity-30"
               >
-                <ChevronLeft className="size-6" />
+                <ChevronLeft className="size-4" />
                 <span className="sr-only">{t("slidePrevious")}</span>
               </Button>
               <Button
                 onClick={scrollNext}
                 disabled={!canScrollNext}
-                size="lg"
-                className="md:text-base font-semibold py-6"
-                variant="secondary"
+                size="icon"
+                variant="ghost"
+                className="size-8 text-white hover:bg-white/10 disabled:opacity-30"
               >
-                <ChevronRight className="size-6" />
+                <ChevronRight className="size-4" />
                 <span className="sr-only">{t("slideNext")}</span>
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Carousel with 2 rows per slide */}
-        <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex">
-            {slides.map((slide, slideIndex) => (
-              <div key={slideIndex} className="flex-[0_0_100%] min-w-0">
-                {/* Row 1 */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-3 md:mb-6">
-                  {slide.row1.map((product) => (
-                    <SectionProductCard key={product.id} product={product} />
-                  ))}
-                </div>
-                {/* Row 2 */}
-                {slide.row2.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                    {slide.row2.map((product) => (
+        {/* Product Grid with border */}
+        <div className="border border-t-0 border-border rounded-b-xl p-3 md:p-4">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex">
+              {slides.map((slide, slideIndex) => (
+                <div key={slideIndex} className="flex-[0_0_100%] min-w-0">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-3 md:mb-4">
+                    {slide.row1.map((product) => (
                       <SectionProductCard key={product.id} product={product} />
                     ))}
                   </div>
-                )}
-              </div>
-            ))}
+                  {slide.row2.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                      {slide.row2.map((product) => (
+                        <SectionProductCard
+                          key={product.id}
+                          product={product}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* Description below */}
+        {section.description && (
+          <div className="mt-3">
+            <SectionDescription description={section.description} />
+          </div>
+        )}
       </div>
     </section>
   )

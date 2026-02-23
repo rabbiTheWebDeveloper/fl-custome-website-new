@@ -103,7 +103,7 @@ export function ProductCartControls({
       }
 
       // Redirect to checkout
-      window.location.href = "/checkout"
+      router.push("/checkout")
     } catch (error) {
       console.error("Failed to add item to cart:", error)
     }

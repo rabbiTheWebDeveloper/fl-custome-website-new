@@ -7,64 +7,87 @@ import { FooterCopyright } from "./footer-copyright"
 import { FooterSocials } from "./footer-socials"
 import { FooterCategories } from "./footer-categories"
 
+function PaymentIcons() {
+  return (
+    <div className="flex items-center gap-3 mt-6 opacity-60">
+      <span className="text-xs text-muted-foreground uppercase tracking-wide">
+        We accept:
+      </span>
+      <div className="flex items-center gap-2">
+        {["bKash", "Nagad", "Visa", "COD"].map((method) => (
+          <span
+            key={method}
+            className="text-[10px] font-semibold px-2 py-1 bg-background border rounded text-muted-foreground"
+          >
+            {method}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export async function Footer() {
   const t = await getTranslations("Theme2.footer")
   const tHeaderFooter = await getTranslations("Theme2.headerFooter")
 
   return (
-    <footer className="bg-[#F9F9F9]">
-      <div className="container pt-12 pb-6">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {/* Brand & Social */}
+    <footer className="bg-muted/60">
+      <div className="container pt-14 pb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
           <div>
             <FooterBrandLogo />
-
             <FooterSocials />
+            <PaymentIcons />
           </div>
 
-          {/* Navigation */}
           <div>
-            <h4 className="font-bold text-[#595959] mb-4 uppercase">
+            <h4 className="font-bold text-muted-foreground mb-5 uppercase text-sm tracking-wide">
               {t("navigation")}
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {footerNavigationHrefs.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href}>{tHeaderFooter(link.key)}</Link>
+                  <Link
+                    href={link.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {tHeaderFooter(link.key)}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Categories */}
           <FooterCategories />
 
-          {/* Legals */}
           <div>
-            <h4 className="font-bold text-[#595959] mb-4 uppercase">
+            <h4 className="font-bold text-muted-foreground mb-5 uppercase text-sm tracking-wide">
               {t("legals")}
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {footerLegalsHrefs.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href}>{tHeaderFooter(link.key)}</Link>
+                  <Link
+                    href={link.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {tHeaderFooter(link.key)}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4">
           <FooterCopyright />
-          <div className="flex items-center gap-2 bg-[#894bca] rounded-[8px] text-white p-1">
-            <p className="pl-1">Made by</p>
-
+          <div className="flex items-center gap-2 bg-[#7f49d4] rounded-lg text-primary-foreground p-1">
+            <p className="pl-1 text-sm">Made by</p>
             <a
               href="https://funnelliner.com/"
               target="_blank"
-              className="py-1 px-2 bg-white text-[#8c00ff] rounded-[6px]"
+              className="py-1 px-2 bg-white text-[#7f49d4] rounded-md"
             >
               <FunnellinerLogo className="h-5" />
             </a>

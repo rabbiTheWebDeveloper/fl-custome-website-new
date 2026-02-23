@@ -876,12 +876,12 @@ export function CheckoutForm() {
                     htmlFor="inside-dhaka"
                     className={cn(
                       "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                      shippingMethod === "inside-dhaka" && "bg-[#F6E5FF]"
+                      shippingMethod === "inside-dhaka" && "bg-primary/10"
                     )}
                   >
                     <div className="flex items-center gap-3">
                       <RadioGroupItem value="inside-dhaka" id="inside-dhaka" />
-                      <span className="text-[#595959]">
+                      <span className="text-muted-foreground">
                         {tCheckout("insideDhaka")}
                       </span>
                     </div>
@@ -897,12 +897,12 @@ export function CheckoutForm() {
                     htmlFor="subarea"
                     className={cn(
                       "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                      shippingMethod === "subarea" && "bg-[#F6E5FF]"
+                      shippingMethod === "subarea" && "bg-primary/10"
                     )}
                   >
                     <div className="flex items-center gap-3">
                       <RadioGroupItem value="subarea" id="subarea" />
-                      <span className="text-[#595959]">
+                      <span className="text-muted-foreground">
                         {tCheckout("subarea")}
                       </span>
                     </div>
@@ -918,7 +918,7 @@ export function CheckoutForm() {
                     htmlFor="outside-dhaka"
                     className={cn(
                       "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                      shippingMethod === "outside-dhaka" && "bg-[#F6E5FF]"
+                      shippingMethod === "outside-dhaka" && "bg-primary/10"
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -926,7 +926,7 @@ export function CheckoutForm() {
                         value="outside-dhaka"
                         id="outside-dhaka"
                       />
-                      <span className="text-[#595959]">
+                      <span className="text-muted-foreground">
                         {tCheckout("outsideDhaka")}
                       </span>
                     </div>
@@ -1040,7 +1040,7 @@ export function CheckoutForm() {
                     htmlFor="cash-on-delivery"
                     className={cn(
                       "px-4 py-2 flex items-center justify-between text-lg cursor-pointer",
-                      paymentMethod === "cash-on-delivery" && "bg-[#F6E5FF]"
+                      paymentMethod === "cash-on-delivery" && "bg-primary/10"
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -1048,7 +1048,7 @@ export function CheckoutForm() {
                         value="cash-on-delivery"
                         id="cash-on-delivery"
                       />
-                      <span className="text-[#595959] max-md:text-sm">
+                      <span className="text-muted-foreground max-md:text-sm">
                         {tCheckout("cashOnDelivery")}
                       </span>
                     </div>
@@ -1065,7 +1065,7 @@ export function CheckoutForm() {
                         htmlFor={gateway.provider}
                         className={cn(
                           "px-4 py-2 flex items-center justify-between text-lg cursor-pointer",
-                          paymentMethod === gateway.provider && "bg-[#F6E5FF]"
+                          paymentMethod === gateway.provider && "bg-primary/10"
                         )}
                       >
                         <div className="flex items-center gap-3">
@@ -1073,7 +1073,7 @@ export function CheckoutForm() {
                             value={gateway.provider}
                             id={gateway.provider}
                           />
-                          <span className="text-[#595959] max-md:text-sm">
+                          <span className="text-muted-foreground max-md:text-sm">
                             {providerConfig.label}
                           </span>
                         </div>

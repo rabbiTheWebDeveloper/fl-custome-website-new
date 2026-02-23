@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart"
-import React from "react"
+import React, { useState } from "react"
+import { Loader2 } from "lucide-react"
 import { IProduct } from "../../types/product"
 import type { CartItemVariant } from "@/lib/cart"
 import { useTranslations } from "next-intl"
@@ -20,30 +21,29 @@ function AddToCartButton({
   maxQuantity,
 }: AddToCartButtonProps) {
   const { addItem, getItemByProduct } = useCart()
+  const [isAdding, setIsAdding] = useState(false)
   const t = useTranslations("Theme2.buttons")
   const tToast = useTranslations("Theme2.toast")
 
   if (!product) return null
 
-  // Check current quantity in cart
   const cartItem = getItemByProduct(product.id, variants)
   const currentQuantity = cartItem?.quantity ?? 0
 
   const handleAddToCart = async () => {
     const maxQty = maxQuantity ?? product.product_qty
 
-    // Check if product is out of stock
     if (maxQty === 0) {
       toast.error(tToast("outOfStock"))
       return
     }
 
-    // Check if we've reached max quantity
     if (maxQty && currentQuantity >= maxQty) {
       toast.warning(tToast("maxQuantityReached"))
       return
     }
 
+    setIsAdding(true)
     try {
       await addItem({
         productId: product.id,
@@ -68,10 +68,11 @@ function AddToCartButton({
     } catch (error) {
       console.error("Failed to add item to cart:", error)
       toast.error(tToast("addToCartError"))
+    } finally {
+      setIsAdding(false)
     }
   }
 
-  // Disable button if at max quantity or out of stock
   const isAtMax =
     (maxQuantity ?? product.product_qty) === 0 ||
     (maxQuantity
@@ -85,9 +86,15 @@ function AddToCartButton({
       size="lg"
       className="h-13 rounded-xl text-base font-medium bg-black md:flex-1 min-w-0 max-md:w-full"
       onClick={handleAddToCart}
-      disabled={isAtMax}
+      disabled={isAtMax || isAdding}
     >
-      {isAtMax ? t("maxQuantity") : t("addToCart")}
+      {isAdding ? (
+        <Loader2 className="size-5 animate-spin" />
+      ) : isAtMax ? (
+        t("maxQuantity")
+      ) : (
+        t("addToCart")
+      )}
     </Button>
   )
 }

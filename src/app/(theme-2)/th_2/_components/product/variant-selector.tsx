@@ -1,26 +1,42 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import { Check } from "lucide-react"
 import { useState } from "react"
 import { IProduct } from "../../types/product"
 
-interface Option {
-  label: string
-  color?: string
-  selected?: boolean
-}
-
-interface Swatch {
-  type: "color" | "size"
-  key: string
-  label: string
-  options: Option[]
-}
-
 interface VariantSelectorProps {
-  swatches: Swatch[]
   onVariantChange?: (key: string, label: string) => void
   product: IProduct
+}
+
+const COLOR_MAP: Record<string, string> = {
+  black: "#000000",
+  white: "#FFFFFF",
+  red: "#EF4444",
+  blue: "#3B82F6",
+  green: "#22C55E",
+  yellow: "#EAB308",
+  pink: "#EC4899",
+  purple: "#A855F7",
+  orange: "#F97316",
+  gray: "#6B7280",
+  grey: "#6B7280",
+  brown: "#92400E",
+  navy: "#1E3A5F",
+  maroon: "#800000",
+  beige: "#F5F5DC",
+}
+
+function isColorAttribute(key: string): boolean {
+  return /color|colour|রং/i.test(key)
+}
+
+function getColorHex(label: string): string | null {
+  const normalized = label.toLowerCase().trim()
+  if (COLOR_MAP[normalized]) return COLOR_MAP[normalized]
+  if (/^#[0-9a-f]{3,8}$/i.test(normalized)) return normalized
+  return null
 }
 
 export function VariantSelector({
@@ -31,12 +47,13 @@ export function VariantSelector({
     Record<string, string>
   >(() => {
     const initial: Record<string, string> = {}
-    Array.isArray(product.attributes) &&
-      product.attributes.forEach((option) => {
-        option.values.forEach((value) => {
-          initial[value.value] = value.value
-        })
+    if (Array.isArray(product.attributes)) {
+      product.attributes.forEach((attr) => {
+        if (attr.values?.length > 0) {
+          initial[attr.key] = attr.values[0].value
+        }
       })
+    }
     return initial
   })
 
@@ -48,37 +65,76 @@ export function VariantSelector({
     onVariantChange?.(optionKey, optionValue)
   }
 
-  console.log("Selected Variants:", selectedVariants)
-
-  // console.log(
-  //   "Product:",
-  //   Array.isArray(product.attributes) ? product.attributes : []
-  // )
+  if (!Array.isArray(product.attributes)) return null
 
   return (
-    <>
-      {Array.isArray(product.attributes) &&
-        product.attributes.map((option) => (
+    <div className="space-y-5">
+      {product.attributes.map((option) => {
+        const isColor = isColorAttribute(option.key)
+        return (
           <div key={option.key}>
-            <h3 className="text-lg font-semibold mb-3">{option.key}</h3>
-            <div className="flex gap-3 flex-wrap">
-              {option.values.map((value, index) => (
-                <button
-                  key={`${option.key}-${value.value}`}
-                  onClick={() => handleVariantSelect(option.key, value.value)}
-                  className={cn(
-                    "px-6 py-2 rounded-lg font-medium transition-colors cursor-pointer",
-                    selectedVariants[option.key] === value.value
-                      ? "bg-black text-white"
-                      : "bg-secondary"
-                  )}
-                >
-                  {value.value}
-                </button>
-              ))}
+            <h3 className="text-sm font-semibold mb-2.5 uppercase tracking-wide text-muted-foreground">
+              {option.key}
+              {selectedVariants[option.key] && (
+                <span className="ml-2 text-foreground normal-case tracking-normal">
+                  {selectedVariants[option.key]}
+                </span>
+              )}
+            </h3>
+            <div className="flex gap-2.5 flex-wrap">
+              {option.values.map((value) => {
+                const isSelected = selectedVariants[option.key] === value.value
+                const colorHex = isColor ? getColorHex(value.value) : null
+
+                if (isColor && colorHex) {
+                  return (
+                    <button
+                      key={`${option.key}-${value.value}`}
+                      onClick={() =>
+                        handleVariantSelect(option.key, value.value)
+                      }
+                      className={cn(
+                        "relative size-9 rounded-full cursor-pointer transition-all",
+                        isSelected && "ring-2 ring-primary ring-offset-2"
+                      )}
+                      style={{ backgroundColor: colorHex }}
+                      title={value.value}
+                    >
+                      {isSelected && (
+                        <Check
+                          className={cn(
+                            "absolute inset-0 m-auto size-4",
+                            colorHex === "#000000" ||
+                              colorHex === "#1E3A5F" ||
+                              colorHex === "#800000"
+                              ? "text-white"
+                              : "text-black"
+                          )}
+                        />
+                      )}
+                    </button>
+                  )
+                }
+
+                return (
+                  <button
+                    key={`${option.key}-${value.value}`}
+                    onClick={() => handleVariantSelect(option.key, value.value)}
+                    className={cn(
+                      "px-5 py-2 rounded-lg font-medium transition-all cursor-pointer border",
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary/20"
+                        : "bg-background text-foreground border-border hover:border-primary/50"
+                    )}
+                  >
+                    {value.value}
+                  </button>
+                )
+              })}
             </div>
           </div>
-        ))}
-    </>
+        )
+      })}
+    </div>
   )
 }
