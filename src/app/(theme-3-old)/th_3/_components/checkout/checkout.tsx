@@ -1109,6 +1109,7 @@ const Checkout = () => {
                             </p>
                           </div>
                           <button
+                            type="button"
                             onClick={() => handleRemoveProduct(item.id)}
                             className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 ml-1 p-0.5 rounded-full hover:bg-red-50"
                             aria-label="Remove item"
@@ -1122,6 +1123,7 @@ const Checkout = () => {
                           {/* Quantity Controls */}
                           <div className="flex items-center border border-gray-300 rounded-lg">
                             <button
+                              type="button"
                               onClick={() =>
                                 handleQuantityChange(item.id, item.quantity - 1)
                               }
@@ -1134,6 +1136,7 @@ const Checkout = () => {
                               {item.quantity}
                             </span>
                             <button
+                              type="button"
                               onClick={() =>
                                 handleQuantityChange(item.id, item.quantity + 1)
                               }
