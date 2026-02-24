@@ -102,7 +102,7 @@ export const CartPopover = ({
                       {/* Price & Quantity */}
                       <div className="flex items-center justify-between mt-2">
                         <div className="text-lg font-bold text-green-600">
-                          ${item.price.toLocaleString()}
+                          ৳{item?.discountedPrice?.toLocaleString()}
                         </div>
 
                         {/* Quantity Buttons */}

@@ -14,12 +14,16 @@ interface AddToCartButtonProps {
   product: IProduct
   variants?: CartItemVariant[]
   maxQuantity?: number
+  selectedPrice?: number
+  selectedImage?: string | null
 }
 
 function AddToCartButton({
   product,
   variants,
   maxQuantity,
+  selectedPrice,
+  selectedImage,
 }: AddToCartButtonProps) {
   const { addItem, getItemByProduct } = useCart()
   const [isAdding, setIsAdding] = useState(false)
@@ -30,6 +34,8 @@ function AddToCartButton({
 
   const cartItem = getItemByProduct(product.id, variants)
   const currentQuantity = cartItem?.quantity ?? 0
+  const effectivePrice = selectedPrice ?? product.price
+  const effectiveImage = selectedImage ?? product.main_image
 
   const handleAddToCart = async () => {
     const maxQty = maxQuantity ?? product.product_qty
@@ -49,12 +55,12 @@ function AddToCartButton({
       await addItem({
         productId: product.id,
         name: product.product_name,
-        price: product.price,
-        discountedPrice: product.discounted_price,
+        price: effectivePrice,
+        discountedPrice: effectivePrice,
         quantity: 1,
         variants: variants,
         metadata: {
-          image: product.main_image,
+          image: effectiveImage,
           sku: product.product_code,
           ulid: product.ulid,
           maxQuantity: maxQty,
@@ -69,7 +75,7 @@ function AddToCartButton({
       trackAddToCart({
         id: product.id,
         name: product.product_name,
-        price: product.discounted_price ?? product.price,
+        price: effectivePrice,
         quantity: 1,
       })
     } catch (error) {

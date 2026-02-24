@@ -18,6 +18,7 @@ export interface IOrderSuccessfullData {
   shop_uid: number
   user_id: number
   order_no: string
+  gtmHead?: string
   tracking_code: string
   online_payment_id: number | null
   customer_name: string

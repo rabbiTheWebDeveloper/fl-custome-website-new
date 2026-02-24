@@ -65,7 +65,9 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL(`/${theme}/privacy`, request.url))
   }
   if (pathname === "/shop") {
-    return NextResponse.rewrite(new URL(`/${theme}/shop`, request.url))
+    const rewriteUrl = new URL(`/${theme}${pathname}`, request.url)
+    rewriteUrl.search = request.nextUrl.search
+    return NextResponse.rewrite(rewriteUrl)
   }
 
   if (pathname === "/checkout") {

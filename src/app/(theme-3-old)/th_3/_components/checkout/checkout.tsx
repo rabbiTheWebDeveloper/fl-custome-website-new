@@ -14,7 +14,6 @@ import {
   ArrowRight,
   ShieldCheck,
   RefreshCw,
-  RotateCcw,
   Home,
   TruckIcon,
 } from "lucide-react"
@@ -35,6 +34,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import CheckoutOtp from "./checkout-otp"
 import { toast } from "sonner"
 import { useDomain } from "../../store/domain"
+import { tagManagerEvent } from "@/lib/tag-manager-event"
+import { DomainInfo } from "@/utils/api-helpers"
 
 // Client-side function to get domain headers from cookies
 export function getDomainHeadersFromCookies(): {
@@ -166,7 +167,8 @@ const paymentMethods = [
   },
 ]
 
-const Checkout = () => {
+const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
+  const gtmHead = shopInfo?.other_script?.gtm_head
   const router = useRouter()
   const { updateItem, removeItem, clearCart } = useCart()
   const items = useCartStore((state) => state.items)
@@ -227,9 +229,11 @@ const Checkout = () => {
     const fetchShippingSettings = async () => {
       try {
         setLoadingShippingSettings(true)
-        const headers = getDomainHeadersFromCookies()
         const response = await api.get("/customer/shipping-setting/show", {
-          headers,
+          headers: {
+            "shop-id": shopInfo?.shop_id || "",
+            "user-id": shopInfo?.user_id || "",
+          },
         })
 
         // Check if data exists and is not empty string
@@ -269,7 +273,7 @@ const Checkout = () => {
     }
 
     fetchShippingSettings()
-  }, [])
+  }, [shopInfo?.shop_id, shopInfo?.user_id])
   // Fetch product data for cart items missing shipping metadata (runs once after shipping settings load)
   useEffect(() => {
     if (loadingShippingSettings) return
@@ -285,7 +289,6 @@ const Checkout = () => {
 
     const fetchMissingProductData = async () => {
       try {
-        const headers = getDomainHeadersFromCookies()
         const fetchPromises = itemsNeedingData.map(async (item) => {
           const productId = Number(item.productId)
           // Mark as fetched immediately to prevent duplicate calls
@@ -293,7 +296,10 @@ const Checkout = () => {
 
           try {
             const response = await api.get(`/customer/products/${productId}`, {
-              headers,
+              headers: {
+                "shop-id": shopInfo?.shop_id || "",
+                "user-id": shopInfo?.user_id || "",
+              },
             })
             const product = (response.data as { data: IProduct }).data
             if (product) {
@@ -321,8 +327,7 @@ const Checkout = () => {
     }
 
     fetchMissingProductData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadingShippingSettings])
+  }, [loadingShippingSettings, items, shopInfo?.user_id, shopInfo?.shop_id])
 
   // Watch shipping and payment methods for real-time updates
   const shippingMethod = watch("shippingMethod")
@@ -338,7 +343,9 @@ const Checkout = () => {
     if (!item.variants || item.variants.length === 0) {
       return undefined
     }
-    return item.variants.map((v) => `${v.key}: ${v.value}`).join(", ")
+    return item.variants
+      .map((v: { key: string; value: string }) => `${v.key}: ${v.value}`)
+      .join(", ")
   }
 
   // Helper function to get inside Dhaka price
@@ -498,7 +505,7 @@ const Checkout = () => {
   finalTotalsRef.current = finalTotals
 
   const createIncompleteOrder = useCallback(
-    async (shopId: string, userId: string) => {
+    async () => {
       if (itemsRef.current.length === 0) return
 
       try {
@@ -524,8 +531,8 @@ const Checkout = () => {
           orderPayload,
           {
             headers: {
-              "shop-id": shopId,
-              "user-id": userId,
+              "shop-id": shopInfo?.shop_id || "",
+              "user-id": shopInfo?.user_id || "",
             },
           }
         )
@@ -544,7 +551,7 @@ const Checkout = () => {
         console.error("Error creating incomplete order:", error)
       }
     },
-    [] // stable — reads from refs
+    [shopInfo?.user_id, shopInfo?.shop_id] // stable — reads from refs
   )
 
   // Check incomplete order status ONCE when name and phone are first entered
@@ -586,7 +593,7 @@ const Checkout = () => {
           const status = responseData.data.incomplete_order_status
 
           if (status === 1) {
-            await createIncompleteOrder(headers["shop-id"], headers["user-id"])
+            await createIncompleteOrder()
           } else {
             setIncompleteOrderId(null)
           }
@@ -602,7 +609,13 @@ const Checkout = () => {
     // Debounce the check
     const timeoutId = setTimeout(checkIncompleteOrderStatus, 500)
     return () => clearTimeout(timeoutId)
-  }, [customerName, customerPhone, createIncompleteOrder])
+  }, [
+    customerName,
+    customerPhone,
+    createIncompleteOrder,
+    shopInfo?.user_id,
+    shopInfo?.shop_id,
+  ])
 
   const onSubmit = async (data: CheckoutFormData) => {
     if (items.length === 0) {
@@ -631,9 +644,9 @@ const Checkout = () => {
       // Debug: Check if incomplete_order_id is in FormData
       if (incompleteOrderId) {
         const formDataEntries = Array.from(orderData.entries())
-        const hasIncompleteOrderId = formDataEntries.some(
+        /* const hasIncompleteOrderId = formDataEntries.some(
           ([key]) => key === "incomplete_order_id"
-        )
+        ) */
       }
 
       // Get shop-id and user-id from cookies for headers
@@ -707,8 +720,8 @@ const Checkout = () => {
         undefined,
         {
           headers: {
-            ...(shopId && { "shop-id": String(shopId) }),
-            ...(userId && { "user-id": String(userId) }),
+            ...(shopInfo?.shop_id && { "shop-id": String(shopInfo?.shop_id) }),
+            ...(shopInfo?.user_id && { "user-id": String(shopInfo?.user_id) }),
           },
         }
       )
@@ -782,7 +795,6 @@ const Checkout = () => {
   const handleResendOtp = async () => {
     setResendLoading(true)
     const headers = getDomainHeadersFromCookies()
-    const shopId = headers["shop-id"]
     try {
       const res = await api.post(
         "/customer/resend-otp",
@@ -790,7 +802,7 @@ const Checkout = () => {
         undefined,
         {
           headers: {
-            ...(shopId && { "shop-id": shopId }),
+            ...(shopInfo?.shop_id && { "shop-id": shopInfo?.shop_id }),
           },
         }
       )
@@ -834,6 +846,18 @@ const Checkout = () => {
       (m) => m.id === "cash-on-delivery" || activeProviders.includes(m.id)
     )
   }, [domain])
+
+  console.log(items)
+  useEffect(() => {
+    if (gtmHead) {
+      tagManagerEvent(
+        "begin_checkout",
+        finalTotals.total,
+        items,
+        "item_type_array"
+      )
+    }
+  }, [gtmHead, finalTotals.total, items])
   // Show empty state if cart is empty
   if (items.length === 0) {
     return (
@@ -1251,13 +1275,6 @@ const Checkout = () => {
                         </p>
                       )}
                     </div>
-                  </div>
-
-                  {/* Discount */}
-
-                  <div className="flex justify-between text-[#3bb77e] text-sm sm:text-base">
-                    <span>Discount</span>
-                    <span className="font-medium">-৳100</span>
                   </div>
 
                   {/* Divider and Total */}

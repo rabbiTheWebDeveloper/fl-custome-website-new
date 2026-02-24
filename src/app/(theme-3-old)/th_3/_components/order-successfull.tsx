@@ -1,13 +1,39 @@
+"use client"
+import { useEffect } from "react"
 import { ShoppingCart, CreditCard } from "lucide-react"
 import { IOrderSuccessfullData } from "../types/order-successfull"
 import Image from "next/image"
+import { purchaseTagManagerEventForPurchase } from "@/lib/tag-manager-event"
 const OrderSuccessfull = ({
   order_details,
   created_at,
   order_no,
   online_payment_id,
   pricing,
+  gtmHead,
+  customer_name,
+  phone,
+  address,
 }: IOrderSuccessfullData) => {
+  const finalTotals = { total: pricing.grand_total + pricing.shipping_cost }
+  const customerDataInfo = {
+    order_no,
+    customer_name,
+    address,
+    phone,
+    value: finalTotals.total,
+  }
+  const orderData = { order_details }
+
+  useEffect(() => {
+    if (gtmHead) {
+      purchaseTagManagerEventForPurchase(
+        "purchase",
+        customerDataInfo,
+        orderData
+      )
+    }
+  }, [gtmHead])
   return (
     <section className="w-full py-12 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4">

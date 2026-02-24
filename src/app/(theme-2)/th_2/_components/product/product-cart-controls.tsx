@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { CartInputConnected } from "../carts/cart-input-connected"
 import AddToCartButton from "../carts/add-to-cart-button"
@@ -8,88 +8,82 @@ import { Button } from "../ui/button"
 import { VariantSelector } from "./variant-selector"
 import { useCart, generateCartItemId } from "@/lib/cart"
 import { useCartStore } from "@/lib/cart"
-import type { IProduct } from "../../types/product"
+import type { IProduct, IVariation } from "../../types/product"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { trackAddToCart } from "@/lib/gtm"
 
 interface ProductCartControlsProps {
   product: IProduct
+  selectedVariants?: Record<string, string>
+  onVariantChange?: (key: string, value: string) => void
+  selectedVariation?: IVariation | null
 }
 
-export function ProductCartControls({ product }: ProductCartControlsProps) {
+export function ProductCartControls({
+  product,
+  selectedVariants = {},
+  onVariantChange = () => {},
+  selectedVariation,
+}: ProductCartControlsProps) {
   const router = useRouter()
   const { addItem } = useCart()
   const items = useCartStore((state) => state.items)
   const t = useTranslations("Theme2.buttons")
   const tToast = useTranslations("Theme2.toast")
 
-  const [selectedVariants, setSelectedVariants] = useState<
-    Record<string, string>
-  >(() => {
-    // Initialize with first value of each attribute if available
-    const initial: Record<string, string> = {}
-    if (Array.isArray(product.attributes)) {
-      product.attributes.forEach((attr) => {
-        if (attr.values && attr.values.length > 0) {
-          initial[attr.key] = attr.values[0].value
+  const cartVariants = useMemo(() => {
+    const attributes = Array.isArray(product.attributes)
+      ? product.attributes
+      : []
+    return Object.entries(selectedVariants)
+      .filter(([, value]) => value)
+      .map(([key, value]) => {
+        const attribute = attributes.find((attr) => attr.key === key)
+        const selectedAttributeValue = attribute?.values.find(
+          (attributeValue) => attributeValue.value === value
+        )
+        return {
+          key,
+          value,
+          attributeId: selectedAttributeValue?.attribute_id,
         }
       })
-    }
-    return initial
-  })
+  }, [product.attributes, selectedVariants])
 
-  // Convert selected variants to CartItemVariant format
-  const cartVariants = useMemo(() => {
-    return Object.entries(selectedVariants)
-      .filter(([, value]) => value) // Filter out empty values
-      .map(([key, value]) => ({
-        key,
-        value,
-      }))
-  }, [selectedVariants])
-
-  // Get current quantity in cart for this product and variants
   const currentCartItem = useMemo(() => {
     const itemId = generateCartItemId(product.id, cartVariants)
     return items.find((item) => item.id === itemId)
   }, [items, product.id, cartVariants])
 
   const currentQuantity = currentCartItem?.quantity ?? 0
-
-  // Handle variant change from variant selector
-  const handleVariantChange = (key: string, value: string) => {
-    setSelectedVariants((prev) => ({
-      ...prev,
-      [key]: value,
-    }))
-  }
+  const maxQty = selectedVariation?.quantity ?? product.product_qty
+  const selectedPrice = selectedVariation?.price ?? product.price
+  const selectedImage = selectedVariation?.media || product.main_image
 
   const showVariants =
-    typeof product.variations === "object" &&
-    typeof product.attributes === "object"
+    Array.isArray(product.variations) &&
+    Array.isArray(product.attributes) &&
+    product.variations.length > 0 &&
+    product.attributes.length > 0
 
   const handleBuyNow = async () => {
     try {
-      const maxQty = product.product_qty
-
-      // Check if product is out of stock
       if (maxQty === 0) {
         toast.error(tToast("outOfStock"))
         return
       }
 
-      // Add item to cart if not already in cart
       if (currentQuantity === 0) {
         await addItem({
           productId: product.id,
           name: product.product_name,
-          price: product.price,
-          discountedPrice: product.discounted_price,
+          price: selectedPrice,
+          discountedPrice: selectedPrice,
           quantity: 1,
           variants: cartVariants,
           metadata: {
-            image: product.main_image,
+            image: selectedImage,
             sku: product.product_code,
             maxQuantity: maxQty,
             ulid: product.ulid,
@@ -103,12 +97,11 @@ export function ProductCartControls({ product }: ProductCartControlsProps) {
         trackAddToCart({
           id: product.id,
           name: product.product_name,
-          price: product.discounted_price ?? product.price,
+          price: selectedPrice,
           quantity: 1,
         })
       }
 
-      // Redirect to checkout
       router.push("/checkout")
     } catch (error) {
       console.error("Failed to add item to cart:", error)
@@ -122,7 +115,8 @@ export function ProductCartControls({ product }: ProductCartControlsProps) {
         <div className="mt-8">
           <VariantSelector
             product={product}
-            onVariantChange={handleVariantChange}
+            selectedVariants={selectedVariants}
+            onVariantChange={onVariantChange}
           />
         </div>
       )}
@@ -132,21 +126,23 @@ export function ProductCartControls({ product }: ProductCartControlsProps) {
             <CartInputConnected
               product={product}
               variants={cartVariants}
-              maxQuantity={product.product_qty}
+              maxQuantity={maxQty}
             />
           </div>
           <Button
             size="lg"
             className="h-13 rounded-xl text-base font-medium md:flex-1 min-w-0"
             onClick={handleBuyNow}
-            disabled={product.product_qty <= 0}
+            disabled={maxQty <= 0}
           >
             {t("buyNow")}
           </Button>
           <AddToCartButton
             product={product}
             variants={cartVariants}
-            maxQuantity={product.product_qty}
+            maxQuantity={maxQty}
+            selectedPrice={selectedPrice}
+            selectedImage={selectedImage}
           />
         </div>
       </div>

@@ -21,6 +21,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // this funtion next thime replace
   const cleanDomain = await getCleanDomain()
   const shopInfo = await getDomainInfo(cleanDomain)
   return (

@@ -1,4 +1,4 @@
-import { cookies, headers } from "next/headers"
+import { cookies } from "next/headers"
 
 /**
  * Domain cookie structure
@@ -11,11 +11,6 @@ interface DomainCookie {
     }
   }
 }
-
-const API_BASE_URL =
-  process.env.API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:3000/api"
 
 /**
  * Extracts shop ID and user ID from the domain cookie
@@ -80,6 +75,7 @@ export async function getDomainMeta(): Promise<{
   title: string
   description: string
   favicon: string
+  domain_verify: string
   other_script?: Record<string, object> | undefined
 }> {
   // 1. Try reading from the persisted Zustand cookie
@@ -87,7 +83,13 @@ export async function getDomainMeta(): Promise<{
   const raw = cookieStore.get("domain")?.value || ""
 
   if (!raw) {
-    return { title: "", description: "", favicon: "", other_script: {} }
+    return {
+      title: "",
+      description: "",
+      favicon: "",
+      domain_verify: "",
+      other_script: {},
+    }
   }
 
   try {
@@ -100,10 +102,24 @@ export async function getDomainMeta(): Promise<{
       title: domain?.shop_meta_title || "",
       description: domain?.shop_meta_description || "",
       favicon: domain?.shop_favicon || "",
+      domain_verify: domain?.domain_verify || "",
+      other_script: domain?.other_script || {},
     }
   } catch {
-    return { title: "", description: "", favicon: "" }
+    return {
+      title: "",
+      description: "",
+      favicon: "",
+      domain_verify: "",
+      other_script: {},
+    }
   }
 
-  return { title: "", description: "", favicon: "" }
+  return {
+    title: "",
+    description: "",
+    favicon: "",
+    domain_verify: "",
+    other_script: {},
+  }
 }

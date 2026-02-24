@@ -3,12 +3,6 @@ import Link from "next/link"
 import {
   CheckCircle,
   XCircle,
-  Facebook,
-  Twitter,
-  Smartphone,
-  Heart,
-  Share2,
-  Star,
   ShoppingBag,
   Eye,
   ChevronRight,
@@ -16,6 +10,7 @@ import {
 import { IProduct } from "../types/product"
 import { ProductCartControls } from "./product/product-cart-controls"
 import { ProductImageCarousel } from "./product/product-image-carousel"
+import ShareButtons from "./product/share-buttons"
 
 const swatches = [
   {
@@ -45,7 +40,6 @@ const swatches = [
 ]
 
 const ProductDescription = ({ product }: { product: IProduct | null }) => {
-  const colorFromAPI = "#3BB77E"
   // sample theme color
   const rawVideoUrl = product?.video_url as unknown
   const videoUrls: string[] = Array.isArray(rawVideoUrl)
@@ -66,6 +60,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
 
   // Use product.relatedProducts if available, otherwise empty array
   const relatedProducts = product?.relatedProducts || []
+  console.log("Product Data:", product)
   // Debugging log
   return (
     <section className="max-w-7xl mx-auto px-4 py-12">
@@ -170,23 +165,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
           {/* Cart Controls */}
           <ProductCartControls product={product} swatches={swatches} />
           {/* Social Share */}
-          <div className="flex items-center gap-4 pt-4">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Share:
-            </span>
-            <div className="flex gap-2">
-              <button className="p-2 bg-[#1877f2] text-white rounded-full hover:scale-110 transition">
-                <Facebook size={18} />
-              </button>
-              <button className="p-2 bg-[#25D366] text-white rounded-full hover:scale-110 transition">
-                <Smartphone size={18} />
-              </button>
-              <button className="p-2 bg-[#1DA1F2] text-white rounded-full hover:scale-110 transition">
-                <Twitter size={18} />
-              </button>
-            </div>
-          </div>
-
+          <ShareButtons title={product?.product_name} />
           {/* Product Meta */}
           <div className="grid grid-cols-2 gap-4 pt-4 text-sm border-t border-gray-200 dark:border-gray-700">
             <div>
@@ -259,7 +238,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
 
           {/* Related Products Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {relatedProducts.map((p, index) => (
+            {relatedProducts.map((p) => (
               <Link
                 key={p.id}
                 href={`/product/${p.ulid}?${p.slug}`}
@@ -303,11 +282,6 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
                         %
                       </div>
                     )}
-
-                    {/* Wishlist Button */}
-                    <button className="absolute top-2 right-2 w-8 h-8 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-[#3BB77E] hover:text-white">
-                      <Heart size={16} />
-                    </button>
                   </div>
 
                   {/* Product Info */}
@@ -320,7 +294,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
                     <div className="flex items-baseline justify-between">
                       <div>
                         <span className="text-lg font-bold text-[#3BB77E]">
-                          ৳ {p.discounted_price}
+                          ৳ {p.price}
                         </span>
                         {p.price > p.discounted_price && (
                           <span className="text-xs text-gray-400 dark:text-gray-500 line-through ml-2">

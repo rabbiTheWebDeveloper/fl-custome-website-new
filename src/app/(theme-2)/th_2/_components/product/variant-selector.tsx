@@ -2,12 +2,12 @@
 
 import { cn } from "@/lib/utils"
 import { Check } from "lucide-react"
-import { useState } from "react"
 import { IProduct } from "../../types/product"
 
 interface VariantSelectorProps {
   onVariantChange?: (key: string, label: string) => void
   product: IProduct
+  selectedVariants?: Record<string, string>
 }
 
 const COLOR_MAP: Record<string, string> = {
@@ -42,26 +42,9 @@ function getColorHex(label: string): string | null {
 export function VariantSelector({
   onVariantChange,
   product,
+  selectedVariants = {},
 }: VariantSelectorProps) {
-  const [selectedVariants, setSelectedVariants] = useState<
-    Record<string, string>
-  >(() => {
-    const initial: Record<string, string> = {}
-    if (Array.isArray(product.attributes)) {
-      product.attributes.forEach((attr) => {
-        if (attr.values?.length > 0) {
-          initial[attr.key] = attr.values[0].value
-        }
-      })
-    }
-    return initial
-  })
-
   const handleVariantSelect = (optionKey: string, optionValue: string) => {
-    setSelectedVariants((prev) => ({
-      ...prev,
-      [optionKey]: optionValue,
-    }))
     onVariantChange?.(optionKey, optionValue)
   }
 

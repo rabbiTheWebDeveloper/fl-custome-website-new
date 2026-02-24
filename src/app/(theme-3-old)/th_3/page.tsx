@@ -3,11 +3,10 @@ import Category from "./_components/category"
 import MiddleBanner from "./_components/middle-banner"
 import AllProduct from "./_components/all-product"
 import Scroll from "./_components/Scroll"
-import { getDomainHeaders } from "@/lib/domain"
 import { api } from "@/lib/api-client"
 import { IProductsApiResponse } from "./types/product"
-import { headers } from "next/headers"
 import { getDomainInfo } from "@/utils/api-helpers"
+import { getCleanDomain } from "@/utils/domain"
 
 export default async function Home({
   searchParams,
@@ -18,8 +17,7 @@ export default async function Home({
   let totalPages = 1
 
   try {
-    const host = (await headers()).get("host") || ""
-    const cleanDomain = host.replace(/^www\./, "")
+    const cleanDomain = await getCleanDomain()
     const shopInfo = await getDomainInfo(cleanDomain)
     const { page = "1" } = await searchParams
     const { data: response } = await api.get<IProductsApiResponse>(

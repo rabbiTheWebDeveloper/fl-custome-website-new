@@ -41,7 +41,7 @@ export interface IProduct {
   default_delivery_location: string | null
   attributes: boolean | IAttributeValues[]
   variation_price_range: number[]
-  variations: boolean | []
+  variations: boolean | IVariation[]
   created_at: string // ISO date string
   main_image: string | null
   wp_product_image_url: string | null
@@ -53,10 +53,22 @@ export interface IProduct {
   video_url: string[]
 }
 
-interface IAttributeValues {
+export interface IAttributeValues {
   id: string
   key: string
   values: { id: number; value: string; attribute_id: number }[]
+}
+
+export interface IVariation {
+  id: number
+  product_id: number
+  wp_variant_id: number | null
+  variant: string
+  price: number
+  quantity: number
+  code: string
+  wp_variant_image_url: string | null
+  media: string | null
 }
 
 export interface IPaginationLink {

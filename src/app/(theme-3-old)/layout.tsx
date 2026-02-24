@@ -5,25 +5,33 @@ import "./globals.css"
 import FooterUI from "./th_3/_components/footer"
 import dynamic from "next/dynamic"
 import { Providers } from "./th_3/providers"
-import { cookies, headers } from "next/headers"
+import { cookies } from "next/headers"
 import { DynamicMeta } from "./th_3/_components/dynamic-meta"
 import { getDomainMeta } from "@/lib/domain"
 import { Toaster } from "sonner"
 import { GoogleTagManager } from "@next/third-parties/google"
 import { getDomainInfo } from "@/utils/api-helpers"
+import { getCleanDomain } from "@/utils/domain"
 
 const Header = dynamic(() => import("./th_3/_components/header"), { ssr: true })
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { title, description, favicon } = await getDomainMeta()
-
+  const cleanDomain = await getCleanDomain()
+  const shopInfo = await getDomainInfo(cleanDomain)
   return {
-    title: title || "Shop",
-    description: description || "",
-    icons: favicon ? { icon: favicon } : undefined,
+    title: shopInfo?.shop_meta_title || "Shop",
+    description: shopInfo?.shop_meta_description || "",
+    icons: shopInfo?.shop_favicon
+      ? { icon: shopInfo?.shop_favicon }
+      : undefined,
+    metadataBase: new URL(`https://${shopInfo?.domain}`),
+    other: shopInfo?.domain_verify
+      ? {
+          "facebook-domain-verification": shopInfo?.domain_verify,
+        }
+      : undefined,
   }
 }
-
 // Load two fonts
 const englishFont = Montserrat({
   weight: "400",
@@ -44,15 +52,15 @@ export default async function RootLayout({
   children: React.ReactNode
   modal?: React.ReactNode
 }) {
-  const host = (await headers()).get("host") || ""
-  const cleanDomain = host.replace(/^www\./, "")
+  // const host = (await headers()).get("host") || ""
+  const cleanDomain = await getCleanDomain()
   let shopInfo = null
   try {
     shopInfo = await getDomainInfo(cleanDomain)
   } catch (err) {
     console.warn("[theme-3 layout] getDomainInfo failed:", err)
   }
-  const { other_script } = await getDomainMeta()
+  await getDomainMeta()
   const cookieStore = await cookies()
   const locale = (cookieStore.get("NEXT_LOCALE")?.value || "en") as "en" | "bn"
 
@@ -63,7 +71,6 @@ export default async function RootLayout({
       ? (await import("@/messages/bn.json")).default
       : (await import("@/messages/en.json")).default
 
-  console.log(shopInfo?.other_script?.gtm_head, "shopInfo")
   return (
     <html
       lang={locale}

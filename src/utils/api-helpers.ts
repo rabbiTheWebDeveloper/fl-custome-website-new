@@ -23,7 +23,7 @@ type FetchOptions = RequestInit & {
   }
 }
 
-interface DomainInfo {
+export interface DomainInfo {
   shop_id?: string
   user_id?: string
   domain_verify?: string
@@ -31,6 +31,7 @@ interface DomainInfo {
   shop_meta_title?: string
   shop_meta_description?: string
   shop_logo?: string
+  shop_favicon?: string
   theme_id?: string
   fb_pixel?: string
   other_script?: {

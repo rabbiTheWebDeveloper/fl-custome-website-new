@@ -1,8 +1,8 @@
-// app/(theme-3-old)/th_3/_components/product/Modal.tsx
 "use client"
 
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef } from "react"
+import { X } from "lucide-react"
 
 export default function Modal({ children }: { children: React.ReactNode }) {
   const overlay = useRef<HTMLDivElement>(null)
@@ -50,7 +50,16 @@ export default function Modal({ children }: { children: React.ReactNode }) {
         ref={wrapper}
         className="min-h-full flex items-center justify-center"
       >
-        <div className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-gray-900 rounded-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto relative">
+          {/* Cancel/Close button with Lucide X icon */}
+          <button
+            onClick={onDismiss}
+            className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors z-10"
+            aria-label="Close modal"
+          >
+            <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          </button>
+
           {children}
         </div>
       </div>
