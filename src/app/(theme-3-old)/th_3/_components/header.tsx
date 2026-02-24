@@ -125,21 +125,21 @@ export default function Header() {
     <>
       {/* Top Bar - Hidden on mobile */}
       <div className="hidden lg:block bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-6 py-2">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                <Phone size={14} className="text-[#3bb77e]" />
+        <div className="max-w-7xl mx-auto px-4 py-0.5">
+          <div className="flex justify-between items-center text-xs">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
+                <Phone size={12} className="text-[#3bb77e]" />
                 <span>{domain?.phone || "+1 (555) 123-4567"}</span>
               </div>
               {domain?.whatsapp && (
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
                   <WhatsApp className="text-[#3bb77e]" />
                   <span>{domain?.whatsapp || "WhatsApp not available"}</span>
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <LanguageSelector />
               <ThemeToggle />
             </div>
@@ -247,14 +247,14 @@ export default function Header() {
                   <button
                     onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
                     onMouseEnter={() => setIsCategoriesOpen(true)}
-                    className={`flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#3bb77e] to-[#2d9c68] text-white font-medium transition-all ${
-                      isCategoriesOpen ? "rounded-t-xl" : "rounded-b-xl"
+                    className={`flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-[#3bb77e] to-[#2d9c68] text-white font-medium transition-all ${
+                      isCategoriesOpen ? "rounded-t-lg" : "rounded-b-lg"
                     }`}
                   >
-                    <Menu size={20} />
+                    <Menu size={16} />
                     <span>{t("allCategories")}</span>
                     <ChevronDown
-                      size={18}
+                      size={14}
                       className={`transition-transform duration-300 ${
                         isCategoriesOpen ? "rotate-180" : ""
                       }`}
@@ -264,11 +264,10 @@ export default function Header() {
                   {/* Categories Mega Menu */}
                   {isCategoriesOpen && categories && (
                     <div
-                      className="absolute top-full left-0 w-[280px] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 "
+                      className="absolute top-full left-0 w-[240px] bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
                       onMouseLeave={() => setIsCategoriesOpen(false)}
                     >
-                      {/* Categories List */}
-                      <div className="max-h-[400px] overflow-y-auto py-2">
+                      <div className="max-h-[350px] overflow-y-auto py-1">
                         {categories.map((category) => (
                           <button
                             key={category.id}
@@ -282,8 +281,8 @@ export default function Header() {
                               setHoveredCategory(category.name)
                             }
                             className={`
-          w-full text-left px-4 py-3 transition-all duration-200
-          flex items-center justify-between group
+          w-full text-left px-3 py-1.5 transition-all duration-200
+          flex items-center justify-between group text-sm
           ${
             hoveredCategory === category.name
               ? "bg-[#3bb77e] text-white"
@@ -291,11 +290,10 @@ export default function Header() {
           }
         `}
                           >
-                            <div className="flex items-center gap-3">
-                              {/* Category Icon/Image */}
+                            <div className="flex items-center gap-2">
                               <div
                                 className={`
-            w-8 h-8 rounded-lg flex items-center justify-center
+            w-6 h-6 rounded-md flex items-center justify-center
             ${
               hoveredCategory === category.name
                 ? "bg-white/20"
@@ -307,12 +305,12 @@ export default function Header() {
                                   <Image
                                     src={category.image}
                                     alt={category.name}
-                                    width={24}
-                                    height={24}
+                                    width={18}
+                                    height={18}
                                     className="object-contain"
                                   />
                                 ) : (
-                                  <span className="text-sm font-bold">
+                                  <span className="text-xs font-bold">
                                     {category.name.charAt(0)}
                                   </span>
                                 )}

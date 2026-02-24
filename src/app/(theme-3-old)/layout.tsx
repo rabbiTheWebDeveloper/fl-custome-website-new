@@ -44,7 +44,12 @@ export default async function RootLayout({
 }) {
   const host = (await headers()).get("host") || ""
   const cleanDomain = host.replace(/^www\./, "")
-  const shopInfo = await getDomainInfo(cleanDomain)
+  let shopInfo = null
+  try {
+    shopInfo = await getDomainInfo(cleanDomain)
+  } catch (err) {
+    console.warn("[theme-3 layout] getDomainInfo failed:", err)
+  }
   const { other_script } = await getDomainMeta()
   const cookieStore = await cookies()
   const locale = (cookieStore.get("NEXT_LOCALE")?.value || "en") as "en" | "bn"
@@ -58,7 +63,11 @@ export default async function RootLayout({
 
   console.log(shopInfo?.other_script?.gtm_head, "shopInfo")
   return (
-    <html lang={locale} className={`${fontClass} antialiased`}>
+    <html
+      lang={locale}
+      className={`${fontClass} antialiased`}
+      suppressHydrationWarning
+    >
       <GoogleTagManager
         gtmId={
           typeof shopInfo?.other_script?.gtm_head === "string"

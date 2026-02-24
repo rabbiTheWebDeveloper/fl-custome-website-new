@@ -148,7 +148,7 @@ export const CartInput = ({
           size="icon"
           className="bg-secondary cursor-pointer size-13 rounded-xl rounded-r-none"
           onClick={() => handleUpdate(localValue - 1)}
-          disabled={localValue === 0 || isUpdating}
+          disabled={localValue === 0 || isUpdating || maxQuantity === 0}
         >
           <span className="sr-only">Remove item</span>
           <MinusIcon className="size-6" />
@@ -164,7 +164,7 @@ export const CartInput = ({
               className?.input
             )}
             onChange={(e) => handleUpdate(e.target.value)}
-            disabled={isUpdating}
+            disabled={isUpdating || maxQuantity === 0}
           />
           {isUpdating && !inputOnly && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -178,7 +178,11 @@ export const CartInput = ({
           size="icon"
           className="bg-secondary cursor-pointer size-13 rounded-xl rounded-l-none"
           onClick={() => handleUpdate(localValue + 1)}
-          disabled={isUpdating || !!(maxQuantity && localValue >= maxQuantity)}
+          disabled={
+            isUpdating ||
+            maxQuantity === 0 ||
+            !!(maxQuantity && localValue >= maxQuantity)
+          }
         >
           <span className="sr-only">Add item</span>
           <PlusIcon className="size-6" />

@@ -10,6 +10,7 @@ import { useCart } from "@/lib/cart"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { trackAddToCart } from "@/lib/gtm"
 
 export const ProductCard = ({
   product_name: name,
@@ -71,6 +72,12 @@ export const ProductCard = ({
         maxQuantity: maxQty,
       })
       toast.success(tToast("addedToCart"))
+      trackAddToCart({
+        id,
+        name,
+        price: discountedPrice ?? originalPrice,
+        quantity: 1,
+      })
     } catch (error) {
       console.error("Failed to add item to cart:", error)
       toast.error(tToast("addToCartError"))

@@ -27,14 +27,14 @@ function AnnouncementBar() {
   if (dismissed) return null
 
   return (
-    <div className="bg-primary/70 text-primary-foreground text-center text-xs sm:text-sm py-2 px-4 relative">
+    <div className="bg-primary/70 text-primary-foreground text-center text-[10px] sm:text-xs py-0.5 px-2 relative">
       <span className="font-medium">{t("announcement")}</span>
       <button
         onClick={() => setDismissed(true)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-primary-foreground/10 rounded-full transition-colors cursor-pointer"
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-primary-foreground/10 rounded-full transition-colors cursor-pointer"
         aria-label="Dismiss"
       >
-        <X className="size-3.5" />
+        <X className="size-3" />
       </button>
     </div>
   )
@@ -118,13 +118,13 @@ export const Header = () => {
   return (
     <>
       <AnnouncementBar />
-      <header className="py-4 border-b bg-background border-b-border sticky top-0 z-40">
+      <header className="py-1.5 border-b bg-background border-b-border sticky top-0 z-40">
         <div className="flex items-center justify-between container">
           {/* Left: Mobile hamburger + Logo */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <MobileNav />
             <Link href="/" className="block">
-              <div className="relative h-12 w-12 md:h-14 md:w-28 max-h-full overflow-hidden">
+              <div className="relative h-8 w-8 md:h-9 md:w-20 max-h-full overflow-hidden">
                 <Image
                   src={
                     domain?.shop_logo && domain.shop_logo.trim() !== ""
@@ -141,7 +141,7 @@ export const Header = () => {
           </div>
 
           {/* Center: Navigation links (desktop only) */}
-          <ul className="absolute left-1/2 -translate-x-1/2 flex items-center gap-5 font-medium max-md:hidden">
+          <ul className="absolute left-1/2 -translate-x-1/2 flex items-center gap-4 text-sm font-medium max-md:hidden">
             {linkHrefs.map((link, index) => (
               <li
                 key={index}
@@ -162,14 +162,14 @@ export const Header = () => {
 
                 {link.key === "category" && showCategoryDropdown && (
                   <div className="absolute top-full -left-[calc(50%+25px)] pt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="flex bg-background shadow-xl rounded-xl border">
-                      <div className="min-w-[250px] p-2">
-                        <ScrollArea className="h-80">
+                    <div className="flex bg-background shadow-xl rounded-lg border">
+                      <div className="min-w-[220px] p-1.5">
+                        <ScrollArea className="h-72">
                           {topLevelCategories?.map((category) => (
                             <Link
                               key={category.id}
                               href={`/shop?category=${category.slug}`}
-                              className={`flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+                              className={`flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                                 hoveredCategoryId === category.id
                                   ? "text-primary bg-primary/10"
                                   : "hover:text-primary hover:bg-primary/5"
@@ -180,7 +180,7 @@ export const Header = () => {
                             >
                               <span>{category.name}</span>
                               {category.sub_categories?.length > 0 && (
-                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
                               )}
                             </Link>
                           ))}
@@ -188,13 +188,13 @@ export const Header = () => {
                       </div>
 
                       {subCategories.length > 0 && (
-                        <div className="min-w-[250px] border-l p-2">
-                          <ScrollArea className="h-80">
+                        <div className="min-w-[220px] border-l p-1.5">
+                          <ScrollArea className="h-72">
                             {subCategories.map((sub) => (
                               <Link
                                 key={sub.id}
                                 href={`/shop?category=${sub.slug}`}
-                                className="block rounded-lg px-3 py-2.5 text-sm hover:text-primary hover:bg-primary/5 transition-colors font-medium"
+                                className="block rounded-md px-2.5 py-1.5 text-xs hover:text-primary hover:bg-primary/5 transition-colors font-medium"
                               >
                                 {sub.name}
                               </Link>
@@ -210,7 +210,7 @@ export const Header = () => {
           </ul>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1.5 md:gap-2.5">
             <div className="max-md:hidden">
               <LanguageSelector />
             </div>

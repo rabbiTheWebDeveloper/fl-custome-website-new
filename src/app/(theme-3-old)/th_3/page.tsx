@@ -14,16 +14,23 @@ export default async function Home({
 }: {
   searchParams: Promise<{ page?: string }>
 }) {
-  const host = (await headers()).get("host") || ""
-  const cleanDomain = host.replace(/^www\./, "")
-  const shopInfo = await getDomainInfo(cleanDomain)
-  const { page = "1" } = await searchParams
-  const { data: response } = await api.get<IProductsApiResponse>(
-    `/customer/products?page=${page}`,
-    { headers: { "shop-id": shopInfo?.shop_id || "" } }
-  )
-  const products = response.data
-  const totalPages = response.last_page
+  let products: IProductsApiResponse["data"] = []
+  let totalPages = 1
+
+  try {
+    const host = (await headers()).get("host") || ""
+    const cleanDomain = host.replace(/^www\./, "")
+    const shopInfo = await getDomainInfo(cleanDomain)
+    const { page = "1" } = await searchParams
+    const { data: response } = await api.get<IProductsApiResponse>(
+      `/customer/products?page=${page}`,
+      { headers: { "shop-id": shopInfo?.shop_id || "" } }
+    )
+    products = response.data
+    totalPages = response.last_page
+  } catch (err) {
+    console.warn("[theme-3 Home] Failed to fetch products:", err)
+  }
 
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-x-hidden transition-colors duration-500">

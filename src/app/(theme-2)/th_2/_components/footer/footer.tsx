@@ -7,19 +7,26 @@ import { FooterCopyright } from "./footer-copyright"
 import { FooterSocials } from "./footer-socials"
 import { FooterCategories } from "./footer-categories"
 
+const paymentMethods = [
+  { name: "bKash", color: "text-[#E2136E]" },
+  { name: "Nagad", color: "text-[#F6921E]" },
+  { name: "Visa", color: "text-[#1A1F71]" },
+  { name: "COD", color: "text-[#2E7D32]" },
+]
+
 function PaymentIcons() {
   return (
-    <div className="flex items-center gap-3 mt-6 opacity-60">
+    <div className="flex items-center gap-3 mt-6">
       <span className="text-xs text-muted-foreground uppercase tracking-wide">
-        We accept:
+        Accepting:
       </span>
       <div className="flex items-center gap-2">
-        {["bKash", "Nagad", "Visa", "COD"].map((method) => (
+        {paymentMethods.map((method) => (
           <span
-            key={method}
-            className="text-[10px] font-semibold px-2 py-1 bg-background border rounded text-muted-foreground"
+            key={method.name}
+            className={`text-[10px] font-bold px-2 py-1 bg-background border rounded ${method.color}`}
           >
-            {method}
+            {method.name}
           </span>
         ))}
       </div>

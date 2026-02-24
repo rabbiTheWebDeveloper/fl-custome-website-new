@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl"
 import { CreditCard, ShoppingCart } from "lucide-react"
 import AddToCartButton from "../carts/add-to-cart-button"
 import { CartInputConnected } from "../carts/cart-input-connected"
+import { trackAddToCart } from "@/lib/gtm"
 
 interface ProductCartControlsProps {
   product: IProduct
@@ -100,6 +101,12 @@ export function ProductCartControls({
           mergeIfExists: true,
           maxQuantity: maxQty,
         })
+        trackAddToCart({
+          id: product.id,
+          name: product.product_name,
+          price: product.discounted_price ?? product.price,
+          quantity: 1,
+        })
       }
 
       // Redirect to checkout
@@ -141,7 +148,8 @@ export function ProductCartControls({
         {/* Buy Now */}
         <button
           onClick={handleBuyNow}
-          className="flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-lg border-2 border-[#3BB77E] px-6 font-medium text-[#3BB77E] transition hover:bg-[#3BB77E] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#3BB77E]/50"
+          disabled={product.product_qty <= 0}
+          className="flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-lg border-2 border-[#3BB77E] px-6 font-medium text-[#3BB77E] transition hover:bg-[#3BB77E] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#3BB77E]/50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <CreditCard size={18} />
           Buy Now

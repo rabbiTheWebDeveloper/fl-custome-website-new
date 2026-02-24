@@ -11,6 +11,7 @@ import { useCartStore } from "@/lib/cart"
 import type { IProduct } from "../../types/product"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
+import { trackAddToCart } from "@/lib/gtm"
 
 interface ProductCartControlsProps {
   product: IProduct
@@ -99,6 +100,12 @@ export function ProductCartControls({ product }: ProductCartControlsProps) {
           mergeIfExists: true,
           maxQuantity: maxQty,
         })
+        trackAddToCart({
+          id: product.id,
+          name: product.product_name,
+          price: product.discounted_price ?? product.price,
+          quantity: 1,
+        })
       }
 
       // Redirect to checkout
@@ -132,6 +139,7 @@ export function ProductCartControls({ product }: ProductCartControlsProps) {
             size="lg"
             className="h-13 rounded-xl text-base font-medium md:flex-1 min-w-0"
             onClick={handleBuyNow}
+            disabled={product.product_qty <= 0}
           >
             {t("buyNow")}
           </Button>

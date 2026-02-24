@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Button } from "../ui/button"
 import type { IProduct } from "../../types/product"
+import { trackAddToCart } from "@/lib/gtm"
 
 interface StickyMobileBarProps {
   product: IProduct
@@ -50,6 +51,12 @@ export function StickyMobileBar({ product }: StickyMobileBarProps) {
         maxQuantity: product.product_qty,
       })
       toast.success(tToast("addedToCart"))
+      trackAddToCart({
+        id: product.id,
+        name: product.product_name,
+        price: product.discounted_price ?? product.price,
+        quantity: 1,
+      })
     } catch {
       toast.error(tToast("addToCartError"))
     }

@@ -1,12 +1,28 @@
 "use client"
 
-import { SearchIcon, X } from "lucide-react"
+import { SearchIcon, X, Loader2 } from "lucide-react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { useTranslations } from "next-intl"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { api } from "@/lib/api-client"
+import { useDomain } from "../../store/domain"
+import Link from "next/link"
+import Image from "next/image"
+
+interface SearchSuggestion {
+  id: number
+  ulid?: string
+  product_name: string
+  slug?: string
+  discounted_price?: number
+  price?: number
+  main_image?: string
+}
+
+const DEBOUNCE_MS = 500
 
 export function SearchInput() {
   const t = useTranslations("Theme2.header")
@@ -14,45 +30,69 @@ export function SearchInput() {
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const urlSearchQuery = searchParams.get("search") || ""
+  const domain = useDomain((state) => state.domain)
 
   const [isManuallyExpanded, setIsManuallyExpanded] = useState(false)
   const [localSearchQuery, setLocalSearchQuery] = useState("")
   const [isEditing, setIsEditing] = useState(false)
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
-  // Derive search query: prioritize local query when editing, otherwise use URL
-  // When not editing, derive directly from URL; when editing, use local state
   const searchQuery = isEditing
     ? localSearchQuery
     : urlSearchQuery || localSearchQuery
 
-  // Derive expanded state: expanded if URL has search OR manually expanded
   const isSearchExpanded = !!urlSearchQuery || isManuallyExpanded
 
-  // Focus input when expanded
   useEffect(() => {
     if (isSearchExpanded && searchInputRef.current) {
       searchInputRef.current.focus()
     }
   }, [isSearchExpanded])
 
-  // Handle click outside to close search (only if not on shop page with search)
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const hasSearchInUrl = searchParams.get("search")
-      // Don't close if there's a search query in URL (on shop page)
-      if (hasSearchInUrl) {
+  const fetchSuggestions = useCallback(
+    async (query: string) => {
+      if (!query.trim() || query.trim().length < 2 || !domain?.shop_id) {
+        setSuggestions([])
+        setShowSuggestions(false)
         return
       }
+      setIsLoadingSuggestions(true)
+      try {
+        const res = await api.get<{ data: SearchSuggestion[] }>(
+          `/customer/product-search?search=${encodeURIComponent(query.trim())}&page=1`,
+          { headers: { "shop-id": String(domain.shop_id) } }
+        )
+        const items = res?.data?.data ?? []
+        setSuggestions(items.slice(0, 6))
+        setShowSuggestions(items.length > 0)
+      } catch {
+        setSuggestions([])
+        setShowSuggestions(false)
+      } finally {
+        setIsLoadingSuggestions(false)
+      }
+    },
+    [domain?.shop_id]
+  )
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (
-        isSearchExpanded &&
-        searchInputRef.current &&
-        !searchInputRef.current.contains(event.target as Node) &&
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node) &&
         !(event.target as HTMLElement).closest("[data-search-trigger]")
       ) {
-        setIsManuallyExpanded(false)
-        setLocalSearchQuery("")
+        setShowSuggestions(false)
+        const hasSearchInUrl = searchParams.get("search")
+        if (!hasSearchInUrl) {
+          setIsManuallyExpanded(false)
+          setLocalSearchQuery("")
+        }
       }
     }
 
@@ -65,7 +105,6 @@ export function SearchInput() {
   const handleSearchToggle = () => {
     setIsManuallyExpanded(!isManuallyExpanded)
     if (!isManuallyExpanded) {
-      // When expanding, sync with URL search query if it exists
       setLocalSearchQuery(urlSearchQuery)
       setIsEditing(false)
     }
@@ -74,7 +113,8 @@ export function SearchInput() {
   const handleSearchClose = () => {
     setIsManuallyExpanded(false)
     setIsEditing(false)
-    // Clear search from URL when closing
+    setShowSuggestions(false)
+    setSuggestions([])
     if (pathname === "/shop") {
       const params = new URLSearchParams(searchParams.toString())
       params.delete("search")
@@ -87,17 +127,22 @@ export function SearchInput() {
     e.preventDefault()
     const queryToSubmit = searchQuery.trim()
     if (queryToSubmit) {
-      // Redirect to shop page with search query, keep input expanded
       router.push(`/shop?search=${encodeURIComponent(queryToSubmit)}`)
       setIsEditing(false)
-      // Clear local query - URL will be source of truth after navigation
+      setShowSuggestions(false)
       setLocalSearchQuery("")
     }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
     setIsEditing(true)
-    setLocalSearchQuery(e.target.value)
+    setLocalSearchQuery(val)
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      fetchSuggestions(val)
+    }, DEBOUNCE_MS)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -108,14 +153,26 @@ export function SearchInput() {
     }
   }
 
+  const handleSuggestionClick = () => {
+    setShowSuggestions(false)
+    setSuggestions([])
+    setLocalSearchQuery("")
+    setIsEditing(false)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
   return (
-    <div className="relative flex items-center">
-      {/* Search Icon Button */}
+    <div className="relative flex items-center" ref={wrapperRef}>
       <Button
         variant="secondary"
         size="icon"
         className={cn(
-          "size-10.5 transition-all duration-300",
+          "size-8 transition-all duration-300",
           isSearchExpanded && "opacity-0 pointer-events-none scale-0"
         )}
         onClick={handleSearchToggle}
@@ -123,10 +180,9 @@ export function SearchInput() {
         type="button"
       >
         <span className="sr-only">{t("search")}</span>
-        <SearchIcon className="size-6" />
+        <SearchIcon className="size-4" />
       </Button>
 
-      {/* Expanded Search Input */}
       <div
         className={cn(
           "absolute right-0 flex items-center gap-2 transition-all duration-300 ease-in-out",
@@ -136,7 +192,7 @@ export function SearchInput() {
         )}
       >
         <form onSubmit={handleSearchSubmit} className="relative flex-1">
-          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground pointer-events-none" />
+          <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
           <Input
             ref={searchInputRef}
             type="text"
@@ -144,7 +200,7 @@ export function SearchInput() {
             value={searchQuery}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            className="pl-10 pr-10 h-10.5 w-full"
+            className="pl-8 pr-8 h-8 w-full text-sm"
           />
           {searchQuery && (
             <button
@@ -156,6 +212,53 @@ export function SearchInput() {
               <X className="size-4" />
             </button>
           )}
+
+          {isSearchExpanded && showSuggestions && suggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto">
+              {suggestions.map((item) => {
+                const productId = item.ulid || String(item.id)
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/product/${item.slug}?id=${productId}`}
+                    onClick={handleSuggestionClick}
+                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-muted transition-colors"
+                  >
+                    {item.main_image && (
+                      <Image
+                        src={item.main_image}
+                        alt={item.product_name}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded object-cover shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium truncate">
+                        {item.product_name}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        ৳
+                        {(
+                          item.discounted_price ??
+                          item.price ??
+                          0
+                        ).toLocaleString()}
+                      </p>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+
+          {isSearchExpanded &&
+            isLoadingSuggestions &&
+            localSearchQuery.trim().length >= 2 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-lg shadow-lg z-50 flex items-center justify-center py-3">
+                <Loader2 className="size-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
         </form>
       </div>
     </div>

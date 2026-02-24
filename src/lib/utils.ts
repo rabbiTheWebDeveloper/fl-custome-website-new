@@ -13,10 +13,11 @@ export const prepareDomain = (domain: string) => {
   }
   try {
     const url = new URL(domain)
-    console.log(url.hostname)
-    return url.hostname
+    return url.hostname.replace(/^www\./, "")
   } catch {
-    // Fallback: strip protocol, path, query, and trailing slashes
-    return domain.replace(/^https?:\/\//, "").split(/[/?#]/)[0]
+    return domain
+      .replace(/^https?:\/\//, "")
+      .split(/[/?#]/)[0]
+      .replace(/^www\./, "")
   }
 }

@@ -7,6 +7,7 @@ import { IProduct } from "../../types/product"
 import type { CartItemVariant } from "@/lib/cart"
 import { useTranslations } from "next-intl"
 import { ShoppingCart } from "lucide-react"
+import { trackAddToCart } from "@/lib/gtm"
 
 interface AddToCartButtonProps {
   product: IProduct
@@ -49,8 +50,14 @@ function AddToCartButton({
         inside_dhaka: product.inside_dhaka,
         outside_dhaka: product.outside_dhaka,
       },
-      mergeIfExists: true, // Merge with existing item if variant matches (increments quantity)
+      mergeIfExists: true,
       maxQuantity: maxQty,
+    })
+    trackAddToCart({
+      id: product.id,
+      name: product.product_name,
+      price: product.discounted_price ?? product.price,
+      quantity: 1,
     })
   }
 

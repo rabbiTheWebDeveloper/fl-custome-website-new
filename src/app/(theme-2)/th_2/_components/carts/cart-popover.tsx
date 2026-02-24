@@ -42,11 +42,11 @@ export const CartPopover = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="secondary" size="icon" className="size-10.5 relative">
+        <Button variant="secondary" size="icon" className="size-8 relative">
           <span className="sr-only">Cart</span>
-          <ShoppingCartIcon className="size-6" />
+          <ShoppingCartIcon className="size-4" />
           {totalProducts > NO_ITEMS && (
-            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full size-5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full size-4 flex items-center justify-center">
               {totalProducts}
             </span>
           )}

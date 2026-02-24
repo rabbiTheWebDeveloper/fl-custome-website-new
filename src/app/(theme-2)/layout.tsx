@@ -48,10 +48,10 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${inter.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
+      className={`${inter.variable} ${geistMono.variable} antialiased overflow-x-clip`}
       suppressHydrationWarning
     >
-      <body className="overflow-x-hidden">
+      <body className="overflow-x-clip">
         <NextIntlClientProvider
           locale={locale}
           messages={messages}
@@ -60,7 +60,7 @@ export default async function RootLayout({
           <ThemeBrandProvider>
             <Toaster position="top-center" richColors />
             <DynamicMeta />
-            <div className="overflow-x-hidden">
+            <div className="overflow-x-clip">
               <Header />
               {children}
               <Footer />

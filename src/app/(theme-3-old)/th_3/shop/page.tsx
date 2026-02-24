@@ -9,33 +9,41 @@ const ShopPage = async ({
 }: {
   searchParams: Promise<{ page?: string; search?: string }>
 }) => {
-  const host = (await headers()).get("host") || ""
-  const cleanDomain = host.replace(/^www\./, "")
-  const shopInfo = await getDomainInfo(cleanDomain)
-  const { page = "1", search } = await searchParams
-  let response: IProductsApiResponse
-  if (search && search.trim()) {
-    const searchResponse = await api.get<IProductsApiResponse>(
-      `/customer/product-search?search=${encodeURIComponent(search.trim())}&page=1`,
-      undefined,
-      {
-        headers: { "shop-id": shopInfo?.shop_id || "" },
-      }
-    )
-    response = searchResponse.data
-  } else {
-    const data = await api.get<IProductsApiResponse>(
-      `/customer/products?page=${page}`,
-      { headers: { "shop-id": shopInfo?.shop_id || "" } }
-    )
-    response = data.data
-  }
+  let products: IProductsApiResponse["data"] = []
+  let totalPages = 1
 
-  const products = response.data
+  try {
+    const host = (await headers()).get("host") || ""
+    const cleanDomain = host.replace(/^www\./, "")
+    const shopInfo = await getDomainInfo(cleanDomain)
+    const { page = "1", search } = await searchParams
+    let response: IProductsApiResponse
+    if (search && search.trim()) {
+      const searchResponse = await api.get<IProductsApiResponse>(
+        `/customer/product-search?search=${encodeURIComponent(search.trim())}&page=1`,
+        undefined,
+        {
+          headers: { "shop-id": shopInfo?.shop_id || "" },
+        }
+      )
+      response = searchResponse.data
+    } else {
+      const data = await api.get<IProductsApiResponse>(
+        `/customer/products?page=${page}`,
+        { headers: { "shop-id": shopInfo?.shop_id || "" } }
+      )
+      response = data.data
+    }
+
+    products = response.data
+    totalPages = response.last_page
+  } catch (err) {
+    console.warn("[theme-3 Shop] Failed to fetch products:", err)
+  }
 
   return (
     <>
-      <Shop products={products} totalPages={response.last_page} />
+      <Shop products={products} totalPages={totalPages} />
     </>
   )
 }

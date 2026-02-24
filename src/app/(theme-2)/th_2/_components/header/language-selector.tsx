@@ -30,10 +30,10 @@ export function LanguageSelector() {
       variant="secondary"
       size="sm"
       onClick={handleToggle}
-      className="gap-1.5 h-9 px-2.5 rounded-full text-xs font-semibold"
+      className="gap-1 h-7 px-2 rounded-full text-[10px] font-semibold"
       aria-label={`Switch language to ${current.next}`}
     >
-      <Globe2 className="size-4 text-muted-foreground shrink-0" />
+      <Globe2 className="size-3.5 text-muted-foreground shrink-0" />
       <span>{current.code}</span>
     </Button>
   )

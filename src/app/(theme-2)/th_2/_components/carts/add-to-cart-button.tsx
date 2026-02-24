@@ -8,6 +8,7 @@ import { IProduct } from "../../types/product"
 import type { CartItemVariant } from "@/lib/cart"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
+import { trackAddToCart } from "@/lib/gtm"
 
 interface AddToCartButtonProps {
   product: IProduct
@@ -65,6 +66,12 @@ function AddToCartButton({
         maxQuantity: maxQty,
       })
       toast.success(tToast("addedToCart"))
+      trackAddToCart({
+        id: product.id,
+        name: product.product_name,
+        price: product.discounted_price ?? product.price,
+        quantity: 1,
+      })
     } catch (error) {
       console.error("Failed to add item to cart:", error)
       toast.error(tToast("addToCartError"))

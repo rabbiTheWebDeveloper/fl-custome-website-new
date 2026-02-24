@@ -154,12 +154,14 @@ export const CartPopover = ({
               <div className="flex gap-2">
                 <Link
                   href="/checkout"
+                  onClick={() => setIsCartOpen(false)}
                   className="flex-1 border-2 border-green-600 text-green-600 hover:bg-green-50 py-3 rounded-lg text-center font-semibold transition-colors"
                 >
                   {t("cart.viewCart")}
                 </Link>
                 <Link
                   href="/checkout"
+                  onClick={() => setIsCartOpen(false)}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-center font-semibold transition-colors"
                 >
                   {t("cart.checkout")}
@@ -225,12 +227,14 @@ export const CartPopover = ({
               <div className="flex gap-2">
                 <Link
                   href="/checkout"
+                  onClick={() => setIsCartOpen(false)}
                   className="flex-1 border-2 border-green-600 text-green-600 py-3 rounded-lg text-center font-semibold"
                 >
                   {t("cart.viewCart")}
                 </Link>
                 <Link
                   href="/checkout"
+                  onClick={() => setIsCartOpen(false)}
                   className="flex-1 bg-green-600 text-white py-3 rounded-lg text-center font-semibold"
                 >
                   {t("cart.checkout")}

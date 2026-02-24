@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useCart } from "@/lib/cart"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
+import { trackAddToCart } from "@/lib/gtm"
 
 export const ProductCard = ({
   product_name: name,
@@ -50,8 +51,14 @@ export const ProductCard = ({
             // Note: inside_dhaka and outside_dhaka are not available in ProductCard props
             // They will be fetched from API if needed in checkout
           },
-          mergeIfExists: true, // Merge with existing item if variant matches (increments quantity)
+          mergeIfExists: true,
           maxQuantity: maxQty,
+        })
+        trackAddToCart({
+          id,
+          name,
+          price: discountedPrice ?? originalPrice,
+          quantity: 1,
         })
       } catch (error) {
         console.error("Failed to add item to cart:", error)

@@ -23,6 +23,7 @@ import { useDomain } from "../../store/domain"
 import type { PaymentGateway } from "../../types/shop"
 import CheckoutOtp from "./checkout-otp"
 import { toast } from "sonner"
+import { trackBeginCheckout, trackPurchase } from "@/lib/gtm"
 
 // Client-side function to get domain headers from cookies
 function getDomainHeadersFromCookies(): {
@@ -532,10 +533,33 @@ export function CheckoutForm() {
     return () => clearTimeout(timeoutId)
   }, [customerName, customerPhone, createIncompleteOrder])
 
+  const shippingMethodLabel = (method: string) => {
+    if (method === "inside-dhaka") return "Inside Dhaka City"
+    if (method === "subarea") return "Sub Area"
+    return "Outside Dhaka City"
+  }
+
   const onSubmit = async (data: CheckoutFormData) => {
     if (items.length === 0) {
       return
     }
+
+    const cartItemsForGTM = items.map((item) => ({
+      id: item.productId,
+      name: item.name,
+      price: item.discountedPrice ?? item.price,
+      quantity: item.quantity,
+    }))
+
+    trackBeginCheckout(
+      cartItemsForGTM,
+      finalTotals.total,
+      {
+        first_name: data.fullName,
+        phone: data.phone,
+      },
+      shippingMethodLabel(data.shippingMethod)
+    )
 
     try {
       // Get store URL from cookie
@@ -669,6 +693,17 @@ export function CheckoutForm() {
         setShowOtp(true)
         return
       }
+
+      trackPurchase(
+        cartItemsForGTM,
+        finalTotals.total,
+        {
+          first_name: data.fullName,
+          phone: data.phone,
+        },
+        data.paymentMethod === "cash-on-delivery" ? "COD" : data.paymentMethod,
+        shippingMethodLabel(data.shippingMethod)
+      )
 
       // Clear cart after successful order
       await clearCart()
@@ -1098,8 +1133,10 @@ export function CheckoutForm() {
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Place Order Button */}
+          {/* Place Order Button - sticky on mobile */}
+          <div className="md:sticky md:relative fixed bottom-0 left-0 right-0 z-40 bg-background p-4 md:p-0 border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none">
             <Button
               type="submit"
               className="w-full h-12 text-base rounded-2xl"
@@ -1109,6 +1146,8 @@ export function CheckoutForm() {
             </Button>
           </div>
         </div>
+        {/* Spacer for fixed button on mobile */}
+        <div className="h-20 md:hidden" />
       </form>
 
       {/* OTP Modal */}

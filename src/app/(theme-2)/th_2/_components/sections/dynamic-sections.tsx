@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation"
 import { useCart } from "@/lib/cart"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { trackAddToCart } from "@/lib/gtm"
 
 interface SectionProductCardProps {
   product: ISectionProduct
@@ -76,6 +77,12 @@ const SectionProductCard = ({ product }: SectionProductCardProps) => {
         maxQuantity: product.product_qty,
       })
       toast.success(tToast("addedToCart"))
+      trackAddToCart({
+        id: product.id,
+        name: product.product_name,
+        price: product.discounted_price ?? product.price,
+        quantity: 1,
+      })
     } catch (error) {
       console.error("Failed to add item to cart:", error)
       toast.error(tToast("addToCartError"))
@@ -275,14 +282,14 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
     section.has_countdown && countdown?.end && !isCountdownComplete
 
   return (
-    <section className="py-10 md:py-16">
+    <section className="py-4 md:py-6">
       <div className="container">
         {/* Header Bar */}
-        <div className="bg-primary/70 border-b border-border rounded-t-xl px-4 py-3 md:px-6 md:py-4 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4 md:gap-6 flex-wrap">
-            <h2 className="text-lg md:text-2xl font-bold text-white whitespace-nowrap">
-              {section.name}
-            </h2>
+        <div className="bg-primary/70 border-b border-border rounded-t-xl px-4 py-3 md:px-6 md:py-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
+          <h2 className="text-lg md:text-2xl font-bold text-white whitespace-nowrap">
+            {section.name}
+          </h2>
+          <div className="flex justify-center">
             {showCountdown && (
               <CountdownTimer
                 targetDate={countdown.end}

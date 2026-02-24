@@ -23,10 +23,7 @@ export default function FooterUI({ shopInfo }: { shopInfo: FooterShopInfo }) {
   return (
     <footer className="relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border-t border-[#3bb77e] mt-6 transition-colors duration-500">
       {/* Top gradient line */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[1px] 
-                  bg-gradient-to-r from-transparent via-[#3bb77e] to-transparent"
-      />
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#3bb77e] to-transparent" />
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Main grid */}
