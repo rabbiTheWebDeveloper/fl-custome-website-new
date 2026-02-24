@@ -39,8 +39,10 @@ const banglaFont = Tiro_Bangla({
 
 export default async function RootLayout({
   children,
+  modal,
 }: {
   children: React.ReactNode
+  modal?: React.ReactNode
 }) {
   const host = (await headers()).get("host") || ""
   const cleanDomain = host.replace(/^www\./, "")
@@ -87,6 +89,7 @@ export default async function RootLayout({
             <div style={{ display: "contents" }}>
               <Header />
               {children}
+              {modal}
               <FooterUI shopInfo={shopInfo} />
             </div>
           </Providers>
