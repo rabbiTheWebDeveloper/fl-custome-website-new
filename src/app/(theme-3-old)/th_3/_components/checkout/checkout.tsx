@@ -35,7 +35,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import CheckoutOtp from "./checkout-otp"
 import { toast } from "sonner"
 import { useDomain } from "../../store/domain"
-import { trackBeginCheckout, trackPurchase } from "@/lib/gtm"
 
 // Client-side function to get domain headers from cookies
 export function getDomainHeadersFromCookies(): {
@@ -605,33 +604,10 @@ const Checkout = () => {
     return () => clearTimeout(timeoutId)
   }, [customerName, customerPhone, createIncompleteOrder])
 
-  const shippingMethodLabel = (method: string) => {
-    if (method === "inside-dhaka") return "Inside Dhaka City"
-    if (method === "subarea") return "Sub Area"
-    return "Outside Dhaka City"
-  }
-
   const onSubmit = async (data: CheckoutFormData) => {
     if (items.length === 0) {
       return
     }
-
-    const cartItemsForGTM = items.map((item) => ({
-      id: item.productId,
-      name: item.name,
-      price: item.discountedPrice ?? item.price,
-      quantity: item.quantity,
-    }))
-
-    trackBeginCheckout(
-      cartItemsForGTM,
-      finalTotals.total,
-      {
-        first_name: data.fullName,
-        phone: data.phone,
-      },
-      shippingMethodLabel(data.shippingMethod)
-    )
 
     try {
       // Get store URL from cookie
@@ -757,19 +733,6 @@ const Checkout = () => {
       const { order, data: responseOrderData } = responseData
       if (response.data && typeof response.data === "object") {
         if (responseOrderData) {
-          trackPurchase(
-            cartItemsForGTM,
-            finalTotals.total,
-            {
-              first_name: data.fullName,
-              phone: data.phone,
-            },
-            data.paymentMethod === "cash-on-delivery"
-              ? "COD"
-              : data.paymentMethod,
-            shippingMethodLabel(data.shippingMethod)
-          )
-
           if (responseOrderData?.payment_url) {
             router.push(responseOrderData?.payment_url)
             clearCart()
@@ -1316,10 +1279,7 @@ const Checkout = () => {
                     information is encrypted and protected
                   </span>
                 </div>
-              </div>
-
-              {/* Place Order Button - sticky on mobile */}
-              <div className="md:relative fixed bottom-0 left-0 right-0 z-40 bg-background p-4 md:p-0 border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none">
+                {/* Place Order Button */}
                 <button
                   type="submit"
                   disabled={!isValid || isSubmitting || items.length === 0}
@@ -1362,8 +1322,6 @@ const Checkout = () => {
               </div>
             </div>
           </div>
-          {/* Spacer for fixed button on mobile */}
-          <div className="h-20 md:hidden" />
         </form>
         {/* Continue Shopping */}
         <div className="mt-6 sm:mt-8 text-center">
