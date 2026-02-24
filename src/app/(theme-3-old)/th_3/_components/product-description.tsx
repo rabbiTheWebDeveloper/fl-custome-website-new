@@ -224,16 +224,6 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
                 Hand-picked products based on your interest
               </p>
             </div>
-            <Link
-              href="/shop"
-              className="hidden sm:flex items-center gap-2 text-[#3BB77E] hover:text-[#2a9d64] font-medium transition group"
-            >
-              View All
-              <ChevronRight
-                size={18}
-                className="group-hover:translate-x-1 transition"
-              />
-            </Link>
           </div>
 
           {/* Related Products Grid */}
