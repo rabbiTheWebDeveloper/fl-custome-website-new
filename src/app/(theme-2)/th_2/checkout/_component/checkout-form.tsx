@@ -426,10 +426,12 @@ export function CheckoutForm() {
   const finalTotalsRef = useRef(finalTotals)
   finalTotalsRef.current = finalTotals
 
+  console.log("Items:", items)
+
   const createIncompleteOrder = useCallback(
     async (shopId: string, userId: string) => {
       if (itemsRef.current.length === 0) return
-
+      console.log("Items:", itemsRef.current)
       try {
         const orderPayload = {
           customer_name: customerNameRef.current || "",
@@ -447,6 +449,8 @@ export function CheckoutForm() {
           })),
           grand_total: finalTotalsRef.current.total,
         }
+
+        console.log("Order payload:", orderPayload)
 
         const response = await api.post(
           "/customer/incomplete-order",
@@ -587,13 +591,66 @@ export function CheckoutForm() {
         shipping_cost: shippingCost,
       })
 
+      const getVariantIdForOrder = (item: StoreCartItem): number => {
+        if (!item.variants || item.variants.length === 0) return 0
+
+        for (const variant of item.variants) {
+          const rawId =
+            (
+              variant as {
+                variationId?: number | string
+                variantId?: number | string
+                attributeId?: number | string
+              }
+            ).variationId ??
+            (
+              variant as {
+                variationId?: number | string
+                variantId?: number | string
+                attributeId?: number | string
+              }
+            ).variantId ??
+            (
+              variant as {
+                variationId?: number | string
+                variantId?: number | string
+                attributeId?: number | string
+              }
+            ).attributeId
+
+          if (
+            rawId !== undefined &&
+            rawId !== null &&
+            String(rawId).trim() !== ""
+          ) {
+            const parsed = Number(rawId)
+            if (Number.isFinite(parsed) && parsed > 0) return parsed
+          }
+        }
+
+        return 0
+      }
+
+      // Force variant_id[] from live cart items right before submit
+      const resolvedVariantIds = items.map((item) => getVariantIdForOrder(item))
+      const requestOrderData = new FormData()
+      Array.from(orderData.entries()).forEach(([key, value]) => {
+        if (key !== "variant_id[]") {
+          requestOrderData.append(key, value)
+        }
+      })
+      resolvedVariantIds.forEach((id) => {
+        requestOrderData.append("variant_id[]", String(id))
+      })
+      console.log("Resolved variant_id[] for order:", resolvedVariantIds)
+
       // Debug: Check if incomplete_order_id is in FormData
       if (incompleteOrderId) {
         console.log(
           "incomplete_order_id should be included:",
           incompleteOrderId
         )
-        const formDataEntries = Array.from(orderData.entries())
+        const formDataEntries = Array.from(requestOrderData.entries())
         const hasIncompleteOrderId = formDataEntries.some(
           ([key]) => key === "incomplete_order_id"
         )
@@ -601,6 +658,12 @@ export function CheckoutForm() {
         console.log(
           "All FormData entries:",
           formDataEntries.map(([key]) => key)
+        )
+        console.log(
+          "variant_id[] entries:",
+          formDataEntries
+            .filter(([key]) => key === "variant_id[]")
+            .map(([, value]) => value)
         )
       }
 
@@ -671,7 +734,7 @@ export function CheckoutForm() {
       // Submit order to API
       const response = await api.post(
         "/customer/order/store",
-        orderData,
+        requestOrderData,
         undefined,
         {
           headers: {
