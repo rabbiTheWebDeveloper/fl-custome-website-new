@@ -43,7 +43,7 @@ export default function Category() {
         .replace(/[^\w\s-]/g, "")
         .replace(/\s+/g, "-")
 
-      let image = item.image || PLACEHOLDER_IMAGE
+      let image = item.category_image || PLACEHOLDER_IMAGE
       if (image.startsWith("//")) image = "https:" + image
       if (!image.startsWith("http") && !image.startsWith("/")) {
         image = PLACEHOLDER_IMAGE
@@ -128,7 +128,6 @@ export default function Category() {
   ) => {
     e.currentTarget.src = PLACEHOLDER_IMAGE
   }
-
   /* ----------------------------
    Empty state
   ----------------------------- */
@@ -219,9 +218,9 @@ export default function Category() {
                           alt={item.displayName}
                           width={CATEGORY_ICON_SIZE}
                           height={CATEGORY_ICON_SIZE}
-                          className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal"
-                          onError={handleImageError}
+                          className="w-full h-full object-cover"
                           priority={index < 6}
+                          unoptimized
                         />
 
                         {/* Overlay on Hover */}

@@ -17,7 +17,6 @@ export function proxy(request: NextRequest) {
   let theme = defaultTheme
 
   const domainCookie = request.cookies.get("domain")?.value
-  console.log("Domain cookie value:", domainCookie) // Debug log to check the cookie value
   if (domainCookie) {
     try {
       const raw = domainCookie.includes("%7B")

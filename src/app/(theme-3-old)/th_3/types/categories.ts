@@ -13,7 +13,8 @@ export interface ICategory {
   wp_category_id: number | null
   name: string
   slug: string
-  image: string | null
+  image?: string | null
+  category_image?: string | null
   wp_category_image_url: string | null
   description: string | null
   shop_id: number

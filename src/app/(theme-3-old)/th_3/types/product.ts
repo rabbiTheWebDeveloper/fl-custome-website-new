@@ -1,4 +1,5 @@
 import { ICategory } from "./categories"
+
 export interface IProductsApiResponse {
   message: string
   success: boolean
@@ -19,15 +20,9 @@ export interface IProductsApiResponse {
   total: number
 }
 
-export interface IProductVariation {
-  id: number
-  key?: string
-  name?: string
-  values: (string | { label: string })[]
-}
-
 export interface IProduct {
   id: number
+  ulid: string
   category_id: number
   shop_id: number
   wp_product_id: number
@@ -35,38 +30,31 @@ export interface IProduct {
   product_code: string
   product_qty: number
   slug: string
-  ulid?: string
   price: number
-  video_url: string | string[] | null
   discount: number
   discounted_price: number
   discount_type: string | null
-  flat_discount_percent: number
+  flat_discount_percent: number | string
   delivery_charge: string
   inside_dhaka: number
   outside_dhaka: number
   status: number
   sub_area_charge: number
   default_delivery_location: string | null
-  attributes: boolean
+  attributes: boolean | IAttributeValues[]
   variation_price_range: number[]
-  variations: boolean | IProductVariation[]
+  variations: boolean | IVariation[]
   created_at: string // ISO date string
   main_image: string | null
   wp_product_image_url: string | null
   short_description: string | null
   long_description: string | null
   relatedProducts?: IProduct[]
+  related_products?: IProduct[]
   other_images: string[]
+  video_url: string[]
   category?: ICategory
   tags?: { name: string }[]
-}
-
-export interface IPaginationLink {
-  url: string | null
-  label: string
-  page: number | null
-  active: boolean
 }
 
 export interface IAttributeValues {
@@ -85,4 +73,11 @@ export interface IVariation {
   code: string
   wp_variant_image_url: string | null
   media: string | null
+}
+
+export interface IPaginationLink {
+  url: string | null
+  label: string
+  page: number | null
+  active: boolean
 }

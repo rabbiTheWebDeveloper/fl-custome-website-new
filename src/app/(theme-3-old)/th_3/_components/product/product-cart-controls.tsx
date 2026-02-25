@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation"
 import { VariantSelector } from "./variant-selector"
 import { useCart, generateCartItemId } from "@/lib/cart"
 import { useCartStore } from "@/lib/cart"
-import type { IProduct, IVariation } from "../../types/product"
+import type {
+  IAttributeValues,
+  IProduct,
+  IVariation,
+} from "../../types/product"
 import { CreditCard } from "lucide-react"
 import AddToCartButton from "../carts/add-to-cart-button"
 import { CartInputConnected } from "../carts/cart-input-connected"
@@ -33,8 +37,8 @@ export function ProductCartControls({
   const { addItem } = useCart()
   const items = useCartStore((state) => state.items)
   const cartVariants = useMemo(() => {
-    const attributes = Array.isArray(product.attributes)
-      ? product.attributes
+    const attributes: IAttributeValues[] = Array.isArray(product.attributes)
+      ? (product.attributes as IAttributeValues[])
       : []
     return Object.entries(selectedVariants)
       .filter(([, value]) => value)

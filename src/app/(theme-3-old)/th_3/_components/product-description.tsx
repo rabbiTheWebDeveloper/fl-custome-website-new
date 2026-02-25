@@ -88,8 +88,12 @@ const ProductDescription = ({
 }: ProductDetailsClientProps) => {
   // sample theme color
   const relatedProducts = product?.relatedProducts || []
-  const attributes = Array.isArray(product.attributes) ? product.attributes : []
-  const variations = Array.isArray(product.variations) ? product.variations : []
+  const attributes: IAttributeValues[] = Array.isArray(product.attributes)
+    ? (product.attributes as IAttributeValues[])
+    : []
+  const variations: IVariation[] = Array.isArray(product.variations)
+    ? (product.variations as IVariation[])
+    : []
   const hasVariations = variations.length > 0 && attributes.length > 0
 
   const cheapestVariation = useMemo(
@@ -149,6 +153,11 @@ const ProductDescription = ({
   const handleVariantChange = (key: string, value: string) => {
     setSelectedVariants((prev) => ({ ...prev, [key]: value }))
   }
+
+  console.log(
+    "🚀 ~ file: product-description.tsx:24 ~ ProductDescription ~ product:",
+    product
+  )
   if (!product) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
