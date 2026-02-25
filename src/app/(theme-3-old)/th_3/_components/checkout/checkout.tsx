@@ -763,7 +763,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
       }
     } catch (error) {
       console.error("Error submitting order:", error)
-      throw error // Re-throw to let react-hook-form handle it
+      toast.error("Failed to place order. Please try again.")
     }
   }
 
