@@ -34,6 +34,29 @@ export default function Category() {
   /* ----------------------------
    Transform categories to slides
   ----------------------------- */
+  const slides = useMemo(() => {
+    if (!categories?.length) return []
+
+    return categories.map((item) => {
+      const slug = (item.name || "category")
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-")
+
+      let image = item.category_image || PLACEHOLDER_IMAGE
+      if (image.startsWith("//")) image = "https:" + image
+      if (!image.startsWith("http") && !image.startsWith("/")) {
+        image = PLACEHOLDER_IMAGE
+      }
+
+      return {
+        ...item,
+        image,
+        href: `/shop?category=${slug}}&id=${item.id || ""}`,
+        displayName: item.name || "Unnamed Category",
+      }
+    })
+  }, [categories])
 
   /* ----------------------------
    Embla events
@@ -223,26 +246,6 @@ export default function Category() {
                       >
                         {truncate(item.displayName)}
                       </h3>
-
-                      {/* Sub-category Count Badge */}
-                      {item.sub_categories?.length > 0 && (
-                        <span
-                          className="
-                          inline-flex
-                          items-center
-                          px-2.5 py-0.5
-                          rounded-full
-                          text-xs font-medium
-                          bg-gray-100 dark:bg-gray-700
-                          text-gray-600 dark:text-gray-300
-                          group-hover:bg-[#38B27A]/20 dark:group-hover:bg-[#38B27A]/50
-                          group-hover:text-[#38B27A] dark:group-hover:text-[#38B27A]
-                          transition-colors duration-300
-                        "
-                        >
-                          {item.sub_categories.length} items
-                        </span>
-                      )}
                     </div>
                   </Link>
                 </div>

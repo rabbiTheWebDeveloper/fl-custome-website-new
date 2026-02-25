@@ -889,7 +889,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
                     <div
                       className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-base
           ${
-            index < 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-600"
+            index < 2 ? "bg-[#30A16C] text-white" : "bg-gray-200 text-gray-600"
           }`}
                     >
                       {index < 2 ? (
@@ -901,7 +901,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
 
                     <span
                       className={`ml-1 sm:ml-2 text-xs sm:text-sm font-medium hidden sm:inline
-          ${index < 2 ? "text-green-600" : "text-gray-600"}`}
+          ${index < 2 ? "text-[#30A16C]" : "text-gray-600"}`}
                     >
                       {step}
                     </span>
@@ -910,7 +910,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
                   {index < 2 && (
                     <div
                       className={`flex-1 h-0.5 sm:h-1 mx-2 sm:mx-4
-          ${index < 1 ? "bg-green-600" : "bg-gray-200"}`}
+          ${index < 1 ? "bg-[#30A16C]" : "bg-gray-200"}`}
                     />
                   )}
                 </React.Fragment>
@@ -928,7 +928,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
               {/* Contact Information */}
               <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-[#30A16C]" />
                   <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                     Contact Information
                   </h2>

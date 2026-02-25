@@ -5,6 +5,7 @@ import type { CartItem as StoreCartItem } from "@/lib/cart"
 import { ShoppingCart, X } from "lucide-react"
 import Image from "next/image"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 
 export const CartPopover = ({
   isCartOpen,
@@ -20,8 +21,22 @@ export const CartPopover = ({
   const totals = useCartStore((state) => state.totals)
 
   const handleQuantityChange = async (itemId: string, newQuantity: number) => {
+    const item = items.find((i) => i.id === itemId)
+    if (!item) return // item not found
+
+    // Check maxQuantity
+    if (
+      typeof item.metadata?.maxQuantity === "number" &&
+      newQuantity > item.metadata.maxQuantity
+    ) {
+      toast.error(
+        `Maximum quantity for this product is ${item.metadata.maxQuantity}`
+      )
+      return
+    }
     await updateItem(itemId, { quantity: newQuantity })
   }
+
   const handleRemoveProduct = async (itemId: string) => {
     setIsCartOpen(true)
     await removeItem(itemId)
@@ -34,6 +49,7 @@ export const CartPopover = ({
     return item.variants.map((v) => `${v.key}: ${v.value}`).join(", ")
   }
   const totalProducts = totals.itemCount
+  console.log("Cart Items:", items)
   return (
     <>
       <div className="relative dropdown">
@@ -41,7 +57,7 @@ export const CartPopover = ({
           onClick={() => setIsCartOpen(!isCartOpen)}
           className="relative cursor-pointer group flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
         >
-          <ShoppingCart className="w-6 h-6 text-gray-600 group-hover:text-green-600 transition-colors" />
+          <ShoppingCart className="w-6 h-6 text-gray-600 group-hover:text-[#30A16C] transition-colors" />
           <div className="text-left">
             <div className="text-sm text-gray-500">
               {t("cart.shoppingCart")}
@@ -50,7 +66,7 @@ export const CartPopover = ({
               ৳{totals?.subtotal?.toLocaleString()}
             </div>
           </div>
-          <span className="absolute -top-2 -right-2 bg-green-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+          <span className="absolute -top-2 -right-2 bg-[#30A16C] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
             {totalProducts}
           </span>
         </button>
@@ -101,29 +117,56 @@ export const CartPopover = ({
 
                       {/* Price & Quantity */}
                       <div className="flex items-center justify-between mt-2">
-                        <div className="text-lg font-bold text-green-600">
+                        <div className="text-lg font-bold text-[#30A16C]">
                           ৳{item?.discountedPrice?.toLocaleString()}
                         </div>
 
                         {/* Quantity Buttons */}
                         <div className="flex items-center gap-2">
+                          {/* Decrease button */}
                           <button
                             onClick={() =>
                               handleQuantityChange(item.id, item.quantity - 1)
                             }
                             disabled={item.quantity <= 1}
-                            className="w-6 h-6 rounded-full border flex items-center justify-center disabled:opacity-50"
+                            className="
+      w-8 h-8
+      flex items-center justify-center
+      rounded-full
+      border border-gray-300
+      text-gray-700
+      hover:bg-green-100 hover:text-[#30A16C]
+      transition
+      disabled:opacity-50 disabled:cursor-not-allowed
+    "
                           >
                             -
                           </button>
 
-                          <span>{item.quantity}</span>
+                          {/* Quantity display */}
+                          <span className="w-6 text-center font-medium">
+                            {item.quantity}
+                          </span>
 
+                          {/* Increase button */}
                           <button
                             onClick={() =>
                               handleQuantityChange(item.id, item.quantity + 1)
                             }
-                            className="w-6 h-6 rounded-full border flex items-center justify-center"
+                            disabled={
+                              typeof item.metadata?.maxQuantity === "number" &&
+                              item.quantity >= item.metadata.maxQuantity
+                            }
+                            className="
+      w-8 h-8
+      flex items-center justify-center
+      rounded-full
+      border border-gray-300
+      text-gray-700
+      hover:bg-green-100 hover:text-[#30A16C]
+      transition
+      disabled:opacity-50 disabled:cursor-not-allowed
+    "
                           >
                             +
                           </button>
@@ -155,14 +198,14 @@ export const CartPopover = ({
                 <Link
                   href="/checkout"
                   onClick={() => setIsCartOpen(false)}
-                  className="flex-1 border-2 border-green-600 text-green-600 hover:bg-green-50 py-3 rounded-lg text-center font-semibold transition-colors"
+                  className="flex-1 border-2 border-[#30A16C] text-[#30A16C] hover:bg-green-50 py-3 rounded-lg text-center font-semibold transition-colors"
                 >
                   {t("cart.viewCart")}
                 </Link>
                 <Link
                   href="/checkout"
                   onClick={() => setIsCartOpen(false)}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-center font-semibold transition-colors"
+                  className="flex-1 bg-[#30A16C] hover:bg-[#288a5a] text-white py-3 rounded-lg text-center font-semibold transition-colors"
                 >
                   {t("cart.checkout")}
                 </Link>
@@ -198,7 +241,7 @@ export const CartPopover = ({
                   <div className="flex-1">
                     <h4 className="font-medium">{item.name}</h4>
                     <div className="flex justify-between items-center mt-2">
-                      <div className="font-bold text-green-600">
+                      <div className="font-bold text-[#30A16C]">
                         ${item.price}
                       </div>
                       <div className="flex items-center gap-2">
@@ -220,7 +263,7 @@ export const CartPopover = ({
                 <span className="text-lg font-semibold">
                   {t("cart.total")}:
                 </span>
-                <span className="text-2xl font-bold text-green-600">
+                <span className="text-2xl font-bold text-[#30A16C]">
                   ${totals?.subtotal?.toLocaleString()}
                 </span>
               </div>
@@ -228,14 +271,14 @@ export const CartPopover = ({
                 <Link
                   href="/checkout"
                   onClick={() => setIsCartOpen(false)}
-                  className="flex-1 border-2 border-green-600 text-green-600 py-3 rounded-lg text-center font-semibold"
+                  className="flex-1 border-2 border-[#30A16C] text-[#30A16C] py-3 rounded-lg text-center font-semibold"
                 >
                   {t("cart.viewCart")}
                 </Link>
                 <Link
                   href="/checkout"
                   onClick={() => setIsCartOpen(false)}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg text-center font-semibold"
+                  className="flex-1 bg-[#30A16C] hover:bg-[#288a5a] text-white py-3 rounded-lg text-center font-semibold"
                 >
                   {t("cart.checkout")}
                 </Link>
