@@ -25,16 +25,20 @@ export function proxy(request: NextRequest) {
       const parsed = JSON.parse(raw)
       const domain = parsed?.state?.domain
 
-      const themeName = domain?.theme_settings?.theme_name
-      const themeId = domain?.theme_id ? String(domain.theme_id).trim() : ""
+      if (domain?.theme_settings === null) {
+        theme = "th_3"
+      } else {
+        const themeName = domain?.theme_settings?.theme_name
+        const themeId = domain?.theme_id ? String(domain.theme_id).trim() : ""
 
-      const resolvedName =
-        typeof themeName === "string" && themeName.trim() !== ""
-          ? themeName.trim()
-          : themeId
+        const resolvedName =
+          typeof themeName === "string" && themeName.trim() !== ""
+            ? themeName.trim()
+            : themeId
 
-      if (resolvedName) {
-        theme = resolveTheme(resolvedName)
+        if (resolvedName) {
+          theme = resolveTheme(resolvedName)
+        }
       }
     } catch {
       // fall back to defaultTheme
