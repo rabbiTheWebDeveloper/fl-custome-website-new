@@ -67,6 +67,8 @@ export function ProductCartControls({
   const maxQty = selectedVariation?.quantity ?? product.product_qty
   const selectedPrice = selectedVariation?.price ?? product.price
   const selectedImage = selectedVariation?.media || product.main_image
+    const effectivePrice = selectedPrice ?? product.price
+  const effectiveImage = selectedImage ?? product.main_image
   const effectiveSelectedQuantity =
     currentQuantity > 0 ? currentQuantity : selectedQuantityBeforeFirstAdd
 
@@ -98,12 +100,12 @@ export function ProductCartControls({
         await addItem({
           productId: product.id,
           name: product.product_name,
-          price: selectedPrice,
-          discountedPrice: selectedPrice,
+           price: effectivePrice,
+           discountedPrice: effectivePrice,
           quantity: quantityToAdd,
           variants: cartVariants,
           metadata: {
-            image: selectedImage,
+              image: effectiveImage,
             sku: product.product_code,
             maxQuantity: maxQty,
             ulid: product.ulid,
@@ -117,7 +119,7 @@ export function ProductCartControls({
         trackAddToCart({
           id: product.id,
           name: product.product_name,
-          price: selectedPrice,
+          price: effectivePrice,
           quantity: quantityToAdd,
         })
       }
