@@ -11,9 +11,16 @@ const Details = async ({ params }: { params: Promise<{ id: string }> }) => {
     headers,
   })
   const product: IProduct = (response.data as { data: IProduct }).data
+
+  const rawVideoUrl = product.video_url as unknown
+  const videoUrls: string[] = Array.isArray(rawVideoUrl)
+    ? rawVideoUrl
+    : typeof rawVideoUrl === "string" && rawVideoUrl.trim()
+      ? [rawVideoUrl]
+      : []
   return (
     <>
-      <ProductDescription product={product} />
+      <ProductDescription product={product} videoUrls={videoUrls} />
     </>
   )
 }

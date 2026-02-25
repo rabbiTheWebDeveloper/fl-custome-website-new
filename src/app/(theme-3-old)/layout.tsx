@@ -96,7 +96,6 @@ export default async function RootLayout({
             <div style={{ display: "contents" }}>
               <Header />
               {children}
-              {modal}
               <FooterUI shopInfo={shopInfo} />
             </div>
           </Providers>

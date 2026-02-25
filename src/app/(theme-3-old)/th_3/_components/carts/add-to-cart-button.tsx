@@ -1,26 +1,30 @@
 "use client"
-
-import { Button } from "@/components/ui/button"
 import { useCart } from "@/lib/cart"
-import React from "react"
+import React, { useState } from "react"
 import { IProduct } from "../../types/product"
 import type { CartItemVariant } from "@/lib/cart"
 import { useTranslations } from "next-intl"
 import { ShoppingCart } from "lucide-react"
 import { trackAddToCart } from "@/lib/gtm"
+import { toast } from "sonner"
 
 interface AddToCartButtonProps {
   product: IProduct
   variants?: CartItemVariant[]
   maxQuantity?: number
+  selectedPrice?: number
+  selectedImage?: string | null
 }
 
 function AddToCartButton({
   product,
   variants,
   maxQuantity,
+  selectedPrice,
+  selectedImage,
 }: AddToCartButtonProps) {
   const { addItem, getItemByProduct } = useCart()
+  const [isAdding, setIsAdding] = useState(false)
   const t = useTranslations("Theme2.buttons")
 
   if (!product) return null
@@ -28,50 +32,72 @@ function AddToCartButton({
   // Check current quantity in cart
   const cartItem = getItemByProduct(product.id, variants)
   const currentQuantity = cartItem?.quantity ?? 0
+  const effectivePrice = selectedPrice ?? product.price
+  const effectiveImage = selectedImage ?? product.main_image
 
   const handleAddToCart = async () => {
-    // Check if we've reached max quantity
     const maxQty = maxQuantity ?? product.product_qty
-    if (maxQty && currentQuantity >= maxQty) {
-      return // Don't add if at max
+
+    if (maxQty === 0) {
+      toast.error("Sorry, this product is currently out of stock.")
+      return
     }
 
-    await addItem({
-      productId: product.id,
-      name: product.product_name,
-      price: product.price,
-      discountedPrice: product.discounted_price,
-      quantity: 1, // Always add 1, mergeIfExists will handle incrementing
-      variants: variants,
-      metadata: {
-        image: product.main_image,
-        sku: product.product_code,
+    if (maxQty && currentQuantity >= maxQty) {
+      toast.warning(
+        `You have already added the maximum quantity of this product to your cart.`
+      )
+      return
+    }
+
+    setIsAdding(true)
+    try {
+      await addItem({
+        productId: product.id,
+        name: product.product_name,
+        price: effectivePrice,
+        discountedPrice: effectivePrice,
+        quantity: 1,
+        variants: variants,
+        metadata: {
+          image: effectiveImage,
+          sku: product.product_code,
+          ulid: product.ulid,
+          maxQuantity: maxQty,
+          inside_dhaka: product.inside_dhaka,
+          outside_dhaka: product.outside_dhaka,
+          sub_area_charge: product.sub_area_charge,
+        },
+        mergeIfExists: true,
         maxQuantity: maxQty,
-        inside_dhaka: product.inside_dhaka,
-        outside_dhaka: product.outside_dhaka,
-      },
-      mergeIfExists: true,
-      maxQuantity: maxQty,
-    })
-    trackAddToCart({
-      id: product.id,
-      name: product.product_name,
-      price: product.discounted_price ?? product.price,
-      quantity: 1,
-    })
+      })
+      toast.success("Item added to cart!")
+      trackAddToCart({
+        id: product.id,
+        name: product.product_name,
+        price: effectivePrice,
+        quantity: 1,
+      })
+    } catch (error) {
+      console.error("Failed to add item to cart:", error)
+      toast.error("Failed to add item to cart. Please try again.")
+    } finally {
+      setIsAdding(false)
+    }
   }
 
-  // Disable button if at max quantity
-  const isAtMax = maxQuantity
-    ? currentQuantity >= maxQuantity
-    : product.product_qty
-      ? currentQuantity >= product.product_qty
-      : false
+  const isAtMax =
+    (maxQuantity ?? product.product_qty) === 0 ||
+    (maxQuantity
+      ? currentQuantity >= maxQuantity
+      : product.product_qty
+        ? currentQuantity >= product.product_qty
+        : false)
 
   return (
     <button
       onClick={handleAddToCart}
-      disabled={isAtMax}
+      disabled={isAtMax || isAdding}
       className="
     flex h-11 w-full sm:w-auto items-center justify-center gap-2
     rounded-lg bg-[#3BB77E] px-6

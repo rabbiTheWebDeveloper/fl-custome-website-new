@@ -1,25 +1,22 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { VariantSelector } from "./variant-selector"
 import { useCart, generateCartItemId } from "@/lib/cart"
 import { useCartStore } from "@/lib/cart"
-import type { IProduct } from "../../types/product"
-import { useTranslations } from "next-intl"
-import { CreditCard, ShoppingCart } from "lucide-react"
+import type { IProduct, IVariation } from "../../types/product"
+import { CreditCard } from "lucide-react"
 import AddToCartButton from "../carts/add-to-cart-button"
 import { CartInputConnected } from "../carts/cart-input-connected"
 import { trackAddToCart } from "@/lib/gtm"
+import { toast } from "sonner"
 
 interface ProductCartControlsProps {
   product: IProduct
-  swatches?: Array<{
-    type: "color" | "size"
-    key: string
-    label: string
-    options: Array<{ label: string; color?: string; selected?: boolean }>
-  }>
+  selectedVariants?: Record<string, string>
+  onVariantChange?: (key: string, value: string) => void
+  selectedVariation?: IVariation | null
 }
 
 /**
@@ -28,75 +25,71 @@ interface ProductCartControlsProps {
  */
 export function ProductCartControls({
   product,
-  swatches = [],
+  selectedVariants = {},
+  onVariantChange = () => {},
+  selectedVariation,
 }: ProductCartControlsProps) {
   const router = useRouter()
   const { addItem } = useCart()
   const items = useCartStore((state) => state.items)
-  const t = useTranslations("Theme2.buttons")
-
-  const [selectedVariants, setSelectedVariants] = useState<
-    Record<string, string>
-  >(() => {
-    // Initialize with first value of each attribute if available
-    const initial: Record<string, string> = {}
-    if (Array.isArray(product.attributes)) {
-      product.attributes.forEach((attr) => {
-        if (attr.values && attr.values.length > 0) {
-          initial[attr.key] = attr.values[0].value
+  const cartVariants = useMemo(() => {
+    const attributes = Array.isArray(product.attributes)
+      ? product.attributes
+      : []
+    return Object.entries(selectedVariants)
+      .filter(([, value]) => value)
+      .map(([key, value]) => {
+        const attribute = attributes.find((attr) => attr.key === key)
+        const selectedAttributeValue = attribute?.values.find(
+          (attributeValue) => attributeValue.value === value
+        )
+        return {
+          key,
+          value,
+          attributeId: selectedAttributeValue?.attribute_id,
         }
       })
-    }
-    return initial
-  })
+  }, [product.attributes, selectedVariants])
 
-  // Convert selected variants to CartItemVariant format
-  const cartVariants = useMemo(() => {
-    return Object.entries(selectedVariants)
-      .filter(([, value]) => value) // Filter out empty values
-      .map(([key, value]) => ({
-        key,
-        value,
-      }))
-  }, [selectedVariants])
-
-  // Get current quantity in cart for this product and variants
   const currentCartItem = useMemo(() => {
     const itemId = generateCartItemId(product.id, cartVariants)
     return items.find((item) => item.id === itemId)
   }, [items, product.id, cartVariants])
 
   const currentQuantity = currentCartItem?.quantity ?? 0
-
-  // Handle variant change from variant selector
-  const handleVariantChange = (key: string, value: string) => {
-    setSelectedVariants((prev) => ({
-      ...prev,
-      [key]: value,
-    }))
-  }
+  const maxQty = selectedVariation?.quantity ?? product.product_qty
+  const selectedPrice = selectedVariation?.price ?? product.price
+  const selectedImage = selectedVariation?.media || product.main_image
 
   const showVariants =
-    typeof product.variations === "object" &&
-    typeof product.attributes === "object"
+    Array.isArray(product.variations) &&
+    Array.isArray(product.attributes) &&
+    product.variations.length > 0 &&
+    product.attributes.length > 0
 
   const handleBuyNow = async () => {
     try {
-      const maxQty = product.product_qty
+      if (maxQty === 0) {
+        toast.error("Sorry, this product is currently out of stock.")
+        return
+      }
 
-      // Add item to cart if not already in cart
       if (currentQuantity === 0) {
         await addItem({
           productId: product.id,
           name: product.product_name,
-          price: product.price,
-          discountedPrice: product.discounted_price,
+          price: selectedPrice,
+          discountedPrice: selectedPrice,
           quantity: 1,
           variants: cartVariants,
           metadata: {
-            image: product.main_image,
+            image: selectedImage,
             sku: product.product_code,
             maxQuantity: maxQty,
+            ulid: product.ulid,
+            inside_dhaka: product.inside_dhaka,
+            outside_dhaka: product.outside_dhaka,
+            sub_area_charge: product.sub_area_charge,
           },
           mergeIfExists: true,
           maxQuantity: maxQty,
@@ -104,26 +97,26 @@ export function ProductCartControls({
         trackAddToCart({
           id: product.id,
           name: product.product_name,
-          price: product.discounted_price ?? product.price,
+          price: selectedPrice,
           quantity: 1,
         })
       }
 
-      // Redirect to checkout
-      window.location.href = "/checkout"
+      router.push("/checkout")
     } catch (error) {
       console.error("Failed to add item to cart:", error)
+      toast.error("Failed to add item to cart. Please try again.")
     }
   }
 
   return (
     <>
-      {showVariants && swatches.length > 0 && (
+      {showVariants && (
         <div className="mt-8">
           <VariantSelector
             product={product}
-            swatches={swatches}
-            onVariantChange={handleVariantChange}
+            selectedVariants={selectedVariants}
+            onVariantChange={onVariantChange}
           />
         </div>
       )}
@@ -134,7 +127,7 @@ export function ProductCartControls({
           <CartInputConnected
             product={product}
             variants={cartVariants}
-            maxQuantity={product.product_qty}
+            maxQuantity={maxQty}
           />
         </div>
 

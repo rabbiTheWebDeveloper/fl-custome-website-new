@@ -68,3 +68,21 @@ export interface IPaginationLink {
   page: number | null
   active: boolean
 }
+
+export interface IAttributeValues {
+  id: string
+  key: string
+  values: { id: number; value: string; attribute_id: number }[]
+}
+
+export interface IVariation {
+  id: number
+  product_id: number
+  wp_variant_id: number | null
+  variant: string
+  price: number
+  quantity: number
+  code: string
+  wp_variant_image_url: string | null
+  media: string | null
+}

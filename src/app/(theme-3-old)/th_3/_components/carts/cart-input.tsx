@@ -1,12 +1,13 @@
 "use client"
+
 import * as React from "react"
 import { MinusIcon } from "lucide-react"
 import { PlusIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Alert, AlertDescription } from "../ui/alert"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Spinner } from "../ui/spinner"
-import { Alert, AlertDescription } from "../ui/alert"
 
 interface CartInputClassNames {
   root?: string
@@ -52,9 +53,11 @@ export const CartInput = ({
   const warningTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null
   )
+
   React.useEffect(() => {
     setLocalValue(defaultValue)
   }, [defaultValue])
+
   const debouncedUpdate = React.useCallback(async (): Promise<void> => {
     const valueToUpdate = pendingValueRef.current
     if (valueToUpdate === null || valueToUpdate === defaultValue) return
@@ -140,6 +143,7 @@ export const CartInput = ({
       )}
       <div className="flex items-center focus-within:ring-2 ring-ring transition-shadow ring-0 ring-offset-0 focus-within:ring-offset-3 ring-offset-background rounded-xl border border-muted">
         <Button
+          type="button"
           variant="secondary"
           size="icon"
           className="bg-secondary cursor-pointer size-13 rounded-xl rounded-r-none"
@@ -169,6 +173,7 @@ export const CartInput = ({
           )}
         </div>
         <Button
+          type="button"
           variant="secondary"
           size="icon"
           className="bg-secondary cursor-pointer size-13 rounded-xl rounded-l-none"

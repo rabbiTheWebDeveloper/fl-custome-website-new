@@ -1,3 +1,4 @@
+"use client"
 import Image from "next/image"
 import Link from "next/link"
 import {
@@ -7,46 +8,147 @@ import {
   Eye,
   ChevronRight,
 } from "lucide-react"
-import { IProduct } from "../types/product"
+import { IAttributeValues, IProduct, IVariation } from "../types/product"
 import { ProductCartControls } from "./product/product-cart-controls"
 import { ProductImageCarousel } from "./product/product-image-carousel"
 import ShareButtons from "./product/share-buttons"
+import { useEffect, useMemo, useState } from "react"
 
-const swatches = [
-  {
-    type: "color" as const,
-    key: "colors",
-    label: "Colors",
-    options: [
-      { label: "Black", color: "#000000", selected: true },
-      { label: "Blue", color: "#ADD8E6" },
-      { label: "Green", color: "#90EE90" },
-      { label: "Pink", color: "#FFB6C1" },
-      { label: "Yellow", color: "#FFFFE0" },
-    ],
-  },
-  {
-    type: "size" as const,
-    key: "sizes",
-    label: "Size",
-    options: [
-      { label: "XS", selected: true },
-      { label: "S" },
-      { label: "M" },
-      { label: "L" },
-      { label: "XL" },
-    ],
-  },
-]
+interface ProductDetailsClientProps {
+  product: IProduct
+  videoUrls: string[]
+}
 
-const ProductDescription = ({ product }: { product: IProduct | null }) => {
+const normalize = (value: string) => value.trim().toLowerCase()
+const normalizeComparable = (value: string) =>
+  normalize(value).replace(/[^a-z0-9]/g, "")
+
+function getDefaultAttributes(attributes: IAttributeValues[]) {
+  return attributes.reduce<Record<string, string>>((acc, attribute) => {
+    const firstValue = attribute.values[0]?.value
+    if (firstValue) acc[attribute.key] = firstValue
+    return acc
+  }, {})
+}
+
+function getCheapestVariation(variations: IVariation[]) {
+  return variations.reduce<IVariation | null>((lowest, current) => {
+    if (!lowest) return current
+    return current.price < lowest.price ? current : lowest
+  }, null)
+}
+
+function mapVariationToAttributes(
+  variation: IVariation,
+  attributes: IAttributeValues[]
+) {
+  const mapped: Record<string, string> = {}
+  if (attributes.length === 0) return mapped
+
+  if (attributes.length === 1) {
+    const attr = attributes[0]
+    const exact = attr.values.find(
+      (value) =>
+        normalizeComparable(value.value) ===
+        normalizeComparable(variation.variant)
+    )
+    mapped[attr.key] = exact?.value ?? variation.variant
+    return mapped
+  }
+
+  const variationLabel = normalizeComparable(variation.variant)
+  attributes.forEach((attribute) => {
+    const match = attribute.values.find((value) =>
+      variationLabel.includes(normalizeComparable(value.value))
+    )
+    if (match) mapped[attribute.key] = match.value
+  })
+  return mapped
+}
+
+function doesVariationMatchSelection(
+  variation: IVariation,
+  attributes: IAttributeValues[],
+  selected: Record<string, string>
+) {
+  const mapped = mapVariationToAttributes(variation, attributes)
+  return attributes.every((attribute) => {
+    const selectedValue = selected[attribute.key]
+    if (!selectedValue) return true
+    return (
+      normalizeComparable(mapped[attribute.key] ?? "") ===
+      normalizeComparable(selectedValue)
+    )
+  })
+}
+
+const ProductDescription = ({
+  product,
+  videoUrls,
+}: ProductDetailsClientProps) => {
   // sample theme color
-  const rawVideoUrl = product?.video_url as unknown
-  const videoUrls: string[] = Array.isArray(rawVideoUrl)
-    ? rawVideoUrl
-    : typeof rawVideoUrl === "string" && rawVideoUrl.trim()
-      ? [rawVideoUrl]
-      : []
+  const relatedProducts = product?.relatedProducts || []
+  const attributes = Array.isArray(product.attributes) ? product.attributes : []
+  const variations = Array.isArray(product.variations) ? product.variations : []
+  const hasVariations = variations.length > 0 && attributes.length > 0
+
+  const cheapestVariation = useMemo(
+    () => getCheapestVariation(variations),
+    [variations]
+  )
+  const initialSelectedVariants = useMemo(() => {
+    const defaults = getDefaultAttributes(attributes)
+    if (!hasVariations || !cheapestVariation) return defaults
+    return {
+      ...defaults,
+      ...mapVariationToAttributes(cheapestVariation, attributes),
+    }
+  }, [attributes, hasVariations, cheapestVariation])
+
+  const [selectedVariants, setSelectedVariants] = useState<
+    Record<string, string>
+  >(initialSelectedVariants)
+
+  useEffect(() => {
+    setSelectedVariants(initialSelectedVariants)
+  }, [initialSelectedVariants])
+
+  const selectedVariation = useMemo(() => {
+    if (!hasVariations) return null
+    return (
+      variations.find((variation) =>
+        doesVariationMatchSelection(variation, attributes, selectedVariants)
+      ) ?? cheapestVariation
+    )
+  }, [
+    hasVariations,
+    variations,
+    attributes,
+    selectedVariants,
+    cheapestVariation,
+  ])
+
+  const selectedPrice = hasVariations
+    ? (selectedVariation?.price ?? cheapestVariation?.price ?? product.price)
+    : product.price > product.discounted_price
+      ? product.discounted_price
+      : product.price
+
+  const isStockOut = hasVariations
+    ? (selectedVariation?.quantity ?? 0) <= 0
+    : product.product_qty <= 0
+  const hasBaseDiscount =
+    !hasVariations && product.price > product.discounted_price
+
+  const selectedMainImage = selectedVariation?.media || product.main_image || ""
+  const images = [
+    selectedMainImage,
+    ...product.other_images.filter((image) => image !== selectedMainImage),
+  ].filter(Boolean)
+
+  const handleVariantChange = (key: string, value: string) => {
+    setSelectedVariants((prev) => ({ ...prev, [key]: value }))
+  }
   if (!product) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
@@ -57,11 +159,8 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
       </div>
     )
   }
-
   // Use product.relatedProducts if available, otherwise empty array
-  const relatedProducts = product?.relatedProducts || []
-  console.log("Product Data:", product)
-  // Debugging log
+
   return (
     <section className="max-w-7xl mx-auto px-4 py-12">
       {/* Product Main Section */}
@@ -82,10 +181,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
               Only {product.product_qty} left
             </div>
           )}
-          <ProductImageCarousel
-            images={[product.main_image ?? "", ...product.other_images]}
-            videoUrls={videoUrls}
-          />
+          <ProductImageCarousel images={images} videoUrls={videoUrls} />
         </div>
 
         {/* Product Details */}
@@ -113,7 +209,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
           {/* Price */}
           <div className="flex items-baseline gap-3">
             <span className="text-3xl font-bold text-[#3BB77E]">
-              ৳ {product.discounted_price}
+              ৳ {selectedPrice.toLocaleString()}
             </span>
             {product.price > product.discounted_price && (
               <>
@@ -136,7 +232,7 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
                   : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
               }`}
             >
-              {product.product_qty > 0 ? (
+              {!isStockOut ? (
                 <>
                   <CheckCircle size={20} /> In Stock ({product.product_qty}{" "}
                   available)
@@ -147,10 +243,6 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
                 </>
               )}
             </h4>
-            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-              <ShoppingBag size={18} />
-              <span className="text-sm">Sold: 120+</span>
-            </div>
           </div>
 
           {/* Short Description */}
@@ -163,7 +255,12 @@ const ProductDescription = ({ product }: { product: IProduct | null }) => {
           )}
 
           {/* Cart Controls */}
-          <ProductCartControls product={product} swatches={swatches} />
+          <ProductCartControls
+            product={product}
+            selectedVariants={selectedVariants}
+            onVariantChange={handleVariantChange}
+            selectedVariation={selectedVariation}
+          />
           {/* Social Share */}
           <ShareButtons title={product?.product_name} />
           {/* Product Meta */}

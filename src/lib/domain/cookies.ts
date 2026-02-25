@@ -96,8 +96,6 @@ export async function getDomainMeta(): Promise<{
     const decoded = decodeURIComponent(raw)
     const parsed = JSON.parse(decoded)
     const domain = parsed?.state?.domain
-    console.log("domain favicon", domain)
-
     return {
       title: domain?.shop_meta_title || "",
       description: domain?.shop_meta_description || "",
