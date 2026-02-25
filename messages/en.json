@@ -237,6 +237,7 @@
       "filterCountPlural": "filters",
       "gridView": "Grid view",
       "listView": "List view",
+      "clearFilters": "Clear Filters",
       "searchPlaceholder": "Search products...",
       "noProductsFound": "No products found",
       "noProductsDescription": "We couldn't find any products matching your criteria. Try adjusting your filters.",

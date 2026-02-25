@@ -489,32 +489,6 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {/* View Toggle - Desktop */}
-                  <div className="flex border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2 transition-colors ${
-                        viewMode === "grid"
-                          ? "bg-green-600 text-white"
-                          : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      }`}
-                      aria-label="Grid view"
-                    >
-                      <Grid3x3 className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-2 transition-colors ${
-                        viewMode === "list"
-                          ? "bg-green-600 text-white"
-                          : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      }`}
-                      aria-label="List view"
-                    >
-                      <List className="w-5 h-5" />
-                    </button>
-                  </div>
-
                   {/* Sort Dropdown */}
                   <div className="relative">
                     <select
@@ -558,29 +532,6 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                     </option>
                   ))}
                 </select>
-
-                <div className="flex border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setViewMode("grid")}
-                    className={`p-1.5 transition-colors ${
-                      viewMode === "grid"
-                        ? "bg-green-600 text-white"
-                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    }`}
-                  >
-                    <Grid3x3 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode("list")}
-                    className={`p-1.5 transition-colors ${
-                      viewMode === "list"
-                        ? "bg-green-600 text-white"
-                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    }`}
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -602,8 +553,8 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                           key={product.id}
                           className={
                             viewMode === "grid"
-                              ? "bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col h-full"
-                              : "bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 w-full"
+                              ? "bg-white ... flex flex-col h-full"
+                              : "bg-white ... w-full"
                           }
                         >
                           <ProductCard {...product} />
@@ -628,13 +579,6 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                       <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
                         {t("noProductsDescription")}
                       </p>
-                      <button
-                        onClick={clearAllFilters}
-                        className="px-5 py-2.5 bg-green-600 text-white text-sm sm:text-base rounded-lg hover:bg-green-700 transition-colors inline-flex items-center gap-2"
-                      >
-                        <X className="w-4 h-4" />
-                        {t("clearFilters")}
-                      </button>
                     </div>
                   </div>
                 )}

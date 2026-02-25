@@ -234,6 +234,7 @@
       "priceRange": "দামের পরিসর",
       "inStockOnly": "শুধু স্টকে আছে",
       "products": "পণ্য",
+      "clearFilters": "ফিল্টার মুছুন",
       "filterCount": "ফিল্টার",
       "filterCountPlural": "ফিল্টারসমূহ",
       "gridView": "গ্রিড ভিউ",
