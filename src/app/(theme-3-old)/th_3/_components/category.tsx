@@ -34,31 +34,6 @@ export default function Category() {
   /* ----------------------------
    Transform categories to slides
   ----------------------------- */
-  const slides = useMemo(() => {
-    if (!categories?.length) return []
-
-    return categories.map((item) => {
-      const slug = (item.name || "category")
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-")
-
-      let image = item.category_image || PLACEHOLDER_IMAGE
-      if (image.startsWith("//")) image = "https:" + image
-      if (!image.startsWith("http") && !image.startsWith("/")) {
-        image = PLACEHOLDER_IMAGE
-      }
-
-      return {
-        ...item,
-        image,
-        href: `/shop?category=${encodeURIComponent(slug)}&shop=${
-          item.shop_id || ""
-        }&id=${item.id || ""}`,
-        displayName: item.name || "Unnamed Category",
-      }
-    })
-  }, [categories])
 
   /* ----------------------------
    Embla events
