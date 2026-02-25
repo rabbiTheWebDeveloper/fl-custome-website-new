@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
       "images.unsplash.com",
       "img.youtube.com",
     ],
+    unoptimized: true, // Set to true to disable all optimization
   },
   logging: {
     fetches: {
