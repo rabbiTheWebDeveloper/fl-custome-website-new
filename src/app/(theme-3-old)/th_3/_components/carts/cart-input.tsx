@@ -29,6 +29,7 @@ interface CartInputProps {
   maxQuantity?: number
   /** If true, only allows input without API calls */
   inputOnly?: boolean
+  onValuePreview?: (quantity: number) => void
 }
 
 const WARNING_TIMEOUT = 3000
@@ -42,6 +43,7 @@ export const CartInput = ({
   productId,
   maxQuantity,
   inputOnly = false,
+  onValuePreview,
 }: CartInputProps) => {
   const [localValue, setLocalValue] = React.useState<number>(defaultValue)
   const [isUpdating, setIsUpdating] = React.useState<boolean>(false)
@@ -91,6 +93,7 @@ export const CartInput = ({
 
       if (maxQuantity && validValue > maxQuantity) {
         setLocalValue(maxQuantity)
+        onValuePreview?.(maxQuantity)
         setShowMaxWarning(true)
         if (warningTimeoutRef.current) {
           clearTimeout(warningTimeoutRef.current)
@@ -100,7 +103,7 @@ export const CartInput = ({
         }, WARNING_TIMEOUT)
         return
       }
-
+      onValuePreview?.(validValue)
       pendingValueRef.current = validValue
 
       if (updateTimeoutRef.current) {
@@ -118,7 +121,7 @@ export const CartInput = ({
         updateTimeoutRef.current = setTimeout(debouncedUpdate, DEBOUNCE_TIMOUT)
       }
     },
-    [defaultValue, debouncedUpdate, maxQuantity, inputOnly]
+    [defaultValue, debouncedUpdate, maxQuantity, inputOnly, onValuePreview]
   )
 
   React.useEffect(() => {

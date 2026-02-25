@@ -750,9 +750,20 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
               payment_url?: string | undefined
             }
           | undefined
-      }
 
+        success: boolean
+      }
+      const isHttpSuccess = response.status >= 200 && response.status < 300
+      const isApiSuccess = responseData?.success !== false
+
+      if (!isHttpSuccess || !isApiSuccess) {
+        toast.error(
+          responseData?.message || "Failed to place order. Please try again."
+        )
+        return
+      }
       const { order, data: responseOrderData } = responseData
+
       if (response.data && typeof response.data === "object") {
         if (responseOrderData) {
           if (responseOrderData?.payment_url) {

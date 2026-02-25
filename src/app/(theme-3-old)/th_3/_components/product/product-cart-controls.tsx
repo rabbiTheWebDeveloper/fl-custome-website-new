@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { VariantSelector } from "./variant-selector"
 import { useCart, generateCartItemId } from "@/lib/cart"
@@ -35,8 +35,8 @@ export function ProductCartControls({
 }: ProductCartControlsProps) {
   const router = useRouter()
   const { addItem } = useCart()
-
-  console.log("Selected Variants:", product)
+  const [selectedQuantityBeforeFirstAdd, setSelectedQuantityBeforeFirstAdd] =
+    useState(1)
   const items = useCartStore((state) => state.items)
   const cartVariants = useMemo(() => {
     const variations = Array.isArray(product.variations)
@@ -67,6 +67,8 @@ export function ProductCartControls({
   const maxQty = selectedVariation?.quantity ?? product.product_qty
   const selectedPrice = selectedVariation?.price ?? product.price
   const selectedImage = selectedVariation?.media || product.main_image
+  const effectiveSelectedQuantity =
+    currentQuantity > 0 ? currentQuantity : selectedQuantityBeforeFirstAdd
 
   const showVariants =
     Array.isArray(product.variations) &&
@@ -76,18 +78,29 @@ export function ProductCartControls({
 
   const handleBuyNow = async () => {
     try {
+      const requestedQuantity = Math.max(
+        1,
+        Math.floor(effectiveSelectedQuantity || 1)
+      )
+      const quantityToAdd = currentQuantity === 0 ? requestedQuantity : 1
+
       if (maxQty === 0) {
         toast.error("Sorry, this product is currently out of stock.")
         return
       }
-
+      if (currentQuantity + quantityToAdd > maxQty) {
+        toast.warning(
+          `You can only add up to ${maxQty} of this product to your cart.`
+        )
+        return
+      }
       if (currentQuantity === 0) {
         await addItem({
           productId: product.id,
           name: product.product_name,
           price: selectedPrice,
           discountedPrice: selectedPrice,
-          quantity: 1,
+          quantity: quantityToAdd,
           variants: cartVariants,
           metadata: {
             image: selectedImage,
@@ -105,7 +118,7 @@ export function ProductCartControls({
           id: product.id,
           name: product.product_name,
           price: selectedPrice,
-          quantity: 1,
+          quantity: quantityToAdd,
         })
       }
 
@@ -135,6 +148,9 @@ export function ProductCartControls({
             product={product}
             variants={cartVariants}
             maxQuantity={maxQty}
+            onValuePreview={(quantity) =>
+              setSelectedQuantityBeforeFirstAdd(quantity)
+            }
           />
         </div>
 
@@ -143,6 +159,8 @@ export function ProductCartControls({
           product={product}
           variants={cartVariants}
           maxQuantity={product.product_qty}
+          selectedImage={selectedImage}
+          selectedQuantity={effectiveSelectedQuantity}
         />
 
         {/* Buy Now */}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { CartInputConnected } from "../carts/cart-input-connected"
 import AddToCartButton from "../carts/add-to-cart-button"
@@ -31,6 +31,8 @@ export function ProductCartControls({
   const items = useCartStore((state) => state.items)
   const t = useTranslations("Theme2.buttons")
   const tToast = useTranslations("Theme2.toast")
+  const [selectedQuantityBeforeFirstAdd, setSelectedQuantityBeforeFirstAdd] =
+    useState(1)
 
   const cartVariants = useMemo(() => {
     const variations = Array.isArray(product.variations)
@@ -61,6 +63,8 @@ export function ProductCartControls({
   const maxQty = selectedVariation?.quantity ?? product.product_qty
   const selectedPrice = selectedVariation?.price ?? product.price
   const selectedImage = selectedVariation?.media || product.main_image
+  const effectiveSelectedQuantity =
+    currentQuantity > 0 ? currentQuantity : selectedQuantityBeforeFirstAdd
 
   const showVariants =
     Array.isArray(product.variations) &&
@@ -70,8 +74,19 @@ export function ProductCartControls({
 
   const handleBuyNow = async () => {
     try {
+      const requestedQuantity = Math.max(
+        1,
+        Math.floor(effectiveSelectedQuantity || 1)
+      )
+      const quantityToAdd = currentQuantity === 0 ? requestedQuantity : 1
+
       if (maxQty === 0) {
         toast.error(tToast("outOfStock"))
+        return
+      }
+
+      if (currentQuantity + quantityToAdd > maxQty) {
+        toast.warning(tToast("maxQuantityReached"))
         return
       }
 
@@ -81,7 +96,7 @@ export function ProductCartControls({
           name: product.product_name,
           price: selectedPrice,
           discountedPrice: selectedPrice,
-          quantity: 1,
+          quantity: quantityToAdd,
           variants: cartVariants,
           metadata: {
             image: selectedImage,
@@ -99,7 +114,7 @@ export function ProductCartControls({
           id: product.id,
           name: product.product_name,
           price: selectedPrice,
-          quantity: 1,
+          quantity: quantityToAdd,
         })
       }
 
@@ -128,6 +143,9 @@ export function ProductCartControls({
               product={product}
               variants={cartVariants}
               maxQuantity={maxQty}
+              onValuePreview={(quantity) =>
+                setSelectedQuantityBeforeFirstAdd(quantity)
+              }
             />
           </div>
           <Button
@@ -144,6 +162,7 @@ export function ProductCartControls({
             maxQuantity={maxQty}
             selectedPrice={selectedPrice}
             selectedImage={selectedImage}
+            selectedQuantity={effectiveSelectedQuantity}
           />
         </div>
       </div>

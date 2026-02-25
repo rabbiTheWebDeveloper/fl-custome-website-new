@@ -111,7 +111,8 @@
       "outOfStock": "This product is currently out of stock",
       "maxQuantityReached": "You've reached the maximum available quantity for this product",
       "addToCartError": "Failed to add product to cart. Please try again.",
-      "addedToCart": "Product added to cart"
+      "addedToCart": "Product added to cart",
+      "orderSubmitError": "Failed to place order. Please try again."
     },
     "countdown": {
       "endsIn": "Ends in",

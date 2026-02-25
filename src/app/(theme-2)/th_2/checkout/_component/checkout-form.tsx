@@ -174,6 +174,7 @@ export function CheckoutForm() {
   const t = useTranslations("Theme2.buttons")
   const tCheckout = useTranslations("Theme2.checkout")
   const tValidation = useTranslations("Theme2.checkout.validation")
+  const tToast = useTranslations("Theme2.toast")
 
   // Payment gateways from domain store
   const domain = useDomain((state) => state.domain)
@@ -684,6 +685,13 @@ export function CheckoutForm() {
       const responseData = response?.data as any
       const responseOrderData = responseData?.data
       const responseOrder = responseData?.order
+      const isHttpSuccess = response.status >= 200 && response.status < 300
+      const isApiSuccess = responseData?.success !== false
+
+      if (!isHttpSuccess || !isApiSuccess) {
+        toast.error(responseData?.message || tToast("orderSubmitError"))
+        return
+      }
 
       // Check if OTP verification is required
       if (responseOrder?.otp_sent) {
@@ -717,7 +725,7 @@ export function CheckoutForm() {
       }
     } catch (error) {
       console.error("Error submitting order:", error)
-      throw error // Re-throw to let react-hook-form handle it
+      toast.error(tToast("orderSubmitError"))
     }
   }
 

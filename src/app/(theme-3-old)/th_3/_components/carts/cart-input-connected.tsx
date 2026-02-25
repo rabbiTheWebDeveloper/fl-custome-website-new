@@ -11,6 +11,7 @@ interface CartInputConnectedProps {
   product: IProduct
   variants?: Array<{ key: string; value: string }>
   maxQuantity?: number
+  onValuePreview?: (quantity: number) => void
 }
 
 /**
@@ -21,6 +22,7 @@ export function CartInputConnected({
   product,
   variants,
   maxQuantity,
+  onValuePreview,
 }: CartInputConnectedProps) {
   const { updateItem, removeItem } = useCart()
 
@@ -66,6 +68,7 @@ export function CartInputConnected({
       removeFromCart={handleRemoveFromCart}
       productId={product.id}
       maxQuantity={maxQuantity ?? product.product_qty}
+      onValuePreview={onValuePreview}
     />
   )
 }

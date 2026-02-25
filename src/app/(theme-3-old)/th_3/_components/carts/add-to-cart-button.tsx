@@ -14,6 +14,7 @@ interface AddToCartButtonProps {
   maxQuantity?: number
   selectedPrice?: number
   selectedImage?: string | null
+  selectedQuantity?: number
 }
 
 function AddToCartButton({
@@ -22,6 +23,7 @@ function AddToCartButton({
   maxQuantity,
   selectedPrice,
   selectedImage,
+  selectedQuantity = 1,
 }: AddToCartButtonProps) {
   const { addItem, getItemByProduct } = useCart()
   const [isAdding, setIsAdding] = useState(false)
@@ -37,7 +39,8 @@ function AddToCartButton({
 
   const handleAddToCart = async () => {
     const maxQty = maxQuantity ?? product.product_qty
-
+    const requestedQuantity = Math.max(1, Math.floor(selectedQuantity || 1))
+    const quantityToAdd = currentQuantity === 0 ? requestedQuantity : 1
     if (maxQty === 0) {
       toast.error("Sorry, this product is currently out of stock.")
       return
@@ -49,7 +52,12 @@ function AddToCartButton({
       )
       return
     }
-
+    if (maxQty && currentQuantity + quantityToAdd > maxQty) {
+      toast.warning(
+        `You can only add up to ${maxQty} of this product to your cart. You currently have ${currentQuantity} in your cart.`
+      )
+      return
+    }
     setIsAdding(true)
     try {
       await addItem({
@@ -57,7 +65,7 @@ function AddToCartButton({
         name: product.product_name,
         price: effectivePrice,
         discountedPrice: effectivePrice,
-        quantity: 1,
+        quantity: quantityToAdd,
         variants: variants,
         metadata: {
           image: effectiveImage,
@@ -76,7 +84,7 @@ function AddToCartButton({
         id: product.id,
         name: product.product_name,
         price: effectivePrice,
-        quantity: 1,
+        quantity: quantityToAdd,
       })
     } catch (error) {
       console.error("Failed to add item to cart:", error)
