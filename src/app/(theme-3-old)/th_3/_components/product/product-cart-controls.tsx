@@ -161,6 +161,7 @@ export function ProductCartControls({
           product={product}
           variants={cartVariants}
           maxQuantity={product.product_qty}
+          selectedPrice={selectedPrice}
           selectedImage={selectedImage}
           selectedQuantity={effectiveSelectedQuantity}
         />
