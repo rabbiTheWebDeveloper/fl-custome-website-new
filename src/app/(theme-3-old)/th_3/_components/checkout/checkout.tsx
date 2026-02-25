@@ -18,6 +18,7 @@ import {
   TruckIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import FingerprintJS from "@fingerprintjs/fingerprintjs"
 import { useRouter } from "next/navigation"
 import { useCart, useCartStore } from "@/lib/cart"
 import type { CartItem as StoreCartItem } from "@/lib/cart"
@@ -203,7 +204,15 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
     () => createCheckoutFormSchema(tValidation),
     [tValidation]
   )
-
+  const [visitorID, setVisitorID] = useState("")
+  const setFp = async () => {
+    const fp = await FingerprintJS.load()
+    const { visitorId } = await fp.get()
+    setVisitorID(visitorId)
+  }
+  useEffect(() => {
+    setFp()
+  }, [])
   // Initialize react-hook-form with zod validation
   const {
     register,
@@ -636,7 +645,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
         shippingMethod: data.shippingMethod as "inside_dhaka" | "outside_dhaka",
         paymentMethod: data.paymentMethod,
         storeUrl: storeUrl || "fldemo.store",
-        visitorId: "1234567890",
+        visitorId: visitorID,
         incomplete_order_id: incompleteOrderId ?? undefined,
         shipping_cost: shippingCost,
       })
@@ -763,7 +772,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
       }
     } catch (error) {
       console.error("Error submitting order:", error)
-      toast.error("Failed to place order. Please try again.")
+      throw error // Re-throw to let react-hook-form handle it
     }
   }
 
@@ -774,21 +783,40 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
   const handleRemoveProduct = async (itemId: string) => {
     await removeItem(itemId)
   }
+
+  const getInsideDhakaTotal = items.reduce(
+    (total, item) => total + Number(item.metadata?.inside_dhaka ?? 0),
+    0
+  )
+
+  const getOutsideDhakaTotal = items.reduce(
+    (total, item) => total + Number(item.metadata?.outside_dhaka ?? 0),
+    0
+  )
+
+  const getSubareaTotal = items.reduce(
+    (total, item) => total + Number(item.metadata?.sub_area_charge ?? 0),
+    0
+  )
   const shippingMethods = [
     {
       id: "inside-dhaka",
       label: "Inside Dhaka",
-      price: loadingShippingSettings ? 0 : getInsideDhakaPrice,
+      price: loadingShippingSettings
+        ? getInsideDhakaTotal
+        : getInsideDhakaPrice,
     },
     {
       id: "outside-dhaka",
       label: "Outside Dhaka",
-      price: loadingShippingSettings ? 0 : getOutsideDhakaPrice,
+      price: loadingShippingSettings
+        ? getOutsideDhakaTotal
+        : getOutsideDhakaPrice,
     },
     {
       id: "subarea",
       label: "Sub Area",
-      price: loadingShippingSettings ? 0 : getSubareaPrice,
+      price: loadingShippingSettings ? getSubareaTotal : getSubareaPrice,
     },
   ]
 
@@ -847,7 +875,6 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
     )
   }, [domain])
 
-  console.log(items)
   useEffect(() => {
     if (gtmHead) {
       tagManagerEvent(

@@ -59,9 +59,6 @@ export const CartPopover = ({
         >
           <ShoppingCart className="w-6 h-6 text-gray-600 group-hover:text-[#30A16C] transition-colors" />
           <div className="text-left">
-            <div className="text-sm text-gray-500">
-              {t("cart.shoppingCart")}
-            </div>
             <div className="font-semibold text-gray-900">
               ৳{totals?.subtotal?.toLocaleString()}
             </div>

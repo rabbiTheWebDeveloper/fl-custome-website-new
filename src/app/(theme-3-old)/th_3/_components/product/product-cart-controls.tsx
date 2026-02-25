@@ -35,25 +35,28 @@ export function ProductCartControls({
 }: ProductCartControlsProps) {
   const router = useRouter()
   const { addItem } = useCart()
+
+  console.log("Selected Variants:", product)
   const items = useCartStore((state) => state.items)
   const cartVariants = useMemo(() => {
-    const attributes: IAttributeValues[] = Array.isArray(product.attributes)
-      ? (product.attributes as IAttributeValues[])
+    const variations = Array.isArray(product.variations)
+      ? product.variations
       : []
+
     return Object.entries(selectedVariants)
       .filter(([, value]) => value)
       .map(([key, value]) => {
-        const attribute = attributes.find((attr) => attr.key === key)
-        const selectedAttributeValue = attribute?.values.find(
-          (attributeValue) => attributeValue.value === value
+        const matchedVariation = variations.find(
+          (variation) => variation.variant === value
         )
+
         return {
           key,
           value,
-          attributeId: selectedAttributeValue?.attribute_id,
+          attributeId: matchedVariation?.id, // ✅ This is 101464 etc.
         }
       })
-  }, [product.attributes, selectedVariants])
+  }, [product.variations, selectedVariants])
 
   const currentCartItem = useMemo(() => {
     const itemId = generateCartItemId(product.id, cartVariants)

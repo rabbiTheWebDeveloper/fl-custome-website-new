@@ -22,6 +22,10 @@ const OrderSuccessfullPage = async ({
     }
   )
   const orderDetails: IOrderSuccessfullData = response?.data?.data
+  console.log("Order Details:", orderDetails)
+  if (!orderDetails) {
+    return <div className="p-4 text-center">Order details not found.</div>
+  }
 
   return (
     <>

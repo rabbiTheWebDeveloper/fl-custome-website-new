@@ -154,10 +154,6 @@ const ProductDescription = ({
     setSelectedVariants((prev) => ({ ...prev, [key]: value }))
   }
 
-  console.log(
-    "🚀 ~ file: product-description.tsx:24 ~ ProductDescription ~ product:",
-    product
-  )
   if (!product) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
