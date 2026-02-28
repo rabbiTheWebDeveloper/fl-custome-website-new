@@ -252,13 +252,20 @@ const ProductDescription = ({
 
           {/* Short Description */}
           {product.short_description && (
-            <div className="prose max-w-none dark:prose-invert text-gray-600 dark:text-gray-400 border-t border-b border-gray-200 dark:border-gray-700 py-4">
+            <div className="border-t border-b border-gray-200 dark:border-gray-700 py-4">
               <div
+                style={{
+                  maxWidth: "100%",
+                  overflowX: "hidden",
+                  overflowY: "visible",
+                  wordBreak: "break-word",
+                  overflowWrap: "anywhere",
+                  whiteSpace: "normal",
+                }}
                 dangerouslySetInnerHTML={{ __html: product.short_description }}
               />
             </div>
           )}
-
           {/* Cart Controls */}
           <ProductCartControls
             product={product}
@@ -306,7 +313,14 @@ const ProductDescription = ({
         <div className="py-8">
           {product.long_description && (
             <div
-              className="prose max-w-none dark:prose-invert"
+              style={{
+                maxWidth: "100%",
+                overflowX: "hidden",
+                overflowY: "visible",
+                wordBreak: "break-word",
+                overflowWrap: "anywhere",
+                whiteSpace: "normal",
+              }}
               dangerouslySetInnerHTML={{ __html: product.long_description }}
             />
           )}

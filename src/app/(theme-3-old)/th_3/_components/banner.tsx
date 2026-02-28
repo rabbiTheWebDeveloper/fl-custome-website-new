@@ -99,8 +99,7 @@ export default function Banner() {
       {/* ================= Carousel ================= */}
       <div
         ref={emblaRef}
-        className="overflow-hidden w-full rounded-xl shadow-lg
-                   bg-white dark:bg-gray-900"
+        className="overflow-hidden w-full rounded-xl shadow-lg bg-white dark:bg-gray-900"
       >
         <div className="flex">
           {slides?.map((slide, index) => (

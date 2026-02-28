@@ -19,10 +19,15 @@ export default async function Home({
   try {
     const cleanDomain = await getCleanDomain()
     const shopInfo = await getDomainInfo(cleanDomain)
+    const shopId = shopInfo?.shop_id || ""
     const { page = "1" } = await searchParams
     const { data: response } = await api.get<IProductsApiResponse>(
       `/customer/products?page=${page}`,
-      { headers: { "shop-id": shopInfo?.shop_id || "" } }
+      undefined,
+      {
+        headers: { "shop-id": shopId },
+        fetchOptions: { cache: "no-store" },
+      }
     )
     products = response.data
     totalPages = response.last_page

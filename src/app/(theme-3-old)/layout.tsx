@@ -18,16 +18,21 @@ const Header = dynamic(() => import("./th_3/_components/header"), { ssr: true })
 export async function generateMetadata(): Promise<Metadata> {
   const cleanDomain = await getCleanDomain()
   const shopInfo = await getDomainInfo(cleanDomain)
+  const { title, description, favicon, domain_verify } = await getDomainMeta()
+  const facebookDomainVerification = domain_verify || shopInfo?.domain_verify
   return {
-    title: shopInfo?.shop_meta_title || "Shop",
-    description: shopInfo?.shop_meta_description || "",
-    icons: shopInfo?.shop_favicon
-      ? { icon: shopInfo?.shop_favicon }
-      : undefined,
-    metadataBase: new URL(`https://${shopInfo?.domain}`),
-    other: shopInfo?.domain_verify
+    title: title || shopInfo?.shop_meta_title || "Shop",
+    description: description || shopInfo?.shop_meta_description || "",
+    icons: favicon
       ? {
-          "facebook-domain-verification": shopInfo?.domain_verify,
+          icon: [{ url: favicon }],
+          shortcut: [{ url: favicon }],
+          apple: [{ url: favicon }],
+        }
+      : undefined,
+    other: facebookDomainVerification
+      ? {
+          "facebook-domain-verification": facebookDomainVerification,
         }
       : undefined,
   }
@@ -47,10 +52,8 @@ const banglaFont = Tiro_Bangla({
 
 export default async function RootLayout({
   children,
-  modal,
 }: {
   children: React.ReactNode
-  modal?: React.ReactNode
 }) {
   // const host = (await headers()).get("host") || ""
   const cleanDomain = await getCleanDomain()

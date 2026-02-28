@@ -35,6 +35,7 @@ const nextConfig: NextConfig = {
       fullUrl: true,
     },
   },
+  output: "standalone",
 }
 
 const withNextIntl = createNextIntlPlugin()

@@ -90,6 +90,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
         btnTextColor={checkout_button_text_color || "#ffffff"}
         order_title={order_title}
         checkout_button_text={checkout_button_text}
+        shopId={domainInfo.shop_id}
       />
     </>
   )

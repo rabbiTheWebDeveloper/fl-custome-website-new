@@ -36,7 +36,7 @@ export default async function RootLayout({
             : ""
         }
       />
-      <body>
+      <body suppressHydrationWarning>
         <div style={{ display: "contents" }}>{children}</div>
       </body>
     </html>

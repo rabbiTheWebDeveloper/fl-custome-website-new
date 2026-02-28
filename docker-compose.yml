@@ -1,0 +1,23 @@
+services:
+  custom-domain:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Disable build cache
+      cache_from: []
+    restart: always
+    env_file:
+      - .env # <- mount your local env file
+    environment:
+      NODE_ENV: production
+    networks:
+      - app-network
+    # Optional: mount .env for runtime safety
+    volumes:
+      - ./.env:/app/.env:ro
+    expose:
+      - "3000"
+
+networks:
+  app-network:
+    driver: bridge

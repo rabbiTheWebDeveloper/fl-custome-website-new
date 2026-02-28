@@ -10,6 +10,7 @@ export interface LandingOrderProps {
   checkout_button_text?: string
   showShippingOptions?: boolean
   storeUrl?: string
+  shopId?: number | string | undefined
 
   // Social Media URLs
   fb?: string

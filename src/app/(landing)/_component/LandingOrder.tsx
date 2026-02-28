@@ -14,17 +14,16 @@ import {
   Youtube,
 } from "lucide-react"
 import Image from "next/image"
-import { useState, useEffect, CSSProperties } from "react"
+import { useState, useEffect, CSSProperties, useCallback, useRef } from "react"
 import { useForm, SubmitHandler } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { api } from "@/lib/api-client"
-import { getDomainHeadersFromCookies } from "@/app/(theme-3-old)/th_3/_components/checkout/checkout"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { LandingOrderProps } from "@/type/landing"
 import CheckoutOtp from "@/components/checkout-otp"
-
+import FingerprintJS from "@fingerprintjs/fingerprintjs"
 // Define form validation schema
 const orderFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -32,7 +31,7 @@ const orderFormSchema = z.object({
     .string()
     .min(11, "Phone number must be at least 11 digits")
     .max(14, "Phone number too long"),
-  address: z.string().min(1, "Address is required"),
+  address: z.string().min(10, "Address is required"),
   note: z.string().optional(),
   deliveryArea: z.enum(["inside", "outside", "sub_area"]),
 })
@@ -54,6 +53,7 @@ type SelectedVariant = ProductVariantOption
 const LandingOrder = ({
   product,
   fb,
+  shopId,
   twitter,
   linkedin,
   instagram,
@@ -85,7 +85,10 @@ const LandingOrder = ({
   const handleClose = () => setShow(false)
   const handleShow = () => setShow(true)
   const [resendLoading, setResendLoading] = useState(false)
-
+  const [incompleteOrderId, setIncompleteOrderId] = useState<number | null>(
+    null
+  )
+  const incompleteOrderSentRef = useRef(false)
   // For products WITHOUT variants
   const [simpleProductQuantity, setSimpleProductQuantity] = useState<number>(1)
   // For products WITH variants
@@ -110,7 +113,34 @@ const LandingOrder = ({
   )
 
   const [prevProductId, setPrevProductId] = useState(product?.id)
+  const [visitorID, setVisitorID] = useState<string | null>(null)
+  useEffect(() => {
+    let isMounted = true
 
+    const initFingerprint = async () => {
+      try {
+        const fp = await FingerprintJS.load()
+        const { visitorId } = await fp.get()
+
+        if (isMounted) {
+          setVisitorID(visitorId)
+        }
+      } catch (error) {
+        console.error("FingerprintJS initialization failed:", error)
+
+        // Optional fallback (keeps app working)
+        if (isMounted) {
+          setVisitorID(null)
+        }
+      }
+    }
+
+    initFingerprint()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
   // Reset when product changes
   useEffect(() => {
     if (product && product.id !== prevProductId) {
@@ -154,6 +184,10 @@ const LandingOrder = ({
 
   const deliveryArea = watch("deliveryArea")
 
+  const customerName = watch("name")
+  const customerPhone = watch("phone")
+  const customerAddress = watch("address")
+
   // OTP timer effect - must be before early return
   useEffect(() => {
     if (!timeLeft) return
@@ -163,21 +197,51 @@ const LandingOrder = ({
     return () => clearInterval(intervalId)
   }, [show, timeLeft])
 
-  // Early return if product is undefined (after all hooks)
-  if (!product) {
-    return (
-      <div
-        className="py-12 min-h-screen flex items-center justify-center"
-        style={{ backgroundColor }}
-      >
-        <div className="text-center">
-          <p className="text-xl font-semibold" style={{ color: fontColor }}>
-            Product information is not available
-          </p>
-        </div>
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const isOrderHash = (hash: string) => {
+      const normalized = hash.replace(/^#/, "").toLowerCase()
+      return normalized === "placeanorder" || normalized === "checkout"
+    }
+
+    const scrollToOrderSection = () => {
+      if (!isOrderHash(window.location.hash)) return
+
+      const section =
+        document.getElementById("placeAnOrder") ||
+        document.getElementById("placeanorder")
+
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth", block: "start" })
+      }
+    }
+
+    // Initial run after paint for first page load with hash.
+    const timeoutId = window.setTimeout(scrollToOrderSection, 0)
+    // Runtime run when hash changes on the same page.
+    window.addEventListener("hashchange", scrollToOrderSection)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      window.removeEventListener("hashchange", scrollToOrderSection)
+    }
+  }, [])
+
+  // if (!product) {
+  //   return (
+  //     <div
+  //       className="py-12 min-h-screen flex items-center justify-center"
+  //       style={{ backgroundColor }}
+  //     >
+  //       <div className="text-center">
+  //         <p className="text-xl font-semibold" style={{ color: fontColor }}>
+  //           Product information is not available
+  //         </p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   // Calculate shipping charge based on delivery area
   const getShippingCharge = () => {
@@ -278,7 +342,7 @@ const LandingOrder = ({
 
     // Payment method (gateway)
     // const gateway = selectedPayment === "cod" ? "cod" : selectedPayment
-    formDataObj.append("gateway", "bkash")
+    // formDataObj.append("gateway", "bkash")
 
     // Store URL
     const storeUrlWithProtocol = storeUrl.startsWith("http")
@@ -317,19 +381,150 @@ const LandingOrder = ({
     formDataObj.append("shipping_cost", String(shippingCharge || 0))
 
     // Order type
-    formDataObj.append("order_type", "website")
+    formDataObj.append("order_type", "landing")
     // Visitor ID
 
-    formDataObj.append("visitor_id", "dsdsds")
+    formDataObj.append("visitor_id", visitorID || "unknown")
+    if (incompleteOrderId) {
+      formDataObj.append("incomplete_order_id", String(incompleteOrderId))
+    }
 
     return formDataObj
   }
 
+  const getOrderItems = useCallback(() => {
+    if (!product) return []
+
+    if (Array.isArray(product.variations) && product.variations.length > 0) {
+      return selectedVariants
+        .filter((v) => v.quantity > 0)
+        .map((variant) => ({
+          productId: product.id,
+          variantId: variant.id,
+          quantity: variant.quantity,
+          price: variant.price,
+          subtotal: variant.price * variant.quantity,
+        }))
+    } else {
+      const price = product.discounted_price || product.price
+      return [
+        {
+          productId: product.id,
+          variantId: 0,
+          quantity: simpleProductQuantity,
+          price: price,
+          subtotal: price * simpleProductQuantity,
+        },
+      ]
+    }
+  }, [product, selectedVariants, simpleProductQuantity])
+
+  const createIncompleteOrder = useCallback(async () => {
+    const items = getOrderItems()
+    if (items.length === 0 || !customerPhone) return
+    try {
+      const orderPayload = {
+        customer_name: customerName || "",
+        customer_phone: customerPhone,
+        customer_address: customerAddress || "",
+        order_type: "landing",
+        products: items.map((item) => ({
+          product_id: item.productId,
+          variant_id: item.variantId,
+          qty: item.quantity,
+          subtotal: item.subtotal,
+        })),
+        grand_total: total,
+      }
+
+      const response = await api.post(
+        "/customer/incomplete-order",
+        orderPayload,
+        {
+          headers: {
+            "shop-id": String(shopId),
+          },
+        }
+      )
+
+      const responseData = response.data as {
+        success: boolean
+        data: {
+          incomplete_order_id: number
+        }
+      }
+
+      if (responseData.success && responseData.data?.incomplete_order_id) {
+        setIncompleteOrderId(responseData.data.incomplete_order_id)
+      }
+    } catch (error) {
+      console.error("Error creating incomplete order:", error)
+    }
+  }, [
+    shopId,
+    customerName,
+    customerPhone,
+    customerAddress,
+    total,
+    getOrderItems,
+  ])
+
+  // Check incomplete order status when name and phone are entered
+  useEffect(() => {
+    // Already sent once — skip
+    if (incompleteOrderSentRef.current) return
+
+    // Only check if both name and phone are filled with valid length
+    if (
+      !customerName ||
+      !customerPhone ||
+      customerName.length < 2 ||
+      customerPhone.length < 11
+    ) {
+      return
+    }
+
+    const checkIncompleteOrderStatus = async () => {
+      if (!shopId) return
+
+      try {
+        const response = await api.get(`/incomplete-order/status/${shopId}`, {
+          headers: {
+            "shop-id": String(shopId),
+          },
+        })
+
+        const responseData = response.data as {
+          success: boolean
+          data: {
+            shop_id: number
+            incomplete_order_status: number
+          }
+        }
+
+        if (responseData.success && responseData.data) {
+          const status = responseData.data.incomplete_order_status
+
+          if (status === 1) {
+            await createIncompleteOrder()
+          } else {
+            setIncompleteOrderId(null)
+          }
+        }
+      } catch (error) {
+        console.error("Error checking incomplete order status:", error)
+      }
+
+      // Mark as done regardless of outcome — only fires once
+      incompleteOrderSentRef.current = true
+    }
+
+    // Debounce the check
+    const timeoutId = setTimeout(checkIncompleteOrderStatus, 500)
+    return () => clearTimeout(timeoutId)
+  }, [customerName, customerPhone, shopId, createIncompleteOrder])
   // Handle form submission
   const onSubmit: SubmitHandler<OrderFormData> = async (formData) => {
-    const headers = getDomainHeadersFromCookies()
-    const shopId = headers["shop-id"]
-
     // Validate if any items are selected
     const hasItems =
       Array.isArray(product.variations) && product.variations.length > 0
@@ -377,7 +572,7 @@ const LandingOrder = ({
 
         if (responseOrderData?.order?.id) {
           toast.success("Order placed successfully")
-          router.push(`/order-successfull/${responseOrderData.order.id}`)
+          router.push(`/order-success/${responseOrderData.order.id}`)
         } else if (responseOrderData?.payment_url) {
           window.location.href = responseOrderData.payment_url
         } else if (order?.otp_sent) {
@@ -440,11 +635,9 @@ const LandingOrder = ({
 
     return options
   }
-  const customerPhone = watch("phone")
+
   const handleResendOtp = async () => {
     setResendLoading(true)
-    const headers = getDomainHeadersFromCookies()
-    const shopId = headers["shop-id"]
     try {
       const res = await api.post(
         "/customer/resend-otp",
@@ -452,7 +645,7 @@ const LandingOrder = ({
         undefined,
         {
           headers: {
-            ...(shopId && { "shop-id": shopId }),
+            ...(shopId && { "shop-id": String(shopId) }),
           },
         }
       )
@@ -473,8 +666,15 @@ const LandingOrder = ({
   }
 
   const hasSocialMedia = fb || twitter || linkedin || instagram || youtube
+
   return (
-    <section className="py-12 min-h-screen" style={{ backgroundColor }}>
+    <section
+      id="placeAnOrder"
+      data-section="place-an-order"
+      className="py-12 min-h-screen scroll-mt-24"
+      style={{ backgroundColor }}
+    >
+      <span id="placeanorder" className="sr-only" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2
           className="text-3xl md:text-4xl font-bold mb-10 text-center"
@@ -488,7 +688,7 @@ const LandingOrder = ({
           <div className="lg:col-span-7 space-y-8">
             {/* Product Summary Card */}
             <div
-              className="p-6 md:p-8 rounded-2xl shadow-lg"
+              className="p-4 md:p-8 rounded-2xl shadow-lg"
               style={{
                 backgroundColor: checkout_b_color || "#ffffff",
                 borderColor: checkout_b_color
@@ -524,11 +724,11 @@ const LandingOrder = ({
                     {product.product_code}
                   </p>
                 </div>
-                {product.discount > 0 && (
+                {/* {product.discount > 0 && (
                   <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold">
                     {product.discount}% OFF
                   </span>
-                )}
+                )} */}
               </div>
 
               {/* PRODUCT WITH VARIANTS */}
@@ -555,7 +755,7 @@ const LandingOrder = ({
                     </span>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {selectedVariants.map((variant) => {
                       const variants = Array.isArray(product.variations)
                         ? (product.variations as unknown as ProductVariantOption[])
@@ -565,7 +765,23 @@ const LandingOrder = ({
                       return (
                         <div
                           key={variant.id}
-                          className={`p-4 border rounded-xl transition-all ${variant.quantity > 0 ? "ring-2 ring-offset-1" : "hover:border-gray-400"}`}
+                          className={`p-5 md:p-6 border rounded-xl transition-all ${
+                            variant.quantity > 0
+                              ? "ring-2 ring-offset-1"
+                              : "hover:border-gray-400 cursor-pointer"
+                          }`}
+                          onClick={() => {
+                            if (variant.quantity === 0) {
+                              if (availableStock > 0) {
+                                handleVariantQuantityChange(variant.id, 1)
+                              }
+                            } else {
+                              handleVariantQuantityChange(
+                                variant.id,
+                                -variant.quantity
+                              )
+                            }
+                          }}
                           style={
                             {
                               borderColor:
@@ -630,9 +846,11 @@ const LandingOrder = ({
                             <div className="flex flex-col items-end gap-3">
                               <div className="flex items-center gap-3">
                                 <button
-                                  onClick={() =>
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
                                     handleVariantQuantityChange(variant.id, -1)
-                                  }
+                                  }}
                                   disabled={variant.quantity <= 0}
                                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                                     variant.quantity > 0
@@ -653,9 +871,11 @@ const LandingOrder = ({
                                 </span>
 
                                 <button
-                                  onClick={() =>
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
                                     handleVariantQuantityChange(variant.id, 1)
-                                  }
+                                  }}
                                   disabled={variant.quantity >= availableStock}
                                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                                     variant.quantity < availableStock
@@ -696,7 +916,7 @@ const LandingOrder = ({
                 /* SIMPLE PRODUCT WITHOUT VARIANTS */
                 <div>
                   <div
-                    className="flex items-center justify-between p-4 border rounded-xl"
+                    className="flex items-center justify-between p-5 md:p-6 border rounded-xl"
                     style={{
                       borderColor: checkout_b_color
                         ? `${checkout_b_color}30`
@@ -839,7 +1059,7 @@ const LandingOrder = ({
                   </p>
                 </div>
 
-                {product.discount > 0 && (
+                {/* {product.discount > 0 && (
                   <div className="flex justify-between items-center">
                     <p style={{ color: checkout_text_color || fontColor }}>
                       Discount
@@ -848,7 +1068,7 @@ const LandingOrder = ({
                       -{product.discount}%
                     </p>
                   </div>
-                )}
+                )} */}
 
                 <div
                   className="h-px my-3"
@@ -998,9 +1218,9 @@ const LandingOrder = ({
           </div>
 
           {/* RIGHT COLUMN - Billing Details */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 px-4 md:px-6">
             <div
-              className="p-6 md:p-8 rounded-2xl shadow-lg sticky top-8"
+              className="p-8 md:p-10 rounded-2xl shadow-lg sticky top-8"
               style={{
                 backgroundColor: checkout_b_color || "#ffffff",
                 borderColor: checkout_b_color
@@ -1016,7 +1236,7 @@ const LandingOrder = ({
               </h3>
 
               <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="space-y-5">
+                <div className="space-y-6">
                   <div>
                     <label
                       className="block text-sm font-medium mb-2"

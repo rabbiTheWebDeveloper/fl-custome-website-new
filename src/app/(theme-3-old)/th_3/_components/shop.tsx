@@ -5,8 +5,6 @@ import {
   X,
   ChevronDown,
   SlidersHorizontal,
-  Grid3x3,
-  List,
   Check,
   Search,
 } from "lucide-react"
@@ -41,7 +39,6 @@ interface ShopProps {
 
 const Shop = ({ products, totalPages }: ShopProps) => {
   const t = useTranslations("Theme3.shop")
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("default")
   const [showMobileFilter, setShowMobileFilter] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -241,7 +238,10 @@ const Shop = ({ products, totalPages }: ShopProps) => {
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
           {/* Sidebar Filters - Desktop */}
           <div className="hidden lg:block w-64 xl:w-72 flex-shrink-0">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 xl:p-6 sticky top-24">
+            <div
+              suppressHydrationWarning
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5 xl:p-6 sticky top-24"
+            >
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg xl:text-xl font-bold text-gray-900 dark:text-white">
                   {t("filters")}
@@ -541,21 +541,11 @@ const Shop = ({ products, totalPages }: ShopProps) => {
                 {/* Products Grid */}
                 {filteredProducts.length > 0 ? (
                   <>
-                    <div
-                      className={
-                        viewMode === "grid"
-                          ? "grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 xl:gap-5"
-                          : "flex flex-col gap-3 sm:gap-4"
-                      }
-                    >
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
                       {filteredProducts.map((product) => (
                         <div
                           key={product.id}
-                          className={
-                            viewMode === "grid"
-                              ? "bg-white ... flex flex-col h-full"
-                              : "bg-white ... w-full"
-                          }
+                          className="bg-white ... flex flex-col h-full"
                         >
                           <ProductCard {...product} />
                         </div>

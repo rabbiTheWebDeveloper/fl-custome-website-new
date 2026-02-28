@@ -1,0 +1,42 @@
+name: Push-from-production-branch-to-container
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    name: Deploy Docker App to Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Deploy via SSH (Docker)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DOCKER_SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            set -e
+            #export DOCKER_BUILDKIT=1
+
+            cd ${{ secrets.DOCKER_TARGET_DIR }}
+            ls
+
+            echo "🔄 Pulling latest code"
+            git checkout production
+            git fetch origin production
+            git pull origin production
+
+            echo "🐳 Building Docker image (BuildKit enabled)"
+            docker compose build
+
+            echo "🚀 Restarting containers"
+            docker compose down
+            docker compose up -d  --scale custom-domain=3
+
+            echo "✅ Deployment complete"
+            docker ps

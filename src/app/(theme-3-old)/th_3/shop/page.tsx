@@ -2,7 +2,7 @@ import { getDomainInfo } from "@/utils/api-helpers"
 import Shop from "../_components/shop"
 import { IProductsApiResponse } from "../types/product"
 import { api } from "@/lib/api-client"
-import { headers } from "next/headers"
+import { getCleanDomain } from "@/utils/domain"
 const ShopPage = async ({
   searchParams,
 }: {
@@ -17,9 +17,9 @@ const ShopPage = async ({
   let totalPages = 1
 
   try {
-    const host = (await headers()).get("host") || ""
-    const cleanDomain = host.replace(/^www\./, "")
+    const cleanDomain = await getCleanDomain()
     const shopInfo = await getDomainInfo(cleanDomain)
+    const shopId = shopInfo?.shop_id || ""
     const { page = "1", search, id, category } = await searchParams
     console.log("[theme-3 Shop] Fetching products with params:", {
       page,
@@ -33,7 +33,8 @@ const ShopPage = async ({
         `/customer/product-search?search=${encodeURIComponent(search.trim())}&page=1`,
         undefined,
         {
-          headers: { "shop-id": shopInfo?.shop_id || "" },
+          headers: { "shop-id": shopId },
+          fetchOptions: { cache: "no-store" },
         }
       )
       response = searchResponse.data
@@ -42,14 +43,19 @@ const ShopPage = async ({
         `/customer/category-product/list/${id}?page=1`,
         undefined,
         {
-          headers: { "shop-id": shopInfo?.shop_id || "" },
+          headers: { "shop-id": shopId },
+          fetchOptions: { cache: "no-store" },
         }
       )
       response = categoryResponse.data
     } else {
       const data = await api.get<IProductsApiResponse>(
         `/customer/products?page=${page}`,
-        { headers: { "shop-id": shopInfo?.shop_id || "" } }
+        undefined,
+        {
+          headers: { "shop-id": shopId },
+          fetchOptions: { cache: "no-store" },
+        }
       )
       response = data.data
     }
