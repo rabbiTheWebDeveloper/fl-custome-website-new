@@ -7,7 +7,7 @@ import { api } from "@/lib/api-client"
 import { IProductsApiResponse } from "./types/product"
 import { getDomainInfo } from "@/utils/api-helpers"
 import { getCleanDomain } from "@/utils/domain"
-
+export const dynamic = "force-dynamic"
 export default async function Home({
   searchParams,
 }: {

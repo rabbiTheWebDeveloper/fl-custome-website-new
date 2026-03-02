@@ -1150,7 +1150,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
                       {/* Product Image */}
                       <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
                         <Image
-                          src={item.metadata?.image || "/placeholder.png"}
+                          src={item.metadata?.image || ""}
                           alt={item.name}
                           fill
                           className="object-cover"

@@ -28,6 +28,7 @@ export interface DomainInfo {
   user_id?: string
   domain_verify?: string
   domain?: string
+  name?: string
   shop_meta_title?: string
   shop_meta_description?: string
   shop_logo?: string

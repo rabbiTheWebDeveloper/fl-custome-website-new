@@ -129,7 +129,7 @@ export const Header = () => {
                   src={
                     domain?.shop_logo && domain.shop_logo.trim() !== ""
                       ? domain.shop_logo
-                      : "/placeholder.png"
+                      : ""
                   }
                   alt={domain?.name || "Shop"}
                   fill

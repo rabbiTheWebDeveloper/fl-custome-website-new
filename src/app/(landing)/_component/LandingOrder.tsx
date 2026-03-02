@@ -812,7 +812,7 @@ const LandingOrder = ({
                                       color: checkout_text_color || fontColor,
                                     }}
                                   >
-                                    {variant.variant}
+                                    Variant : {variant.variant}
                                   </p>
                                   {variant.quantity > 0 && (
                                     <Check
@@ -1600,12 +1600,15 @@ const LandingOrder = ({
                   {isSubmitting ? (
                     <>
                       <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Processing...
+                      Order Processing...
                     </>
                   ) : (
                     <>
                       <ShoppingCart size={24} />
-                      {checkout_button_text} ৳ {total}
+                      {checkout_button_text
+                        ? checkout_button_text
+                        : "Place Order"}{" "}
+                      ৳ {total}
                     </>
                   )}
                 </button>

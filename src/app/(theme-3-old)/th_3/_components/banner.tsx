@@ -9,7 +9,7 @@ import { useDomain } from "../store/domain"
 import { ISliderApiResponse, ISliderItem } from "../types/slides"
 
 // Local fallback image
-const PLACEHOLDER_BANNER = "/banner-placeholder.jpg"
+const PLACEHOLDER_BANNER = "/placeholder.svg"
 
 export default function Banner() {
   const [emblaRef, emblaApi] = useEmblaCarousel({

@@ -3,6 +3,7 @@ import Shop from "../_components/shop"
 import { IProductsApiResponse } from "../types/product"
 import { api } from "@/lib/api-client"
 import { getCleanDomain } from "@/utils/domain"
+export const dynamic = "force-dynamic"
 const ShopPage = async ({
   searchParams,
 }: {

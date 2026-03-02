@@ -5,6 +5,7 @@ import "./globals.css"
 import { GoogleTagManager } from "@next/third-parties/google"
 import { getCleanDomain } from "@/utils/domain"
 import { getDomainInfo } from "@/utils/api-helpers"
+import { DynamicMeta } from "./_component/dynamic-meta"
 
 const inter = Inter({
   variable: "--font-sans",
@@ -37,6 +38,7 @@ export default async function RootLayout({
         }
       />
       <body suppressHydrationWarning>
+        <DynamicMeta domain={shopInfo} />
         <div style={{ display: "contents" }}>{children}</div>
       </body>
     </html>

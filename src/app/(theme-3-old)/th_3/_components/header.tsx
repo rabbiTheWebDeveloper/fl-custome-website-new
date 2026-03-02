@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
 import {
-  ShoppingCart,
   Menu,
   Search,
   Facebook,
@@ -9,10 +8,7 @@ import {
   Youtube,
   ChevronDown,
   X,
-  ChevronRight,
   Phone,
-  Mail,
-  MapPin,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -29,6 +25,7 @@ import { LanguageSelector } from "@/app/(theme-2)/th_2/_components/header/langua
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { WhatsApp } from "@/app/(theme-2)/th_2/_components/ui/social-icons"
+import { IProductsApiResponse, IProduct } from "../types/product"
 
 export default function Header() {
   const t = useTranslations("Theme3.header")
@@ -38,6 +35,7 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [searchProducts, setSearchProducts] = useState<IProduct[]>([])
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
 
   const domain = useDomain((state) => state.domain)
@@ -94,6 +92,7 @@ export default function Header() {
     }
 
     getDomain()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getCookie, setDomain, setDomainAddress])
 
   useEffect(() => {
@@ -114,6 +113,36 @@ export default function Header() {
     }
   }, [domain, setCategories])
 
+  useEffect(() => {
+    if (!domain?.shop_id) return
+
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setTimeout(() => setSearchProducts([]), 0)
+      return
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      try {
+        const res = await api.getTyped<
+          "/customer/product-search?search=toy&page=1",
+          IProductsApiResponse
+        >(
+          `/customer/product-search?search=${searchQuery}` as "/customer/product-search?search=toy&page=1",
+          {
+            headers: {
+              "shop-id": String(domain.shop_id),
+            },
+          }
+        )
+
+        setSearchProducts(res.data || [])
+      } catch (error) {
+        console.error("Search error:", error)
+      }
+    }, 400) // debounce 400ms
+
+    return () => clearTimeout(delayDebounce)
+  }, [searchQuery, domain?.shop_id])
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (!searchQuery.trim()) return
@@ -162,7 +191,7 @@ export default function Header() {
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-[#3bb77e] transition-all">
                     <Image
-                      src={domain?.shop_logo || "/placeholder.png"}
+                      src={domain?.shop_logo || ""}
                       alt={domain?.name || "Logo"}
                       fill
                       className="object-contain"
@@ -204,26 +233,46 @@ export default function Header() {
                 </div>
 
                 {/* Search Suggestions */}
-                {isSearchOpen && searchQuery && categories && (
-                  <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 z-50">
-                    <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                      {t("popularCategories")}
-                    </h3>
-                    <div className="flex gap-2 flex-wrap">
-                      {categories.slice(0, 5).map((category) => (
+                {isSearchOpen && searchQuery.length >= 2 && (
+                  <div className="absolute top-full mt-3 w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+                    {searchProducts.length > 0 ? (
+                      searchProducts.slice(0, 6).map((product) => (
                         <button
-                          key={category.id}
+                          key={product.id}
                           type="button"
                           onClick={() => {
-                            setSearchQuery(category.name)
-                            router.push(`/shop?search=${category.name}`)
+                            router.push(
+                              `/product/${product.ulid}?${product.slug}`
+                            )
+                            setIsSearchOpen(false)
+                            setSearchQuery("")
                           }}
-                          className="px-4 py-2 rounded-full text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-[#3bb77e] hover:text-white transition-colors"
+                          className="w-full flex items-center gap-4 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
                         >
-                          {category.name}
+                          <div className="relative w-12 h-12">
+                            <Image
+                              src={product.main_image || "/placeholder.jpg"}
+                              alt={product.product_name}
+                              fill
+                              className="object-contain rounded-md"
+                            />
+                          </div>
+
+                          <div className="flex-1 text-left">
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {product.product_name}
+                            </p>
+                            <p className="text-sm text-green-600 dark:text-green-400">
+                              ৳ {product.price}
+                            </p>
+                          </div>
                         </button>
-                      ))}
-                    </div>
+                      ))
+                    ) : (
+                      <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                        No products found
+                      </div>
+                    )}
                   </div>
                 )}
               </form>
@@ -379,7 +428,7 @@ export default function Header() {
             <Link href="/" className="flex items-center gap-2">
               <div className="relative w-8 h-8">
                 <Image
-                  src={domain?.shop_logo || "/placeholder.png"}
+                  src={domain?.shop_logo || ""}
                   alt="Logo"
                   fill
                   className="object-contain"

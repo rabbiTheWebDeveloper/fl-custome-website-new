@@ -60,6 +60,12 @@ export interface IOrderPricing {
   discount_type: "amount" | "percent"
 }
 
+export interface IVariation {
+  wp_product_image_url?: string | null
+  media?: string | null
+  [key: string]: unknown
+}
+
 export interface IOrderDetail {
   id: number
   user_id: number
@@ -70,7 +76,7 @@ export interface IOrderDetail {
   shipping_cost: number
   unit_price: number
   variant?: string | null
-  variation?: unknown | null
+  variation?: IVariation | null
   created_at: string
   updated_at: string
   product: IProduct
