@@ -1,5 +1,5 @@
 "use client"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { ShoppingCart, CreditCard } from "lucide-react"
 import { IOrderSuccessfullData } from "../types/order-successfull"
 import Image from "next/image"
@@ -25,17 +25,16 @@ const OrderSuccessfull = ({
     value: finalTotals.total,
   }
   const orderData = { order_details }
+  const hasFired = useRef(false)
 
   useEffect(() => {
-    if (gtmHead) {
-      purchaseTagManagerEventForPurchase(
-        "purchase",
-        customerDataInfo,
-        orderData
-      )
-    }
-  }, [gtmHead])
-  console.log(order_details)
+    if (hasFired.current) return
+    if (!order_details?.length) return
+
+    hasFired.current = true
+
+    purchaseTagManagerEventForPurchase("purchase", customerDataInfo, orderData)
+  }, [])
   return (
     <section className="w-full py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
       <div className="max-w-6xl mx-auto px-4">

@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation"
 import { LandingOrderProps } from "@/type/landing"
 import CheckoutOtp from "@/components/checkout-otp"
 import FingerprintJS from "@fingerprintjs/fingerprintjs"
+import { tagManagerEvent } from "@/lib/tag-manager-event"
 // Define form validation schema
 const orderFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -58,6 +59,7 @@ const LandingOrder = ({
   linkedin,
   instagram,
   youtube,
+  other_script,
   footer_text_color,
   footer_link_color,
   footer_b_color,
@@ -228,6 +230,16 @@ const LandingOrder = ({
     }
   }, [])
 
+  useEffect(() => {
+    if (product && other_script?.gtm_head) {
+      tagManagerEvent(
+        "begin_checkout",
+        product.discounted_price || product.price,
+        product,
+        "single_item"
+      )
+    }
+  }, [product])
   // if (!product) {
   //   return (
   //     <div

@@ -59,8 +59,10 @@ export const purchaseTagManagerEventForPurchase = (
   customerDataInfo: CustomerDataInfo,
   items: unknown
 ): void => {
-  const { order_no, customer_name, address, phone, value } = customerDataInfo
+  if (typeof window === "undefined") return
 
+  const { order_no, customer_name, address, phone, value } = customerDataInfo
+  window.dataLayer = window.dataLayer || []
   sendGTMEvent({
     event: eventName,
     transaction_id: order_no,
@@ -71,6 +73,6 @@ export const purchaseTagManagerEventForPurchase = (
     value,
     items: extractPurchaseArrayOfObject(
       items as { order_details?: PurchaseOrderItem[] }
-    ) as unknown as GTMItem[],
+    ),
   })
 }

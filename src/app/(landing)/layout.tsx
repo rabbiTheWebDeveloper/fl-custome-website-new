@@ -30,16 +30,16 @@ export default async function RootLayout({
       lang="en"
       className={`${inter.variable} ${geistMono.variable} antialiased`}
     >
-      <GoogleTagManager
-        gtmId={
-          typeof shopInfo?.other_script?.gtm_head === "string"
-            ? shopInfo?.other_script?.gtm_head
-            : ""
-        }
-      />
       <body suppressHydrationWarning>
         <DynamicMeta domain={shopInfo} />
         <div style={{ display: "contents" }}>{children}</div>
+        <GoogleTagManager
+          gtmId={
+            typeof shopInfo?.other_script?.gtm_head === "string"
+              ? shopInfo?.other_script?.gtm_head
+              : ""
+          }
+        />
       </body>
     </html>
   )

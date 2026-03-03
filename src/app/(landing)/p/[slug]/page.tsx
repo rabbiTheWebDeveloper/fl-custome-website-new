@@ -75,7 +75,6 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     trim: true,
   })
   const reactBody = parse(bodyContent.trim())
-
   return (
     <>
       <ShadowRoot>
@@ -84,6 +83,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
       </ShadowRoot>
       <LandingOrder
         product={product}
+        other_script={domainInfo.other_script}
         backgroundColor={checkout_b_color || "#f7f7f7"}
         fontColor={checkout_text_color || "#000000"}
         btnColor={checkout_button_color || "#000000"}

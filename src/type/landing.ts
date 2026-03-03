@@ -11,7 +11,12 @@ export interface LandingOrderProps {
   showShippingOptions?: boolean
   storeUrl?: string
   shopId?: number | string | undefined
-
+  other_script?: {
+    gtm_head?: string
+    gtm_body?: string
+    google_analytics?: string
+    [key: string]: string | undefined
+  }
   // Social Media URLs
   fb?: string
   twitter?: string

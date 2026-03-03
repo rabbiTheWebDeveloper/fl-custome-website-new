@@ -887,7 +887,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
   }, [domain])
 
   useEffect(() => {
-    if (gtmHead) {
+    if (items.length > 0 && gtmHead) {
       tagManagerEvent(
         "begin_checkout",
         finalTotals.total,
@@ -895,7 +895,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
         "item_type_array"
       )
     }
-  }, [gtmHead, finalTotals.total, items])
+  }, [items])
   // Show empty state if cart is empty
   if (items.length === 0) {
     return (
