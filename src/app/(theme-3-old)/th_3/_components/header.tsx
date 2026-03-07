@@ -190,12 +190,18 @@ export default function Header() {
               <Link href="/" className="flex-shrink-0 group">
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-[#3bb77e] transition-all">
-                    <Image
-                      src={domain?.shop_logo || ""}
-                      alt={domain?.name || "Logo"}
-                      fill
-                      className="object-contain"
-                    />
+                    {domain?.shop_logo ? (
+                      <Image
+                        src={domain.shop_logo}
+                        alt={domain?.name || "Logo"}
+                        fill
+                        className="object-contain"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                        No Logo
+                      </div>
+                    )}
                   </div>
                   <div>
                     <h1 className="font-bold text-xl text-gray-900 dark:text-white">
@@ -427,12 +433,14 @@ export default function Header() {
 
             <Link href="/" className="flex items-center gap-2">
               <div className="relative w-8 h-8">
-                <Image
-                  src={domain?.shop_logo || ""}
-                  alt="Logo"
-                  fill
-                  className="object-contain"
-                />
+                {domain?.shop_logo && (
+                  <Image
+                    src={domain.shop_logo}
+                    alt="Logo"
+                    fill
+                    className="object-contain"
+                  />
+                )}
               </div>
               <span className="font-bold text-gray-900 dark:text-white">
                 {domain?.name || "Store"}

@@ -25,16 +25,22 @@ const OrderSuccessfull = ({
     value: finalTotals.total,
   }
   const orderData = { order_details }
-  const hasFired = useRef(false)
 
   useEffect(() => {
-    if (hasFired.current) return
-    if (!order_details?.length) return
+    if (!order_no || !order_details?.length) return
 
-    hasFired.current = true
+    const purchaseKey = `purchase_fired_${order_no}`
+
+    // Stop if already fired for this order
+    if (sessionStorage.getItem(purchaseKey)) {
+      return
+    }
 
     purchaseTagManagerEventForPurchase("purchase", customerDataInfo, orderData)
-  }, [])
+
+    sessionStorage.setItem(purchaseKey, "true")
+  }, [order_no])
+
   return (
     <section className="w-full py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
       <div className="max-w-6xl mx-auto px-4">

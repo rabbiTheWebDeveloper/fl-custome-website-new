@@ -9,7 +9,7 @@ import { cookies } from "next/headers"
 import { DynamicMeta } from "./th_3/_components/dynamic-meta"
 import { getDomainMeta } from "@/lib/domain"
 import { Toaster } from "sonner"
-import { GoogleTagManager } from "@next/third-parties/google"
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google"
 import { getDomainInfo } from "@/utils/api-helpers"
 import { getCleanDomain } from "@/utils/domain"
 
@@ -104,6 +104,13 @@ export default async function RootLayout({
           </Providers>
         </NextIntlClientProvider>
       </body>
+      <GoogleAnalytics
+        gaId={
+          typeof shopInfo?.other_script?.google_analytics === "string"
+            ? shopInfo?.other_script?.google_analytics
+            : ""
+        }
+      />
     </html>
   )
 }

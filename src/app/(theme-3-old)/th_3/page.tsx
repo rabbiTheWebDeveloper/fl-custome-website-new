@@ -7,6 +7,7 @@ import { api } from "@/lib/api-client"
 import { IProductsApiResponse } from "./types/product"
 import { getDomainInfo } from "@/utils/api-helpers"
 import { getCleanDomain } from "@/utils/domain"
+import WebsiteTraffic from "./_components/website-traffic"
 export const dynamic = "force-dynamic"
 export default async function Home({
   searchParams,
@@ -15,11 +16,12 @@ export default async function Home({
 }) {
   let products: IProductsApiResponse["data"] = []
   let totalPages = 1
+  let shopId = ""
 
   try {
     const cleanDomain = await getCleanDomain()
     const shopInfo = await getDomainInfo(cleanDomain)
-    const shopId = shopInfo?.shop_id || ""
+    shopId = shopInfo?.shop_id || ""
     const { page = "1" } = await searchParams
     const { data: response } = await api.get<IProductsApiResponse>(
       `/customer/products?page=${page}`,
@@ -48,7 +50,7 @@ export default async function Home({
                bg-[radial-gradient(circle,rgb(255,228,230)_0%,rgba(255,255,255,0)_70%)]
                dark:bg-[radial-gradient(circle,rgb(139,92,246)_0%,rgba(0,0,0,0)_70%)]"
       />
-
+      {shopId && <WebsiteTraffic shopId={shopId} />}
       {/* Sections */}
       <Banner />
       <Category />

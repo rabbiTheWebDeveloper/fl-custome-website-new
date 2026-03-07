@@ -2,7 +2,7 @@
 
 import { Geist_Mono, Inter } from "next/font/google"
 import "./globals.css"
-import { GoogleTagManager } from "@next/third-parties/google"
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google"
 import { getCleanDomain } from "@/utils/domain"
 import { getDomainInfo } from "@/utils/api-helpers"
 import { DynamicMeta } from "./_component/dynamic-meta"
@@ -30,17 +30,24 @@ export default async function RootLayout({
       lang="en"
       className={`${inter.variable} ${geistMono.variable} antialiased`}
     >
+      <GoogleTagManager
+        gtmId={
+          typeof shopInfo?.other_script?.gtm_head === "string"
+            ? shopInfo?.other_script?.gtm_head
+            : ""
+        }
+      />
       <body suppressHydrationWarning>
         <DynamicMeta domain={shopInfo} />
         <div style={{ display: "contents" }}>{children}</div>
-        <GoogleTagManager
-          gtmId={
-            typeof shopInfo?.other_script?.gtm_head === "string"
-              ? shopInfo?.other_script?.gtm_head
-              : ""
-          }
-        />
       </body>
+      <GoogleAnalytics
+        gaId={
+          typeof shopInfo?.other_script?.google_analytics === "string"
+            ? shopInfo?.other_script?.google_analytics
+            : ""
+        }
+      />
     </html>
   )
 }

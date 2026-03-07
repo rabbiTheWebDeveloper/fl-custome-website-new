@@ -12,7 +12,8 @@ import { IAttributeValues, IProduct, IVariation } from "../types/product"
 import { ProductCartControls } from "./product/product-cart-controls"
 import { ProductImageCarousel } from "./product/product-image-carousel"
 import ShareButtons from "./product/share-buttons"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { tagManagerEvent } from "@/lib/tag-manager-event"
 
 interface ProductDetailsClientProps {
   product: IProduct
@@ -153,6 +154,16 @@ const ProductDescription = ({
   const handleVariantChange = (key: string, value: string) => {
     setSelectedVariants((prev) => ({ ...prev, [key]: value }))
   }
+
+  const lastTrackedProductId = useRef<string | number | null>(null)
+
+  useEffect(() => {
+    if (!product?.id) return
+    if (lastTrackedProductId.current === product.id) return
+    tagManagerEvent("view_item", selectedPrice, product, "single_item")
+
+    lastTrackedProductId.current = product.id
+  }, [product, selectedPrice])
 
   if (!product) {
     return (
@@ -410,11 +421,11 @@ const ProductDescription = ({
                     <div className="flex items-baseline justify-between">
                       <div>
                         <span className="text-lg font-bold text-[#3BB77E]">
-                          ৳ {p.price}
+                          ৳ {p?.discounted_price ?? p?.price}
                         </span>
                         {p.price > p.discounted_price && (
                           <span className="text-xs text-gray-400 dark:text-gray-500 line-through ml-2">
-                            ৳ {p.price}
+                            ৳ {p?.price}
                           </span>
                         )}
                       </div>

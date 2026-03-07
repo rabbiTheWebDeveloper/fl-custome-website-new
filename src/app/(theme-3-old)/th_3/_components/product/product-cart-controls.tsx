@@ -65,9 +65,9 @@ export function ProductCartControls({
 
   const currentQuantity = currentCartItem?.quantity ?? 0
   const maxQty = selectedVariation?.quantity ?? product.product_qty
-  const selectedPrice = selectedVariation?.price ?? product.price
+  const selectedPrice = selectedVariation?.price ?? product.discounted_price
   const selectedImage = selectedVariation?.media || product.main_image
-  const effectivePrice = selectedPrice ?? product.price
+  const effectivePrice = selectedPrice ?? product.discounted_price
   const effectiveImage = selectedImage ?? product.main_image
   const effectiveSelectedQuantity =
     currentQuantity > 0 ? currentQuantity : selectedQuantityBeforeFirstAdd

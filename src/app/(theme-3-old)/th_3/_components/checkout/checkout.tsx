@@ -1149,13 +1149,19 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
                     >
                       {/* Product Image */}
                       <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
-                        <Image
-                          src={item.metadata?.image || ""}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 64px, 80px"
-                        />
+                        {item.metadata?.image ? (
+                          <Image
+                            src={item.metadata.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 640px) 64px, 80px"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                            No Image
+                          </div>
+                        )}
                       </div>
 
                       {/* Product Details */}

@@ -1,93 +1,154 @@
 "use client"
 
-import { Facebook, Twitter, Smartphone } from "lucide-react"
-import { useRef } from "react"
+import {
+  Facebook,
+  Twitter,
+  Linkedin,
+  Mail,
+  Link2,
+  Check,
+  MessageCircle,
+  Send,
+} from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
 
 interface ShareButtonsProps {
   title?: string
+  url?: string
+  className?: string
+  compact?: boolean
 }
 
-export default function ShareButtons({ title }: ShareButtonsProps) {
-  const shareUrlRef = useRef<string>(
-    typeof window !== "undefined" ? window.location.href : ""
-  )
-  const shareUrl = shareUrlRef.current
+export default function ShareButtons({
+  title,
+  url,
+  className = "",
+  compact = false,
+}: ShareButtonsProps) {
+  const [copied, setCopied] = useState(false)
+  const shareUrl =
+    url || (typeof window !== "undefined" ? window.location.href : "")
+  const shareText = title || "Check this out!"
 
-  const shareText: string = title || "Check this out!"
-
-  const openShare = (url: string): void => {
-    // Use try-catch to handle popup blockers
+  const handleCopyLink = async () => {
     try {
-      const popup = window.open(
-        url,
-        "_blank",
-        "width=600,height=400,noopener,noreferrer"
-      )
-      if (!popup || popup.closed || typeof popup.closed === "undefined") {
-        // Popup was blocked, fallback to regular window open
-        window.open(url, "_blank", "noopener,noreferrer")
-      }
-    } catch (error) {
-      console.error("Error opening share window:", error)
-      window.open(url, "_blank", "noopener,noreferrer")
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      toast.error("Couldn't copy the link. Please copy it manually.")
     }
   }
 
-  const handleFacebook = (): void => {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-      shareUrl
-    )}`
-    openShare(url)
+  const platforms = [
+    {
+      name: "Facebook",
+      icon: Facebook,
+      color: "#1877f2",
+      url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+    },
+    {
+      name: "Twitter",
+      icon: Twitter,
+      color: "#1DA1F2",
+      url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
+    },
+    {
+      name: "LinkedIn",
+      icon: Linkedin,
+      color: "#0A66C2",
+      url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+    },
+    {
+      name: "WhatsApp",
+      icon: MessageCircle,
+      color: "#25D366",
+      url: `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`,
+    },
+    {
+      name: "Telegram",
+      icon: Send,
+      color: "#26A5E4",
+      url: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
+    },
+    {
+      name: "Gmail",
+      icon: Mail,
+      color: "#EA4335",
+      url: `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(shareText)}&body=${encodeURIComponent(shareUrl)}`,
+    },
+  ]
+
+  const openShare = (url: string) => {
+    window.open(url, "_blank", "width=600,height=400,noopener,noreferrer")
   }
 
-  const handleWhatsApp = (): void => {
-    openShare(
-      `https://wa.me/?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`
-    )
-  }
-
-  const handleTwitter = (): void => {
-    openShare(
-      `https://twitter.com/intent/tweet?url=${encodeURIComponent(
-        shareUrl
-      )}&text=${encodeURIComponent(shareText)}`
-    )
-  }
+  const buttonSize = compact ? "p-2" : "p-2.5"
+  const iconSize = compact ? 16 : 18
 
   return (
-    <div className="flex items-center gap-4 pt-4">
-      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-        Share:
-      </span>
-
-      <div className="flex gap-2">
+    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+      {platforms.map((platform) => (
         <button
-          onClick={handleFacebook}
-          className="p-2 bg-[#1877f2] text-white rounded-full hover:scale-110 transition"
-          aria-label="Share on Facebook"
-          title="Share on Facebook"
+          type="button"
+          key={platform.name}
+          onClick={() => openShare(platform.url)}
+          className={`
+            ${buttonSize} rounded-lg transition-all duration-200
+            hover:scale-110 hover:shadow-md
+            focus:outline-none focus:ring-2 focus:ring-offset-2
+            active:scale-95
+            group relative
+          `}
+          style={{ backgroundColor: platform.color }}
+          aria-label={`Share on ${platform.name}`}
+          title={platform.name}
         >
-          <Facebook size={18} />
-        </button>
+          <platform.icon size={iconSize} className="text-white" />
 
-        <button
-          onClick={handleWhatsApp}
-          className="p-2 bg-[#25D366] text-white rounded-full hover:scale-110 transition"
-          aria-label="Share on WhatsApp"
-          title="Share on WhatsApp"
-        >
-          <Smartphone size={18} />
+          {/* Tooltip */}
+          <span
+            className="absolute -top-8 left-1/2 -translate-x-1/2 
+            bg-gray-900 text-white text-xs py-1 px-2 rounded 
+            opacity-0 group-hover:opacity-100 transition-opacity
+            pointer-events-none whitespace-nowrap z-50"
+          >
+            {platform.name}
+          </span>
         </button>
+      ))}
 
-        <button
-          onClick={handleTwitter}
-          className="p-2 bg-[#1DA1F2] text-white rounded-full hover:scale-110 transition"
-          aria-label="Share on Twitter"
-          title="Share on Twitter"
+      <button
+        type="button"
+        onClick={handleCopyLink}
+        className={`
+          ${buttonSize} rounded-lg transition-all duration-200
+          hover:scale-110 hover:shadow-md
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400
+          active:scale-95
+          bg-gray-100 dark:bg-gray-800
+          group relative
+        `}
+        aria-label="Copy link"
+        title={copied ? "Copied!" : "Copy link"}
+      >
+        {copied ? (
+          <Check size={iconSize} className="text-green-500" />
+        ) : (
+          <Link2 size={iconSize} className="text-gray-600 dark:text-gray-400" />
+        )}
+
+        {/* Tooltip */}
+        <span
+          className="absolute -top-8 left-1/2 -translate-x-1/2 
+          bg-gray-900 text-white text-xs py-1 px-2 rounded 
+          opacity-0 group-hover:opacity-100 transition-opacity
+          pointer-events-none whitespace-nowrap z-50"
         >
-          <Twitter size={18} />
-        </button>
-      </div>
+          {copied ? "Copied!" : "Copy link"}
+        </span>
+      </button>
     </div>
   )
 }

@@ -9,6 +9,7 @@ import LandingOrder from "../../_component/LandingOrder"
 import ShadowRoot from "../../_component/ShadowRoot"
 import parse from "html-react-parser"
 import { getCleanDomain } from "@/utils/domain"
+import LandingPageTracker from "../../_component/landing-traffic"
 export async function generateMetadata({
   params,
 }: {
@@ -77,6 +78,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
   const reactBody = parse(bodyContent.trim())
   return (
     <>
+      <LandingPageTracker pageInfo={landingPageInfo} />
       <ShadowRoot>
         {reactHead}
         {reactBody}
