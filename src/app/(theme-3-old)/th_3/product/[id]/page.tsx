@@ -40,13 +40,9 @@ const Details = async ({ params }: { params: Promise<{ id: string }> }) => {
   // Track product visit (fire-and-forget, must not crash the page)
   if (product?.id) {
     try {
-      await api.post(
-        `${API_ENDPOINTS.PRODUCT_WISE_VISITOR}/${product.id}`,
-        undefined,
-        {
-          headers: { "shop-id": shopInfo.shop_id },
-        }
-      )
+      await api.get(`${API_ENDPOINTS.PRODUCT_WISE_VISITOR}/${product.id}`, {
+        headers: { "shop-id": shopInfo.shop_id },
+      })
     } catch (err) {
       console.error("Failed to track product visit:", err)
     }
