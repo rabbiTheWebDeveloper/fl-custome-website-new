@@ -33,18 +33,23 @@ const Details = async ({ params }: { params: Promise<{ id: string }> }) => {
     console.error("Failed to fetch product:", error)
     notFound()
   }
-
   if (!product) {
     notFound()
   }
 
   // Track product visit (fire-and-forget, must not crash the page)
   if (product?.id) {
-    api
-      .post(`${API_ENDPOINTS.PRODUCT_WISE_VISITOR}/${product.id}`, undefined, {
-        headers: { "shop-id": shopInfo.shop_id },
-      })
-      .catch((err) => console.error("Failed to track product visit:", err))
+    try {
+      await api.post(
+        `${API_ENDPOINTS.PRODUCT_WISE_VISITOR}/${product.id}`,
+        undefined,
+        {
+          headers: { "shop-id": shopInfo.shop_id },
+        }
+      )
+    } catch (err) {
+      console.error("Failed to track product visit:", err)
+    }
   }
 
   const rawVideoUrl = (product.video_url ?? null) as unknown
