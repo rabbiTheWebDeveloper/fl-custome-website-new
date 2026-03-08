@@ -103,7 +103,8 @@ export const getDomainInfo = async (
         domain: domainHeader,
       },
       next: {
-        revalidate: 600, 
+        revalidate: 600,
+        tags: ["domain"],
       },
     }
   )

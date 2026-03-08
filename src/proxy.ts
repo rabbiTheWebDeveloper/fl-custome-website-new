@@ -85,10 +85,8 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/order-successfull/")) {
     return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
   }
-  if (pathname === "/online-payment-failed/") {
-    return NextResponse.rewrite(
-      new URL(`/${theme}/online-payment-failed/`, request.url)
-    )
+  if (pathname.startsWith("/online-payment-failed/")) {
+    return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
   }
 
   if (pathname === "/") {
