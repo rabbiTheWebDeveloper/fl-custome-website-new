@@ -1,30 +1,25 @@
 // middleware.ts
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { getCleanDomain } from "./utils/domain"
+import { getDomainInfo } from "./utils/api-helpers"
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   const THEME_MAP: Record<string, string> = {
     "201": "th_3",
   }
-
   const resolveTheme = (name: string) => THEME_MAP[name] || name
 
   const defaultTheme = resolveTheme(
     process.env.NEXT_PUBLIC_DEFAULT_THEME || "th_3"
   )
   let theme = defaultTheme
-
-  const domainCookie = request.cookies.get("domain")?.value
-  if (domainCookie) {
+  const cleanDomain = await getCleanDomain()
+  const domain = await getDomainInfo(cleanDomain)
+  if (domain) {
     try {
-      const raw = domainCookie.includes("%7B")
-        ? decodeURIComponent(domainCookie)
-        : domainCookie
-      const parsed = JSON.parse(raw)
-      const domain = parsed?.state?.domain
-
       if (domain?.theme_settings === null) {
         theme = "th_3"
       } else {

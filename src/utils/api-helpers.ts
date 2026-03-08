@@ -34,6 +34,15 @@ export interface DomainInfo {
   shop_logo?: string
   shop_favicon?: string
   theme_id?: string
+  theme_settings?: {
+    id?: number
+    shop_id?: number
+    theme_id?: number
+    theme_name?: string
+    banner_slides?: any[]
+    brand_color?: string | null
+    secondary_color?: string | null
+  } | null
   fb_pixel?: string
   other_script?: {
     gtm_head?: string
@@ -94,7 +103,7 @@ export const getDomainInfo = async (
         domain: domainHeader,
       },
       next: {
-        revalidate: 600,
+        revalidate: 600, 
       },
     }
   )
@@ -181,26 +190,26 @@ export const getProductDetailsData = async (
 
     const productData = productId
       ? await fetchAPI<any>(
-          `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.PRODUCT.PRODUCT_DETAILS}/${productId}`,
+        `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.PRODUCT.PRODUCT_DETAILS}/${productId}`,
+        {
+          headers: shopHeaders,
+          cache: "force-cache",
+          next: { revalidate: NEXT_REVALIDATE_TIME },
+        }
+      )
+      : null
+
+    const relatedProduct = productData?.data?.category_id
+      ? (
+        await fetchAPI<any[]>(
+          `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.PRODUCT.CATEGORY_PRODUCTS}/${productData.data.category_id}?page=1`,
           {
             headers: shopHeaders,
             cache: "force-cache",
             next: { revalidate: NEXT_REVALIDATE_TIME },
           }
         )
-      : null
-
-    const relatedProduct = productData?.data?.category_id
-      ? (
-          await fetchAPI<any[]>(
-            `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.PRODUCT.CATEGORY_PRODUCTS}/${productData.data.category_id}?page=1`,
-            {
-              headers: shopHeaders,
-              cache: "force-cache",
-              next: { revalidate: NEXT_REVALIDATE_TIME },
-            }
-          )
-        )?.data || []
+      )?.data || []
       : []
 
     const orderPermision =
