@@ -97,7 +97,7 @@ export default async function RootLayout({
             <Toaster position="top-center" richColors />
             <DynamicMeta />
             <div style={{ display: "contents" }}>
-              <Header />
+              {/* <Header /> */}
               {children}
               <FooterUI shopInfo={shopInfo} />
             </div>
