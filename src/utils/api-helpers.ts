@@ -114,6 +114,7 @@ export const getDomainInfo = async (
     },
     next: {
       revalidate: 600,
+      tags: ["domain"],
     },
   })
 
@@ -153,6 +154,7 @@ export const getShopDomainData = async (
     },
     next: {
       revalidate: 600,
+      tags: ["domain"],
     },
   })
 
