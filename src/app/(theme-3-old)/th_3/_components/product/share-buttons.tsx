@@ -10,8 +10,11 @@ import {
   MessageCircle,
   Send,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
+
+const tooltipClass =
+  "absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50"
 
 interface ShareButtonsProps {
   title?: string
@@ -27,8 +30,13 @@ export default function ShareButtons({
   compact = false,
 }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false)
-  const shareUrl =
-    url || (typeof window !== "undefined" ? window.location.href : "")
+  const [shareUrl, setShareUrl] = useState(url ?? "")
+
+  useEffect(() => {
+    const value = url || window.location.href
+    queueMicrotask(() => setShareUrl(value))
+  }, [url])
+
   const shareText = title || "Check this out!"
 
   const handleCopyLink = async () => {
@@ -86,6 +94,7 @@ export default function ShareButtons({
 
   const buttonSize = compact ? "p-2" : "p-2.5"
   const iconSize = compact ? 16 : 18
+  const shareButtonClass = `${buttonSize} rounded-lg transition-all duration-200 hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95 group relative`
 
   return (
     <div className={`flex flex-wrap items-center gap-2 ${className}`}>
@@ -94,13 +103,7 @@ export default function ShareButtons({
           type="button"
           key={platform.name}
           onClick={() => openShare(platform.url)}
-          className={`
-            ${buttonSize} rounded-lg transition-all duration-200
-            hover:scale-110 hover:shadow-md
-            focus:outline-none focus:ring-2 focus:ring-offset-2
-            active:scale-95
-            group relative
-          `}
+          className={shareButtonClass}
           style={{ backgroundColor: platform.color }}
           aria-label={`Share on ${platform.name}`}
           title={platform.name}
@@ -108,28 +111,14 @@ export default function ShareButtons({
           <platform.icon size={iconSize} className="text-white" />
 
           {/* Tooltip */}
-          <span
-            className="absolute -top-8 left-1/2 -translate-x-1/2 
-            bg-gray-900 text-white text-xs py-1 px-2 rounded 
-            opacity-0 group-hover:opacity-100 transition-opacity
-            pointer-events-none whitespace-nowrap z-50"
-          >
-            {platform.name}
-          </span>
+          <span className={tooltipClass}>{platform.name}</span>
         </button>
       ))}
 
       <button
         type="button"
         onClick={handleCopyLink}
-        className={`
-          ${buttonSize} rounded-lg transition-all duration-200
-          hover:scale-110 hover:shadow-md
-          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400
-          active:scale-95
-          bg-gray-100 dark:bg-gray-800
-          group relative
-        `}
+        className={`${buttonSize} rounded-lg transition-all duration-200 hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 active:scale-95 bg-gray-100 dark:bg-gray-800 group relative`}
         aria-label="Copy link"
         title={copied ? "Copied!" : "Copy link"}
       >
@@ -140,14 +129,7 @@ export default function ShareButtons({
         )}
 
         {/* Tooltip */}
-        <span
-          className="absolute -top-8 left-1/2 -translate-x-1/2 
-          bg-gray-900 text-white text-xs py-1 px-2 rounded 
-          opacity-0 group-hover:opacity-100 transition-opacity
-          pointer-events-none whitespace-nowrap z-50"
-        >
-          {copied ? "Copied!" : "Copy link"}
-        </span>
+        <span className={tooltipClass}>{copied ? "Copied!" : "Copy link"}</span>
       </button>
     </div>
   )

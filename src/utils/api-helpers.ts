@@ -96,11 +96,103 @@ export const getDomainInfo = async (
   host: string
 ): Promise<DomainInfo | null> => {
   const domainHeader = host === hostDomain ? headerHostNname : host
-  const data = await fetchAPI<DomainInfo>(
-    `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.SHOP.DOMAIN}`,
+  const url = `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.SHOP.DOMAIN}`
+
+  console.debug("[getDomainInfo] domain API call", {
+    url,
+    host,
+    domainHeader,
+    domainHeaderResolved:
+      host === hostDomain
+        ? `${host} (localhost) -> ${headerHostNname}`
+        : "direct",
+  })
+
+  const data = await fetchAPI<DomainInfo>(url, {
+    headers: {
+      domain: domainHeader,
+    },
+    next: {
+      revalidate: 600,
+    },
+  })
+
+  console.debug("[getDomainInfo] domain API response", {
+    url,
+    host,
+    domainHeader,
+    response: data,
+  })
+
+  return data?.data || null
+}
+
+/* =====================
+   Theme 2 - Server-side domain, sections, categories
+===================== */
+
+export const getShopDomainData = async (
+  host: string
+): Promise<Record<string, unknown> | null> => {
+  const domainHeader = host === hostDomain ? headerHostNname : host
+  const url = `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.SHOP.DOMAIN}`
+
+  console.debug("[getShopDomainData] domain API call", {
+    url,
+    host,
+    domainHeader,
+    domainHeaderResolved:
+      host === hostDomain
+        ? `${host} (localhost) -> ${headerHostNname}`
+        : "direct",
+  })
+
+  const response = await fetchAPI<Record<string, unknown>>(url, {
+    headers: {
+      domain: domainHeader,
+    },
+    next: {
+      revalidate: 600,
+    },
+  })
+
+  console.debug("[getShopDomainData] domain API response", {
+    url,
+    host,
+    domainHeader,
+    response,
+  })
+
+  return response?.data ?? null
+}
+
+export const getSectionsData = async (
+  host: string,
+  shopId: string
+): Promise<{ data?: unknown[] } | null> => {
+  const domainHeader = host === hostDomain ? headerHostNname : host
+  return fetchAPI(`${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.SECTIONS}`, {
+    headers: {
+      domain: domainHeader,
+      "shop-id": shopId,
+    },
+    next: {
+      revalidate: NEXT_REVALIDATE_TIME,
+    },
+  })
+}
+
+export const getCategoriesData = async (
+  host: string,
+  shopId: string
+): Promise<{ data?: unknown[]; success?: boolean } | null> => {
+  const domainHeader = host === hostDomain ? headerHostNname : host
+  return fetchAPI(
+    `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.CATEGORY.GET_CATEGORIES}`,
     {
       headers: {
         domain: domainHeader,
+        "shop-id": shopId,
       },
       next: {
         revalidate: 600,
@@ -108,8 +200,6 @@ export const getDomainInfo = async (
       },
     }
   )
-
-  return data?.data || null
 }
 
 export const getData = async (host: string) => {
@@ -191,26 +281,26 @@ export const getProductDetailsData = async (
 
     const productData = productId
       ? await fetchAPI<any>(
-        `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.PRODUCT.PRODUCT_DETAILS}/${productId}`,
-        {
-          headers: shopHeaders,
-          cache: "force-cache",
-          next: { revalidate: NEXT_REVALIDATE_TIME },
-        }
-      )
-      : null
-
-    const relatedProduct = productData?.data?.category_id
-      ? (
-        await fetchAPI<any[]>(
-          `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.PRODUCT.CATEGORY_PRODUCTS}/${productData.data.category_id}?page=1`,
+          `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.PRODUCT.PRODUCT_DETAILS}/${productId}`,
           {
             headers: shopHeaders,
             cache: "force-cache",
             next: { revalidate: NEXT_REVALIDATE_TIME },
           }
         )
-      )?.data || []
+      : null
+
+    const relatedProduct = productData?.data?.category_id
+      ? (
+          await fetchAPI<any[]>(
+            `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.PRODUCT.CATEGORY_PRODUCTS}/${productData.data.category_id}?page=1`,
+            {
+              headers: shopHeaders,
+              cache: "force-cache",
+              next: { revalidate: NEXT_REVALIDATE_TIME },
+            }
+          )
+        )?.data || []
       : []
 
     const orderPermision =

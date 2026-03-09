@@ -14,11 +14,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { useDomain } from "../store/domain"
 import { useCategories } from "../store/categories"
-import { useGetCookie } from "cookies-next"
 import { api } from "@/lib/api-client"
 import { IShopResponse } from "../types/shop"
-import { prepareDomain } from "@/lib/utils"
-import { ICategoriesApiResponse, ICategory } from "../types/categories"
+import { ICategory } from "../types/categories"
 import { CartPopover } from "./carts/cart-popover"
 import ThemeToggle from "./ThemeToggle"
 import { LanguageSelector } from "@/app/(theme-2)/th_2/_components/header/language-selector"
@@ -27,7 +25,11 @@ import { useTranslations } from "next-intl"
 import { WhatsApp } from "@/app/(theme-2)/th_2/_components/ui/social-icons"
 import { IProductsApiResponse, IProduct } from "../types/product"
 
-export default function Header() {
+export default function Header({
+  initialDomain,
+}: {
+  initialDomain?: IShopResponse | null
+}) {
   const t = useTranslations("Theme3.header")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
@@ -38,17 +40,14 @@ export default function Header() {
   const [searchProducts, setSearchProducts] = useState<IProduct[]>([])
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
 
-  const domain = useDomain((state) => state.domain)
-  const setDomain = useDomain((state) => state.setDomain)
+  const storeDomain = useDomain((state) => state.domain)
+  const domain = initialDomain ?? storeDomain
   const categories: ICategory[] | null = useCategories(
     (state) => state.categories
   )
   const categoriesDropdownRef = useRef<HTMLDivElement>(null)
 
   const router = useRouter()
-  const setCategories = useCategories((state) => state.setCategories)
-  const setDomainAddress = useDomain((state) => state.setDomainAddress)
-  const getCookie = useGetCookie()
 
   // Handle scroll effect
   useEffect(() => {
@@ -71,47 +70,6 @@ export default function Header() {
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
-
-  useEffect(() => {
-    const getDomain = async () => {
-      const res = await api.getTyped<
-        "/shops/domain",
-        { message: string; success: boolean; data: IShopResponse }
-      >("/shops/domain", {
-        headers: {
-          domain: prepareDomain(window.location.href),
-        },
-      })
-      if (res.message === "success") {
-        if (getCookie("domain") === undefined) {
-          setDomain(res.data)
-          setDomainAddress(window.location.origin)
-          router.refresh()
-        }
-      }
-    }
-
-    getDomain()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getCookie, setDomain, setDomainAddress])
-
-  useEffect(() => {
-    const getCategories = async () => {
-      const res = await api.getTyped<
-        "/customer/categories",
-        ICategoriesApiResponse
-      >("/customer/categories", {
-        headers: {
-          domain: prepareDomain(window.location.href),
-          "shop-id": String(domain?.shop_id) ?? "",
-        },
-      })
-      setCategories(res)
-    }
-    if (domain?.shop_id) {
-      getCategories()
-    }
-  }, [domain, setCategories])
 
   useEffect(() => {
     if (!domain?.shop_id) return

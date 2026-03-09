@@ -1,25 +1,29 @@
-// middleware.ts
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { getCleanDomain } from "./utils/domain"
-import { getDomainInfo } from "./utils/api-helpers"
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   const THEME_MAP: Record<string, string> = {
     "201": "th_3",
   }
+
   const resolveTheme = (name: string) => THEME_MAP[name] || name
 
   const defaultTheme = resolveTheme(
     process.env.NEXT_PUBLIC_DEFAULT_THEME || "th_3"
   )
   let theme = defaultTheme
-  const cleanDomain = await getCleanDomain()
-  const domain = await getDomainInfo(cleanDomain)
-  if (domain) {
+
+  const domainCookie = request.cookies.get("domain")?.value
+  if (domainCookie) {
     try {
+      const raw = domainCookie.includes("%7B")
+        ? decodeURIComponent(domainCookie)
+        : domainCookie
+      const parsed = JSON.parse(raw)
+      const domain = parsed?.state?.domain
+
       if (domain?.theme_settings === null) {
         theme = "th_3"
       } else {
@@ -40,12 +44,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (
-    pathname === "/default" ||
-    pathname === "/theme_1" ||
-    pathname === "/th_2" ||
-    pathname === "/th_3"
-  ) {
+  if (pathname === "/default" || pathname === "/th_2" || pathname === "/th_3") {
     return NextResponse.redirect(new URL("/", request.url))
   }
 
@@ -85,8 +84,10 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/order-successfull/")) {
     return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
   }
-  if (pathname.startsWith("/online-payment-failed/")) {
-    return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
+  if (pathname === "/online-payment-failed/") {
+    return NextResponse.rewrite(
+      new URL(`/${theme}/online-payment-failed/`, request.url)
+    )
   }
 
   if (pathname === "/") {

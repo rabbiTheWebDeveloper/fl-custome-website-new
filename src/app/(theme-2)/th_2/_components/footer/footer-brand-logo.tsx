@@ -5,23 +5,28 @@ import Link from "next/link"
 import { MapPin, Phone } from "lucide-react"
 import { useDomain } from "../../store/domain"
 
+function getLogoUrl(domain: { shop_logo?: unknown } | null): string | null {
+  const raw = domain?.shop_logo
+  if (typeof raw === "string" && raw.trim() !== "") return raw
+  return null
+}
+
 export function FooterBrandLogo() {
   const domain = useDomain((state) => state.domain)
+  const logoUrl = getLogoUrl(domain)
 
   return (
     <div className="mb-4 space-y-3">
       <Link href="/" className="block">
         <div className="relative h-12 w-28 overflow-hidden">
-          <Image
-            src={
-              domain?.shop_logo && domain.shop_logo.trim() !== ""
-                ? domain.shop_logo
-                : ""
-            }
-            alt={domain?.name || "Brand Logo"}
-            fill
-            className="object-contain object-left"
-          />
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={domain?.name || "Brand Logo"}
+              fill
+              className="object-contain object-left"
+            />
+          ) : null}
         </div>
       </Link>
 

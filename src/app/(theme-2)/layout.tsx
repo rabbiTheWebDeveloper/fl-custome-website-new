@@ -8,7 +8,17 @@ import { Header } from "./th_2/_components/header/header"
 import { Footer } from "./th_2/_components/footer/footer"
 import { ThemeBrandProvider } from "./th_2/_components/theme/theme-brand-provider"
 import { DynamicMeta } from "./th_2/_components/dynamic-meta"
+import { DomainHydration } from "./th_2/_components/domain-hydration"
 import { getDomainMeta } from "@/lib/domain"
+import {
+  getShopDomainData,
+  getSectionsData,
+  getCategoriesData,
+} from "@/utils/api-helpers"
+import { getCleanDomain } from "@/utils/domain"
+import { IShopResponse } from "./th_2/types/shop"
+import { ICategory } from "./th_2/types/categories"
+import { ISectionItem } from "./th_2/types/sections"
 import { Toaster } from "sonner"
 
 const inter = Inter({
@@ -39,6 +49,26 @@ export default async function RootLayout({
   const cookieStore = await cookies()
   const locale = (cookieStore.get("NEXT_LOCALE")?.value || "en") as "en" | "bn"
 
+  let initialDomain: IShopResponse | null = null
+  let initialSections: ISectionItem[] | null = null
+  let initialCategories: ICategory[] | null = null
+
+  try {
+    const cleanDomain = await getCleanDomain()
+    const domainData = await getShopDomainData(cleanDomain)
+    if (domainData && typeof domainData.shop_id === "number") {
+      initialDomain = domainData as unknown as IShopResponse
+      const [sectionsRes, categoriesRes] = await Promise.all([
+        getSectionsData(cleanDomain, String(domainData.shop_id)),
+        getCategoriesData(cleanDomain, String(domainData.shop_id)),
+      ])
+      initialSections = (sectionsRes?.data as ISectionItem[]) ?? null
+      initialCategories = (categoriesRes?.data as ICategory[]) ?? null
+    }
+  } catch (err) {
+    console.warn("[theme-2 layout] getShopDomainData failed:", err)
+  }
+
   // Use explicit imports instead of dynamic template literals
   const messages =
     locale === "bn"
@@ -58,13 +88,19 @@ export default async function RootLayout({
           timeZone="Asia/Dhaka"
         >
           <ThemeBrandProvider>
-            <Toaster position="top-center" richColors />
-            <DynamicMeta />
-            <div className="overflow-x-clip">
-              <Header />
-              {children}
-              <Footer />
-            </div>
+            <DomainHydration
+              initialDomain={initialDomain}
+              initialSections={initialSections}
+              initialCategories={initialCategories}
+            >
+              <Toaster position="top-center" richColors />
+              <DynamicMeta />
+              <div className="overflow-x-clip">
+                <Header initialDomain={initialDomain} />
+                {children}
+                <Footer />
+              </div>
+            </DomainHydration>
           </ThemeBrandProvider>
         </NextIntlClientProvider>
       </body>

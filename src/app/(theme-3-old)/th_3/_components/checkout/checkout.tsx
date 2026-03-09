@@ -1343,11 +1343,12 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
                     information is encrypted and protected
                   </span>
                 </div>
-                {/* Place Order Button */}
-                <button
-                  type="submit"
-                  disabled={!isValid || isSubmitting || items.length === 0}
-                  className={`
+                {/* Place Order Button - sticky on mobile */}
+                <div className="md:sticky md:relative fixed bottom-0 left-0 right-0 z-40 bg-white p-4 md:p-0 border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none">
+                  <button
+                    type="submit"
+                    disabled={!isValid || isSubmitting || items.length === 0}
+                    className={`
     w-full rounded-xl px-4 py-3.5 sm:py-4
     font-semibold text-base
     transition-all duration-200 ease-out
@@ -1358,35 +1359,38 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
         : "bg-gray-100 text-gray-400 cursor-not-allowed"
     }
   `}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <RefreshCw className="w-5 h-5 animate-spin" />
-                      <span>Processing order…</span>
-                    </div>
-                  ) : (
-                    <div className="flex w-full items-center gap-3">
+                  >
+                    {isSubmitting ? (
                       <div className="flex items-center gap-2">
-                        <Lock className="w-4 h-4 opacity-90" />
-                        <span>
-                          {items.length === 0
-                            ? "Your cart is empty"
-                            : "Place Order"}
-                        </span>
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                        <span>Processing order…</span>
                       </div>
+                    ) : (
+                      <div className="flex w-full items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <Lock className="w-4 h-4 opacity-90" />
+                          <span>
+                            {items.length === 0
+                              ? "Your cart is empty"
+                              : "Place Order"}
+                          </span>
+                        </div>
 
-                      {items.length > 0 && (
-                        <span className="ml-auto text-lg font-bold tracking-tight">
-                          ৳{finalTotals.total.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </button>
+                        {items.length > 0 && (
+                          <span className="ml-auto text-lg font-bold tracking-tight">
+                            ৳{finalTotals.total.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </form>
+        {/* Spacer for fixed button on mobile */}
+        <div className="h-20 md:hidden" />
         {/* Continue Shopping */}
         <div className="mt-6 sm:mt-8 text-center">
           <Link

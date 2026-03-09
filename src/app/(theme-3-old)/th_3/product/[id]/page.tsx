@@ -23,9 +23,12 @@ const Details = async ({ params }: PageProps) => {
   let product: IProduct | null = null
 
   try {
-    const { data } = await api.get<{ data: IProduct }>(`/customer/products/${id}`, {
-      headers: { "shop-id": shopInfo.shop_id },
-    })
+    const { data } = await api.get<{ data: IProduct }>(
+      `/customer/products/${id}`,
+      {
+        headers: { "shop-id": shopInfo.shop_id },
+      }
+    )
 
     product = data?.data ?? null
   } catch (error) {

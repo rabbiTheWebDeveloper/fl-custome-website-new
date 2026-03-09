@@ -3,22 +3,16 @@ import { CartPopover } from "../carts/cart-popover"
 import Link from "next/link"
 import { linkHrefs } from "../../_constants"
 import { useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { ChevronRight, X } from "lucide-react"
-import { api } from "@/lib/api-client"
-import { ICategoriesApiResponse } from "../../types/categories"
 import { useCategories } from "../../store/categories"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useDomain } from "../../store/domain"
-import { useSections } from "../../store/sections"
-import { useGetCookie } from "cookies-next"
-import { prepareDomain } from "@/lib/utils"
-import { IShopResponse } from "../../types/shop"
-import { ISectionsApiResponse } from "../../types/sections"
 import { SearchInput } from "./search-input"
 import { LanguageSelector } from "./language-selector"
 import { MobileNav } from "./mobile-nav"
+import { IShopResponse } from "../../types/shop"
 
 function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(false)
@@ -40,11 +34,15 @@ function AnnouncementBar() {
   )
 }
 
-export const Header = () => {
+export const Header = ({
+  initialDomain,
+}: {
+  initialDomain?: IShopResponse | null
+}) => {
   const t = useTranslations("Theme2.header")
   const tHeaderFooter = useTranslations("Theme2.headerFooter")
-  const domain = useDomain((state) => state.domain)
-  const setDomain = useDomain((state) => state.setDomain)
+  const storeDomain = useDomain((state) => state.domain)
+  const domain = initialDomain ?? storeDomain
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false)
   const [hoveredCategoryId, setHoveredCategoryId] = useState<number | null>(
     null
@@ -59,61 +57,6 @@ export const Header = () => {
     (cat) => cat.id === hoveredCategoryId
   )
   const subCategories = hoveredCategory?.sub_categories ?? []
-  const setCategories = useCategories((state) => state.setCategories)
-  const setDomainAddress = useDomain((state) => state.setDomainAddress)
-  const setSections = useSections((state) => state.setSections)
-  const getCookie = useGetCookie()
-
-  useEffect(() => {
-    const getDomain = async () => {
-      const res = await api.getTyped<
-        "/shops/domain",
-        { message: string; success: boolean; data: IShopResponse }
-      >("/shops/domain", {
-        headers: {
-          domain: prepareDomain(window.location.href),
-        },
-      })
-      if (res.message === "success") {
-        setDomain(res.data)
-        setDomainAddress(window.location.origin)
-
-        // Fetch sections after domain loads
-        const sectionsRes = await api.getTyped<
-          "/customer/sections",
-          ISectionsApiResponse
-        >("/customer/sections", {
-          headers: {
-            domain: prepareDomain(window.location.href),
-            "shop-id": String(res.data.shop_id),
-          },
-        })
-        if (sectionsRes.success) {
-          setSections(sectionsRes.data)
-        }
-      }
-    }
-
-    getDomain()
-  }, [])
-
-  useEffect(() => {
-    const getCategories = async () => {
-      const res = await api.getTyped<
-        "/customer/categories",
-        ICategoriesApiResponse
-      >("/customer/categories", {
-        headers: {
-          domain: prepareDomain(window.location.href),
-          "shop-id": String(domain?.shop_id) ?? "",
-        },
-      })
-      setCategories(res)
-    }
-    if (domain?.shop_id) {
-      getCategories()
-    }
-  }, [domain, setCategories])
 
   return (
     <>
