@@ -31,6 +31,17 @@ export default async function ProductPage({
     const response = await api.get(`/customer/products/${validUlid}`, {
       headers,
     })
+    const productResponse = (response.data as { data?: IProduct })?.data
+    console.log(
+      "[Theme2] Product detail variations:",
+      productResponse?.variations
+    )
+    console.log(
+      "[Theme2] Product detail variations count:",
+      Array.isArray(productResponse?.variations)
+        ? productResponse?.variations.length
+        : 0
+    )
     product = (response.data as { data: IProduct })?.data
   } catch {
     product = undefined

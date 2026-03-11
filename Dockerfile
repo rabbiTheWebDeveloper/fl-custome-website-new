@@ -5,20 +5,32 @@ FROM node:20-bookworm AS builder
 
 WORKDIR /app
 
-# Install build deps for native modules
+# Enable pnpm
+RUN corepack enable
+
+# Fix pnpm CI behaviour
+ENV CI=true
+
+# Install build deps
 RUN apt-get update && apt-get install -y python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy package files & install only prod deps
-COPY package.json package-lock.json ./
-RUN npm ci --legacy-peer-deps
+# Copy dependency files
+COPY package.json pnpm-lock.yaml ./
 
-# Copy source & build
+# Install dependencies
+#RUN pnpm install --frozen-lockfile
+RUN pnpm install
+
+# Copy project
 COPY . .
-RUN npm run build
 
-# Optional: prune devDependencies (if you installed any)
-RUN npm prune --production
+# Build Next.js
+RUN pnpm build
+
+# Remove dev dependencies
+RUN pnpm prune --prod --ignore-scripts
+
 
 # ----------- RUNTIME STAGE -----------
 FROM node:20-alpine AS runner
@@ -26,10 +38,12 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy only what is needed for runtime
+RUN corepack enable
+
 COPY --from=builder /app/.next/standalone /app
 COPY --from=builder /app/.next/static /app/.next/static
 COPY --from=builder /app/public /app/public
 
 EXPOSE 3000
+
 CMD ["node", "server.js"]

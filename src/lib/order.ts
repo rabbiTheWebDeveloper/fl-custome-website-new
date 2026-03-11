@@ -5,6 +5,23 @@
 
 import type { CartItem } from "./cart/types"
 
+const getVariantIdFromItem = (item: CartItem): number => {
+  if (!item.variants || item.variants.length === 0) return 0
+
+  for (const variant of item.variants) {
+    const rawId =
+      variant.variationId ?? variant.variantId ?? variant.attributeId
+    if (rawId !== undefined && rawId !== null && String(rawId).trim() !== "") {
+      const parsed = Number(rawId)
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed
+      }
+    }
+  }
+
+  return 0
+}
+
 /**
  * Order form data
  */
@@ -74,27 +91,25 @@ export function prepareOrderData(data: OrderSubmissionData): FormData {
     formData.append("product_qty[]", String(item.quantity))
 
     // Variant ID - get from item variants or lookup from product data
-    let variantId = 0
+    let variantId = getVariantIdFromItem(item)
 
-    if (item.variants && item.variants.length > 0) {
-      // First try to use stored attributeId
-      if (item.variants[0]?.attributeId !== undefined) {
-        variantId = Number(item.variants[0].attributeId)
-      } else if (data.productDataMap) {
-        // Try to lookup variant ID from product attributes
-        const productData = data.productDataMap.get(item.productId)
-        if (productData?.attributes) {
-          const variant = item.variants[0]
-          const attribute = productData.attributes.find(
-            (attr) => attr.key === variant.key
-          )
-          if (attribute) {
-            const value = attribute.values.find(
-              (v) => v.value === variant.value
-            )
-            if (value) {
-              variantId = value.id
-            }
+    if (
+      variantId === 0 &&
+      item.variants &&
+      item.variants.length > 0 &&
+      data.productDataMap
+    ) {
+      // Backward-compatible fallback for legacy cart variants.
+      const productData = data.productDataMap.get(item.productId)
+      if (productData?.attributes) {
+        const variant = item.variants[0]
+        const attribute = productData.attributes.find(
+          (attr) => attr.key === variant.key
+        )
+        if (attribute) {
+          const value = attribute.values.find((v) => v.value === variant.value)
+          if (value) {
+            variantId = value.id
           }
         }
       }

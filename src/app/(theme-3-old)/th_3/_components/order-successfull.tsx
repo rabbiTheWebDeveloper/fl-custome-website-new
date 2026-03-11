@@ -5,6 +5,7 @@ import { IOrderSuccessfullData } from "../types/order-successfull"
 import Image from "next/image"
 import { purchaseTagManagerEventForPurchase } from "@/lib/tag-manager-event"
 import Link from "next/link"
+import { useDomain } from "../store/domain"
 const OrderSuccessfull = ({
   order_details,
   created_at,
@@ -15,7 +16,15 @@ const OrderSuccessfull = ({
   customer_name,
   phone,
   address,
-}: IOrderSuccessfullData) => {
+  brandColor: initialBrandColor,
+}: IOrderSuccessfullData & { brandColor?: string }) => {
+  const domain = useDomain((state) => state.domain)
+  const brandColor =
+    initialBrandColor ||
+    (domain as { theme_settings?: { brand_color?: string | null } } | null)
+      ?.theme_settings?.brand_color ||
+    (domain as { multipage_color?: string | null } | null)?.multipage_color ||
+    ""
   const finalTotals = { total: pricing.grand_total + pricing.shipping_cost }
   const customerDataInfo = {
     order_no,
@@ -46,9 +55,15 @@ const OrderSuccessfull = ({
       <div className="max-w-6xl mx-auto px-4">
         {/* ===== Success Header ===== */}
         <div className="text-center mb-14">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 dark:bg-green-900 mb-5">
+          <div
+            className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-5"
+            style={
+              brandColor ? { backgroundColor: `${brandColor}1A` } : undefined
+            }
+          >
             <ShoppingCart
-              className="text-green-600 dark:text-green-400"
+              className={brandColor ? "" : "text-primary"}
+              style={brandColor ? { color: brandColor } : undefined}
               size={36}
             />
           </div>
@@ -111,7 +126,10 @@ const OrderSuccessfull = ({
               <p className="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">
                 Total Amount
               </p>
-              <p className="mt-1 font-bold text-xl text-green-600 dark:text-green-400">
+              <p
+                className={`mt-1 font-bold text-xl ${brandColor ? "" : "text-primary"}`}
+                style={brandColor ? { color: brandColor } : undefined}
+              >
                 ৳ {pricing.grand_total + pricing.shipping_cost}
               </p>
             </div>
@@ -125,44 +143,52 @@ const OrderSuccessfull = ({
           </h3>
 
           <div className="space-y-6">
-            {order_details?.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between border-b pb-6 last:border-none dark:border-gray-700"
-              >
-                <div className="flex items-center gap-5">
-                  <Image
-                    src={
-                      item.variation?.wp_product_image_url ||
-                      item?.variation?.media ||
-                      item.product?.main_image ||
-                      item.product?.wp_product_image_url ||
-                      "/placeholder.jpg"
-                    }
-                    alt={item.product?.product_name}
-                    width={80}
-                    height={80}
-                    className="rounded-lg border object-contain"
-                  />
+            {order_details?.map((item) => {
+              const variationLabel = item.variation?.variant
+              const fallbackVariant =
+                typeof item.variant === "string" ? item.variant : ""
+              const safeFallbackVariant = /^\d+$/.test(fallbackVariant.trim())
+                ? ""
+                : fallbackVariant
+              const displayVariant = variationLabel || safeFallbackVariant
 
-                  <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">
-                      {item.product?.product_name}
-                      {item.variation?.variant
-                        ? ` (${item.variation.variant})`
-                        : ""}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      Quantity: {item.product_qty}
-                    </p>
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between border-b pb-6 last:border-none dark:border-gray-700"
+                >
+                  <div className="flex items-center gap-5">
+                    <Image
+                      src={
+                        item.variation?.wp_product_image_url ||
+                        item?.variation?.media ||
+                        item.product?.main_image ||
+                        item.product?.wp_product_image_url ||
+                        "/placeholder.jpg"
+                      }
+                      alt={item.product?.product_name}
+                      width={80}
+                      height={80}
+                      className="rounded-lg border object-contain"
+                    />
+
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {item.product?.product_name}
+                        {displayVariant ? ` (${displayVariant})` : ""}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Quantity: {item.product_qty}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  ৳ {item.product_qty * item.unit_price}
-                </p>
-              </div>
-            ))}
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    ৳ {item.product_qty * item.unit_price}
+                  </p>
+                </div>
+              )
+            })}
           </div>
 
           {/* ===== Pricing Summary ===== */}
@@ -178,7 +204,10 @@ const OrderSuccessfull = ({
 
             <div className="flex justify-between text-lg font-bold">
               <span>Total</span>
-              <span className="text-green-600 dark:text-green-400">
+              <span
+                className={brandColor ? "" : "text-primary"}
+                style={brandColor ? { color: brandColor } : undefined}
+              >
                 ৳ {pricing.grand_total + pricing.shipping_cost}
               </span>
             </div>
@@ -211,7 +240,12 @@ const OrderSuccessfull = ({
           {/* ===== CTA Button ===== */}
           <div className="flex justify-center mt-12">
             <Link href="/">
-              <button className="bg-green-600 hover:bg-green-700 transition-all text-white px-8 py-3 rounded-xl font-semibold shadow-md">
+              <button
+                className={`transition-all text-primary-foreground px-8 py-3 rounded-xl font-semibold shadow-md ${
+                  brandColor ? "" : "bg-primary hover:bg-primary/90"
+                }`}
+                style={brandColor ? { backgroundColor: brandColor } : undefined}
+              >
                 Continue Shopping
               </button>
             </Link>

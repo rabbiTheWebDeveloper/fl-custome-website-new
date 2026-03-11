@@ -5,7 +5,7 @@ export default function OrderSuccessPage() {
   return (
     <main className="min-h-[60vh] flex items-center justify-center py-16">
       <div className="container max-w-lg text-center">
-        <CheckCircle2 className="mx-auto mb-6 text-green-500 size-16" />
+        <CheckCircle2 className="mx-auto mb-6 text-primary size-16" />
         <h1 className="text-2xl md:text-3xl font-bold mb-3">
           Thank You For Your Order!
         </h1>

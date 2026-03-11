@@ -113,8 +113,8 @@ const CheckoutOtp: React.FC<CheckoutOtpProps> = ({
       )
 
       if (res?.data?.data?.otp_verified) {
-        clearCart()
-        window.location.href = `/order-successfull/${res.data.data.id}`
+        await clearCart()
+        window.location.href = `/order-success/${res.data.data.id}`
       } else {
         toast.error("Invalid OTP")
         setLoading(false)

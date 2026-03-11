@@ -12,6 +12,10 @@ export interface CartItemVariant {
   key: string
   /** Selected value (e.g., "L", "Red") */
   value: string
+  /** Selected variation ID (product variation record ID) */
+  variationId?: number | string
+  /** Alias for selected variation ID used by some flows */
+  variantId?: number | string
   /** Optional attribute ID for API reference */
   attributeId?: number | string
 }

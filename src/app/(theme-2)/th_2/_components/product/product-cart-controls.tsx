@@ -45,14 +45,18 @@ export function ProductCartControls({
         const matchedVariation = variations.find(
           (variation) => variation.variant === value
         )
+        const resolvedVariationId =
+          selectedVariation?.id ?? matchedVariation?.id
 
         return {
           key,
           value,
-          variationId: matchedVariation?.id, // ✅ This is 101464 etc.
+          variationId: resolvedVariationId,
+          variantId: resolvedVariationId,
+          attributeId: resolvedVariationId,
         }
       })
-  }, [product.variations, selectedVariants])
+  }, [product.variations, selectedVariants, selectedVariation?.id])
 
   const currentCartItem = useMemo(() => {
     const itemId = generateCartItemId(product.id, cartVariants)

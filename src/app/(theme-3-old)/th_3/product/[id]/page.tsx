@@ -29,6 +29,11 @@ const Details = async ({ params }: PageProps) => {
         headers: { "shop-id": shopInfo.shop_id },
       }
     )
+    console.log("[Theme3] Product detail variations:", data?.data?.variations)
+    console.log(
+      "[Theme3] Product detail variations count:",
+      Array.isArray(data?.data?.variations) ? data?.data?.variations.length : 0
+    )
 
     product = data?.data ?? null
   } catch (error) {

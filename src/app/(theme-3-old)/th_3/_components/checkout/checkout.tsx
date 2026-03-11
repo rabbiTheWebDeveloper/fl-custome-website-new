@@ -19,7 +19,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import FingerprintJS from "@fingerprintjs/fingerprintjs"
-import { useRouter } from "next/navigation"
 import { useCart, useCartStore } from "@/lib/cart"
 import type { CartItem as StoreCartItem } from "@/lib/cart"
 import React, { useMemo, useEffect, useState, useRef, useCallback } from "react"
@@ -170,7 +169,6 @@ const paymentMethods = [
 
 const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
   const gtmHead = shopInfo?.other_script?.gtm_head
-  const router = useRouter()
   const { updateItem, removeItem, clearCart } = useCart()
   const items = useCartStore((state) => state.items)
   const cartTotals = useCartStore((state) => state.totals)
@@ -198,6 +196,25 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
     null
   )
   const incompleteOrderSentRef = useRef(false)
+
+  const getVariantIdForOrder = useCallback((item: StoreCartItem): number => {
+    if (!item.variants || item.variants.length === 0) return 0
+
+    for (const variant of item.variants) {
+      const rawId =
+        variant.variationId ?? variant.variantId ?? variant.attributeId
+      if (
+        rawId !== undefined &&
+        rawId !== null &&
+        String(rawId).trim() !== ""
+      ) {
+        const parsed = Number(rawId)
+        if (Number.isFinite(parsed) && parsed > 0) return parsed
+      }
+    }
+
+    return 0
+  }, [])
 
   // Create schema with localized messages
   const checkoutFormSchema = useMemo(
@@ -525,10 +542,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
           order_type: "website",
           products: itemsRef.current.map((item) => ({
             product_id: item.productId,
-            variant_id:
-              item.variants && item.variants.length > 0
-                ? Number(item.variants[0]?.attributeId || 0)
-                : 0,
+            variant_id: getVariantIdForOrder(item),
             qty: item.quantity,
             subtotal: (item.discountedPrice ?? item.price) * item.quantity,
           })),
@@ -560,7 +574,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
         console.error("Error creating incomplete order:", error)
       }
     },
-    [shopInfo?.user_id, shopInfo?.shop_id] // stable — reads from refs
+    [shopInfo?.user_id, shopInfo?.shop_id, getVariantIdForOrder] // stable — reads from refs
   )
 
   // Check incomplete order status ONCE when name and phone are first entered
@@ -650,13 +664,17 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
         shipping_cost: shippingCost,
       })
 
-      // Debug: Check if incomplete_order_id is in FormData
-      if (incompleteOrderId) {
-        const formDataEntries = Array.from(orderData.entries())
-        /* const hasIncompleteOrderId = formDataEntries.some(
-          ([key]) => key === "incomplete_order_id"
-        ) */
-      }
+      // Force variant IDs from live cart items for multi-variant products.
+      const resolvedVariantIds = items.map((item) => getVariantIdForOrder(item))
+      const requestOrderData = new FormData()
+      Array.from(orderData.entries()).forEach(([key, value]) => {
+        if (key !== "variant_id[]") {
+          requestOrderData.append(key, value)
+        }
+      })
+      resolvedVariantIds.forEach((id) => {
+        requestOrderData.append("variant_id[]", String(id))
+      })
 
       // Get shop-id and user-id from cookies for headers
       let shopId: string | undefined
@@ -725,7 +743,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
       // Submit order to API
       const response = await api.post(
         "/customer/order/store",
-        orderData,
+        requestOrderData,
         undefined,
         {
           headers: {
@@ -767,12 +785,19 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
       if (response.data && typeof response.data === "object") {
         if (responseOrderData) {
           if (responseOrderData?.payment_url) {
-            router.push(responseOrderData?.payment_url)
-            clearCart()
+            await clearCart()
+            window.location.assign(responseOrderData?.payment_url)
           } else {
+            const orderId = responseOrderData?.order?.id
+            if (!orderId) {
+              toast.error(
+                "Order ID missing in response. Please contact support."
+              )
+              return
+            }
             toast.success("Order placed successfully")
-            router.push(`/order-successfull/${responseOrderData?.order?.id}`)
-            clearCart()
+            await clearCart()
+            window.location.assign(`/order-success/${orderId}`)
           }
         } else if (order?.otp_sent) {
           toast.success("OTP sent successfully")

@@ -426,6 +426,25 @@ export function CheckoutForm() {
   const finalTotalsRef = useRef(finalTotals)
   finalTotalsRef.current = finalTotals
 
+  const getVariantIdForOrder = useCallback((item: StoreCartItem): number => {
+    if (!item.variants || item.variants.length === 0) return 0
+
+    for (const variant of item.variants) {
+      const rawId =
+        variant.variationId ?? variant.variantId ?? variant.attributeId
+      if (
+        rawId !== undefined &&
+        rawId !== null &&
+        String(rawId).trim() !== ""
+      ) {
+        const parsed = Number(rawId)
+        if (Number.isFinite(parsed) && parsed > 0) return parsed
+      }
+    }
+
+    return 0
+  }, [])
+
   console.log("Items:", items)
 
   const createIncompleteOrder = useCallback(
@@ -440,10 +459,7 @@ export function CheckoutForm() {
           order_type: "website",
           products: itemsRef.current.map((item) => ({
             product_id: item.productId,
-            variant_id:
-              item.variants && item.variants.length > 0
-                ? Number(item.variants[0]?.attributeId || 0)
-                : 0,
+            variant_id: getVariantIdForOrder(item),
             qty: item.quantity,
             subtotal: (item.discountedPrice ?? item.price) * item.quantity,
           })),
@@ -478,7 +494,7 @@ export function CheckoutForm() {
         console.error("Error creating incomplete order:", error)
       }
     },
-    [] // stable — reads from refs
+    [getVariantIdForOrder] // stable — reads from refs
   )
 
   // Check incomplete order status ONCE when name and phone are first entered
@@ -590,46 +606,6 @@ export function CheckoutForm() {
         incomplete_order_id: incompleteOrderId ?? undefined,
         shipping_cost: shippingCost,
       })
-
-      const getVariantIdForOrder = (item: StoreCartItem): number => {
-        if (!item.variants || item.variants.length === 0) return 0
-
-        for (const variant of item.variants) {
-          const rawId =
-            (
-              variant as {
-                variationId?: number | string
-                variantId?: number | string
-                attributeId?: number | string
-              }
-            ).variationId ??
-            (
-              variant as {
-                variationId?: number | string
-                variantId?: number | string
-                attributeId?: number | string
-              }
-            ).variantId ??
-            (
-              variant as {
-                variationId?: number | string
-                variantId?: number | string
-                attributeId?: number | string
-              }
-            ).attributeId
-
-          if (
-            rawId !== undefined &&
-            rawId !== null &&
-            String(rawId).trim() !== ""
-          ) {
-            const parsed = Number(rawId)
-            if (Number.isFinite(parsed) && parsed > 0) return parsed
-          }
-        }
-
-        return 0
-      }
 
       // Force variant_id[] from live cart items right before submit
       const resolvedVariantIds = items.map((item) => getVariantIdForOrder(item))
@@ -784,7 +760,12 @@ export function CheckoutForm() {
       if (paymentUrl && typeof paymentUrl === "string") {
         window.location.href = paymentUrl
       } else {
-        router.push("/order-success")
+        const orderId = responseOrderData?.order?.id
+        if (orderId) {
+          router.push(`/order-success/${orderId}`)
+        } else {
+          router.push("/order-success")
+        }
       }
     } catch (error) {
       console.error("Error submitting order:", error)

@@ -27,23 +27,19 @@ export function StickyMobileBar({
   const tToast = useTranslations("Theme2.toast")
 
   const cartVariants = useMemo(() => {
-    const attributes = Array.isArray(product.attributes)
-      ? product.attributes
-      : []
     return Object.entries(selectedVariants)
       .filter(([, value]) => value)
       .map(([key, value]) => {
-        const attribute = attributes.find((attr) => attr.key === key)
-        const selectedAttributeValue = attribute?.values.find(
-          (attributeValue) => attributeValue.value === value
-        )
+        const resolvedVariationId = selectedVariation?.id
         return {
           key,
           value,
-          attributeId: selectedAttributeValue?.attribute_id,
+          variationId: resolvedVariationId,
+          variantId: resolvedVariationId,
+          attributeId: resolvedVariationId,
         }
       })
-  }, [product.attributes, selectedVariants])
+  }, [selectedVariants, selectedVariation?.id])
 
   const maxQty = selectedVariation?.quantity ?? product.product_qty
   const effectivePrice = selectedVariation?.price ?? product.price
