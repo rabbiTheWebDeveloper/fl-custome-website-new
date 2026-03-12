@@ -1,34 +1,8 @@
 "use client"
 import Image from "next/image"
 import Link from "next/link"
-import { useDomain } from "../store/domain"
-import { useEffect } from "react"
-import { api } from "@/lib/api-client"
-import { useState } from "react"
-import { IBannerApiResponse, IBannerItem } from "../types/banner"
-const MiddleBanner = () => {
-  const domain = useDomain((state) => state.domain)
-  const [banners, setBanners] = useState<IBannerItem[]>()
-  useEffect(() => {
-    const getBanners = async () => {
-      try {
-        const res = await api.get<IBannerApiResponse>(
-          "/shops/media/content?type=banner",
-          {
-            headers: {
-              "shop-id": String(domain?.shop_id) ?? "",
-            },
-          }
-        )
-        if (res.data.success) {
-          setBanners(res?.data?.data)
-        }
-      } catch (error) {
-        console.error("Failed to fetch banners:", error)
-      }
-    }
-    getBanners()
-  }, [domain?.shop_id])
+import { IBannerItem } from "../types/banner"
+const MiddleBanner = ({ banners }: { banners: IBannerItem[] }) => {
   return (
     <section className="py-8 bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="container mx-auto px-4">

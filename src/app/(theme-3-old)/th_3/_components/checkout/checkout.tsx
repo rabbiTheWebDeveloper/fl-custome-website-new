@@ -36,6 +36,10 @@ import { toast } from "sonner"
 import { useDomain } from "../../store/domain"
 import { tagManagerEvent } from "@/lib/tag-manager-event"
 import { DomainInfo } from "@/utils/api-helpers"
+import {
+  isValidBangladeshPhone,
+  normalizePhoneValue,
+} from "@/utils/form-normalizers"
 
 // Client-side function to get domain headers from cookies
 export function getDomainHeadersFromCookies(): {
@@ -104,29 +108,16 @@ function createCheckoutFormSchema(tValidation: (key: string) => string) {
   return z.object({
     fullName: z
       .string()
+      .trim()
       .min(2, tValidation("fullNameMin"))
       .max(100, tValidation("fullNameMax"))
-      .regex(/^[a-zA-Z\s'-]+$/, tValidation("fullNameRegex")),
+      .regex(/^[\p{L}\p{M}\s'-]+$/u, tValidation("fullNameRegex")),
     phone: z
       .string()
       .min(1, tValidation("phoneRequired"))
-      .refine(
-        (val) => {
-          // Remove spaces, hyphens, plus signs, and other formatting characters for validation
-          const cleaned = val.replace(/[\s\-\(\)\+]/g, "")
-
-          // Bangladesh phone number patterns:
-          // 1. 11 digits starting with 01 (e.g., 01712345678)
-          // 2. 880 followed by 10 digits (e.g., 8801712345678)
-          // Mobile prefixes: 013, 014, 015, 016, 017, 018, 019
-          const bangladeshPhoneRegex = /^(880|0)?1[3-9]\d{8}$/
-
-          return bangladeshPhoneRegex.test(cleaned)
-        },
-        {
-          message: tValidation("phoneInvalid"),
-        }
-      ),
+      .refine((val) => isValidBangladeshPhone(val), {
+        message: tValidation("phoneInvalid"),
+      }),
     deliveryAddress: z
       .string()
       .min(10, tValidation("deliveryAddressMin"))
@@ -537,7 +528,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
       try {
         const orderPayload = {
           customer_name: customerNameRef.current || "",
-          customer_phone: customerPhoneRef.current,
+          customer_phone: normalizePhoneValue(customerPhoneRef.current || ""),
           customer_address: customerAddressRef.current || "",
           order_type: "website",
           products: itemsRef.current.map((item) => ({
@@ -646,12 +637,13 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
     }
 
     try {
+      const normalizedPhone = normalizePhoneValue(data.phone)
       // Get store URL from cookie
       const storeUrl = getStoreUrlFromCookie()
       const orderData = prepareOrderData({
         formData: {
           customer_name: data.fullName,
-          customer_phone: data.phone,
+          customer_phone: normalizedPhone,
           customer_address: data.deliveryAddress,
           customer_note: data.orderNote || undefined,
         },
@@ -862,7 +854,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
     try {
       const res = await api.post(
         "/customer/resend-otp",
-        { phone: customerPhone },
+        { phone: normalizePhoneValue(customerPhone) },
         undefined,
         {
           headers: {
@@ -1027,7 +1019,18 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
                         type="tel"
                         className="w-full border border-gray-300 rounded-lg sm:rounded-xl pl-10 sm:pl-12 pr-3 sm:pr-4 py-2 sm:py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                         placeholder="+880 1XXX-XXXXXX"
-                        {...register("phone")}
+                        {...register("phone", {
+                          onBlur: (event) => {
+                            const normalized = normalizePhoneValue(
+                              event.target.value
+                            )
+                            setValue("phone", normalized, {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                              shouldValidate: true,
+                            })
+                          },
+                        })}
                       />
                       {errors.phone && (
                         <p className="text-red-500 text-sm mt-1">

@@ -281,69 +281,87 @@ const SectionCarousel = ({ sectionItem }: SectionCarouselProps) => {
   const showCountdown =
     section.has_countdown && countdown?.end && !isCountdownComplete
 
+  const countdownTimer = showCountdown ? (
+    <CountdownTimer
+      targetDate={countdown.end}
+      variant="inline"
+      onComplete={() => setIsCountdownComplete(true)}
+      labels={{
+        days: tCountdown("days"),
+        hours: tCountdown("hours"),
+        minutes: tCountdown("minutes"),
+        seconds: tCountdown("seconds"),
+        daysShort: tCountdown("daysShort"),
+        hoursShort: tCountdown("hoursShort"),
+        minutesShort: tCountdown("minutesShort"),
+        secondsShort: tCountdown("secondsShort"),
+        minsShort: tCountdown("minsShort"),
+        secsShort: tCountdown("secsShort"),
+        offerEnded: tCountdown("offerEnded"),
+      }}
+    />
+  ) : null
+
+  const headerActions = (
+    <div className="flex items-center gap-2 shrink-0">
+      <Button
+        size="sm"
+        className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs md:text-sm font-semibold px-4 py-2 rounded-sm shadow-sm"
+        asChild
+      >
+        <Link
+          href={`/shop?section=${section.ulid}&sectionName=${encodeURIComponent(section.name)}`}
+        >
+          {t("seeAll")}
+        </Link>
+      </Button>
+      <div className="flex gap-1">
+        <Button
+          onClick={scrollPrev}
+          disabled={!canScrollPrev}
+          size="icon"
+          variant="ghost"
+          className="size-8 text-white hover:bg-white/10 disabled:opacity-30"
+        >
+          <ChevronLeft className="size-4" />
+          <span className="sr-only">{t("slidePrevious")}</span>
+        </Button>
+        <Button
+          onClick={scrollNext}
+          disabled={!canScrollNext}
+          size="icon"
+          variant="ghost"
+          className="size-8 text-white hover:bg-white/10 disabled:opacity-30"
+        >
+          <ChevronRight className="size-4" />
+          <span className="sr-only">{t("slideNext")}</span>
+        </Button>
+      </div>
+    </div>
+  )
+
   return (
     <section className="py-4 md:py-6">
       <div className="container">
         {/* Header Bar */}
-        <div className="bg-primary/70 border-b border-border rounded-t-xl px-4 py-3 md:px-6 md:py-4 grid grid-cols-[auto_1fr_auto] items-center gap-4">
-          <h2 className="text-lg md:text-2xl font-bold text-white whitespace-nowrap">
-            {section.name}
-          </h2>
-          <div className="flex justify-center">
-            {showCountdown && (
-              <CountdownTimer
-                targetDate={countdown.end}
-                variant="inline"
-                onComplete={() => setIsCountdownComplete(true)}
-                labels={{
-                  days: tCountdown("days"),
-                  hours: tCountdown("hours"),
-                  minutes: tCountdown("minutes"),
-                  seconds: tCountdown("seconds"),
-                  daysShort: tCountdown("daysShort"),
-                  hoursShort: tCountdown("hoursShort"),
-                  minutesShort: tCountdown("minutesShort"),
-                  secondsShort: tCountdown("secondsShort"),
-                  minsShort: tCountdown("minsShort"),
-                  secsShort: tCountdown("secsShort"),
-                  offerEnded: tCountdown("offerEnded"),
-                }}
-              />
-            )}
+        <div className="bg-primary/70 border-b border-border rounded-t-xl px-4 py-3 md:px-6 md:py-4">
+          <div className="hidden md:grid md:grid-cols-[auto_1fr_auto] md:items-center md:gap-4">
+            <h2 className="text-lg md:text-2xl font-bold text-white whitespace-nowrap">
+              {section.name}
+            </h2>
+            <div className="flex justify-center">{countdownTimer}</div>
+            {headerActions}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              size="sm"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs md:text-sm font-semibold px-4 py-2 rounded-sm shadow-sm"
-              asChild
-            >
-              <Link
-                href={`/shop?section=${section.ulid}&sectionName=${encodeURIComponent(section.name)}`}
-              >
-                {t("seeAll")}
-              </Link>
-            </Button>
-            <div className="flex gap-1">
-              <Button
-                onClick={scrollPrev}
-                disabled={!canScrollPrev}
-                size="icon"
-                variant="ghost"
-                className="size-8 text-white hover:bg-white/10 disabled:opacity-30"
-              >
-                <ChevronLeft className="size-4" />
-                <span className="sr-only">{t("slidePrevious")}</span>
-              </Button>
-              <Button
-                onClick={scrollNext}
-                disabled={!canScrollNext}
-                size="icon"
-                variant="ghost"
-                className="size-8 text-white hover:bg-white/10 disabled:opacity-30"
-              >
-                <ChevronRight className="size-4" />
-                <span className="sr-only">{t("slideNext")}</span>
-              </Button>
+
+          <div className="md:hidden space-y-2">
+            {showCountdown && (
+              <div className="flex justify-center">{countdownTimer}</div>
+            )}
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-bold text-white min-w-0 truncate">
+                {section.name}
+              </h2>
+              {headerActions}
             </div>
           </div>
         </div>

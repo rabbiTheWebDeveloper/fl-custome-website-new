@@ -191,7 +191,13 @@ function BannerSlide({ slide }: { slide: ThemeSettingsBannerSlide }) {
               className="px-5 py-3 text-sm sm:px-8 sm:py-6 sm:text-lg rounded-md pointer-events-auto relative z-20"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
-              <Link href={slide.button_link}>{slide.button_text}</Link>
+              <Link
+                href={slide.button_link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {slide.button_text}
+              </Link>
             </Button>
           )}
         </div>

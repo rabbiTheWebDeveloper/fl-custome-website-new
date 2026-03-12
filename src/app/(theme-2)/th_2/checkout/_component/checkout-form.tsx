@@ -24,6 +24,10 @@ import type { PaymentGateway } from "../../types/shop"
 import CheckoutOtp from "./checkout-otp"
 import { toast } from "sonner"
 import { trackBeginCheckout, trackPurchase } from "@/lib/gtm"
+import {
+  isValidBangladeshPhone,
+  normalizePhoneValue,
+} from "@/utils/form-normalizers"
 
 // Client-side function to get domain headers from cookies
 function getDomainHeadersFromCookies(): {
@@ -123,29 +127,16 @@ function createCheckoutFormSchema(tValidation: (key: string) => string) {
   return z.object({
     fullName: z
       .string()
+      .trim()
       .min(2, tValidation("fullNameMin"))
       .max(100, tValidation("fullNameMax"))
-      .regex(/^[a-zA-Z\s'-]+$/, tValidation("fullNameRegex")),
+      .regex(/^[\p{L}\p{M}\s'-]+$/u, tValidation("fullNameRegex")),
     phone: z
       .string()
       .min(1, tValidation("phoneRequired"))
-      .refine(
-        (val) => {
-          // Remove spaces, hyphens, plus signs, and other formatting characters for validation
-          const cleaned = val.replace(/[\s\-\(\)\+]/g, "")
-
-          // Bangladesh phone number patterns:
-          // 1. 11 digits starting with 01 (e.g., 01712345678)
-          // 2. 880 followed by 10 digits (e.g., 8801712345678)
-          // Mobile prefixes: 013, 014, 015, 016, 017, 018, 019
-          const bangladeshPhoneRegex = /^(880|0)?1[3-9]\d{8}$/
-
-          return bangladeshPhoneRegex.test(cleaned)
-        },
-        {
-          message: tValidation("phoneInvalid"),
-        }
-      ),
+      .refine((val) => isValidBangladeshPhone(val), {
+        message: tValidation("phoneInvalid"),
+      }),
     deliveryAddress: z
       .string()
       .min(10, tValidation("deliveryAddressMin"))
@@ -454,7 +445,7 @@ export function CheckoutForm() {
       try {
         const orderPayload = {
           customer_name: customerNameRef.current || "",
-          customer_phone: customerPhoneRef.current,
+          customer_phone: normalizePhoneValue(customerPhoneRef.current || ""),
           customer_address: customerAddressRef.current || "",
           order_type: "website",
           products: itemsRef.current.map((item) => ({
@@ -571,13 +562,14 @@ export function CheckoutForm() {
       price: item.discountedPrice ?? item.price,
       quantity: item.quantity,
     }))
+    const normalizedPhone = normalizePhoneValue(data.phone)
 
     trackBeginCheckout(
       cartItemsForGTM,
       finalTotals.total,
       {
         first_name: data.fullName,
-        phone: data.phone,
+        phone: normalizedPhone,
       },
       shippingMethodLabel(data.shippingMethod)
     )
@@ -594,7 +586,7 @@ export function CheckoutForm() {
       const orderData = prepareOrderData({
         formData: {
           customer_name: data.fullName,
-          customer_phone: data.phone,
+          customer_phone: normalizedPhone,
           customer_address: data.deliveryAddress,
           customer_note: data.orderNote || undefined,
         },
@@ -735,7 +727,7 @@ export function CheckoutForm() {
       // Check if OTP verification is required
       if (responseOrder?.otp_sent) {
         toast.success(responseData?.message || "OTP sent successfully")
-        setOtpPhone(data.phone)
+        setOtpPhone(normalizedPhone)
         setOtpTimeLeft(120)
         setShowOtp(true)
         return
@@ -746,7 +738,7 @@ export function CheckoutForm() {
         finalTotals.total,
         {
           first_name: data.fullName,
-          phone: data.phone,
+          phone: normalizedPhone,
         },
         data.paymentMethod === "cash-on-delivery" ? "COD" : data.paymentMethod,
         shippingMethodLabel(data.shippingMethod)
@@ -884,7 +876,18 @@ export function CheckoutForm() {
                       errors.phone &&
                         "border-red-500 focus-visible:ring-red-500"
                     )}
-                    {...register("phone")}
+                    {...register("phone", {
+                      onBlur: (event) => {
+                        const normalized = normalizePhoneValue(
+                          event.target.value
+                        )
+                        setValue("phone", normalized, {
+                          shouldDirty: true,
+                          shouldTouch: true,
+                          shouldValidate: true,
+                        })
+                      },
+                    })}
                   />
                   {errors.phone && (
                     <p className="text-red-500 text-sm mt-1">

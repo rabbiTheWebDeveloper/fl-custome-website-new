@@ -5,7 +5,7 @@ import AllProduct from "./_components/all-product"
 import Scroll from "./_components/Scroll"
 import { api } from "@/lib/api-client"
 import { IProductsApiResponse } from "./types/product"
-import { getDomainInfo } from "@/utils/api-helpers"
+import { getDomainInfo, getSliderAndBannerData } from "@/utils/api-helpers"
 import { getCleanDomain } from "@/utils/domain"
 import WebsiteTraffic from "./_components/website-traffic"
 export const dynamic = "force-dynamic"
@@ -17,9 +17,13 @@ export default async function Home({
   let products: IProductsApiResponse["data"] = []
   let totalPages = 1
   let shopId = ""
+  let sliderAndBannerData:
+    | Awaited<ReturnType<typeof getSliderAndBannerData>>
+    | undefined
 
   try {
     const cleanDomain = await getCleanDomain()
+    sliderAndBannerData = await getSliderAndBannerData(cleanDomain)
     const shopInfo = await getDomainInfo(cleanDomain)
     shopId = shopInfo?.shop_id || ""
     const { page = "1" } = await searchParams
@@ -52,9 +56,9 @@ export default async function Home({
       />
       {shopId && <WebsiteTraffic shopId={shopId} />}
       {/* Sections */}
-      <Banner />
+      <Banner slides={sliderAndBannerData?.slider} />
       <Category />
-      <MiddleBanner />
+      <MiddleBanner banners={sliderAndBannerData?.banner} />
       <AllProduct products={products} totalPages={totalPages} />
       <Scroll />
     </div>

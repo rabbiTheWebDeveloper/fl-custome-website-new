@@ -20,6 +20,7 @@ export const getOtherData = async (shopId: string, typeOfPage: string) => {
 type FetchOptions = RequestInit & {
   next?: {
     revalidate?: number
+    tags?: string[]
   }
 }
 
@@ -114,7 +115,7 @@ export const getDomainInfo = async (
     },
     next: {
       revalidate: 600,
-      tags: ["domain"],
+      tags: [`domain:${host}`],
     },
   })
 
@@ -154,7 +155,7 @@ export const getShopDomainData = async (
     },
     next: {
       revalidate: 600,
-      tags: ["domain"],
+      tags: [`domain:${host}`],
     },
   })
 
@@ -168,6 +169,45 @@ export const getShopDomainData = async (
   return response?.data ?? null
 }
 
+export const getSliderAndBannerData = async (host: string) => {
+  try {
+    const domainInfo = await getDomainInfo(host)
+    if (!domainInfo?.shop_id) {
+      console.warn("[getData] No shop_id found for domain")
+      return {
+        shopId: "",
+        slider: [] as any[],
+        banner: [] as any[],
+      }
+    }
+    const shopHeaders = buildHeaders({
+      shopId: domainInfo.shop_id,
+    })
+    // Fetch slider and banner in parallel
+    const [sliderData, bannerData] = await Promise.all([
+      fetchAPI(`${API_ENDPOINTS.BASE_URL}/shops/media/content?type=slider`, {
+        headers: shopHeaders,
+        cache: "no-store",
+      }),
+      fetchAPI(`${API_ENDPOINTS.BASE_URL}/shops/media/content?type=banner`, {
+        headers: shopHeaders,
+        cache: "no-store",
+      }),
+    ])
+    return {
+      shopId: domainInfo.shop_id,
+      slider: sliderData?.data || [],
+      banner: bannerData?.data || [],
+    }
+  } catch (err) {
+    console.error("[getData] Error:", err)
+    return {
+      shopId: "",
+      slider: [] as any[],
+      banner: [] as any[],
+    }
+  }
+}
 export const getSectionsData = async (
   host: string,
   shopId: string
@@ -178,9 +218,7 @@ export const getSectionsData = async (
       domain: domainHeader,
       "shop-id": shopId,
     },
-    next: {
-      revalidate: NEXT_REVALIDATE_TIME,
-    },
+    cache: "no-store",
   })
 }
 
@@ -196,10 +234,7 @@ export const getCategoriesData = async (
         domain: domainHeader,
         "shop-id": shopId,
       },
-      next: {
-        revalidate: 600,
-        tags: ["domain"],
-      },
+      cache: "no-store",
     }
   )
 }

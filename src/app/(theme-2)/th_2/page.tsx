@@ -8,9 +8,9 @@ export default function Theme_2() {
   return (
     <>
       <Banner />
-      <FeaturesSection />
       <CategoriesSection />
       <DynamicSections />
+      <FeaturesSection />
     </>
   )
 }

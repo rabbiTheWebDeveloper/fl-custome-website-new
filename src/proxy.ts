@@ -1,14 +1,52 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { headerHostNname, hostDomain } from "./constant"
+import { getCleanDomain } from "./utils/domain"
+import { getDomainInfo } from "./utils/api-helpers"
 
-export function proxy(request: NextRequest) {
+type DomainThemePayload = {
+  theme_id?: string | number | null
+  theme_settings?: {
+    theme_id?: string | number | null
+    theme_name?: string | null
+  } | null
+}
+
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   const THEME_MAP: Record<string, string> = {
     "201": "th_3",
+    "202": "th_3",
+    theme_1: "th_3",
+    theme_2: "th_2",
   }
 
   const resolveTheme = (name: string) => THEME_MAP[name] || name
+
+  const getThemeFromDomain = (
+    domain: DomainThemePayload | null | undefined
+  ) => {
+    if (!domain) return ""
+
+    const themeName =
+      typeof domain.theme_settings?.theme_name === "string"
+        ? domain.theme_settings.theme_name.trim()
+        : ""
+
+    if (themeName) {
+      return resolveTheme(themeName)
+    }
+
+    const themeIdRaw =
+      domain.theme_id ?? domain.theme_settings?.theme_id ?? undefined
+    const themeId =
+      themeIdRaw !== undefined && themeIdRaw !== null
+        ? String(themeIdRaw).trim()
+        : ""
+
+    return themeId ? resolveTheme(themeId) : ""
+  }
 
   const defaultTheme = resolveTheme(
     process.env.NEXT_PUBLIC_DEFAULT_THEME || "th_3"
@@ -23,24 +61,27 @@ export function proxy(request: NextRequest) {
         : domainCookie
       const parsed = JSON.parse(raw)
       const domain = parsed?.state?.domain
-
-      if (domain?.theme_settings === null) {
-        theme = "th_3"
-      } else {
-        const themeName = domain?.theme_settings?.theme_name
-        const themeId = domain?.theme_id ? String(domain.theme_id).trim() : ""
-
-        const resolvedName =
-          typeof themeName === "string" && themeName.trim() !== ""
-            ? themeName.trim()
-            : themeId
-
-        if (resolvedName) {
-          theme = resolveTheme(resolvedName)
-        }
+      const cookieTheme = getThemeFromDomain(domain)
+      if (cookieTheme) {
+        theme = cookieTheme
       }
     } catch {
       // fall back to defaultTheme
+    }
+  }
+
+  // First visit usually has no "domain" cookie yet.
+  // Resolve theme directly from domain API in that case.
+  if (theme === defaultTheme) {
+    try {
+      const cleanDomain = await getCleanDomain()
+      const shopInfo = await getDomainInfo(cleanDomain)
+      const apiTheme = getThemeFromDomain(shopInfo)
+      if (apiTheme) {
+        theme = apiTheme
+      }
+    } catch {
+      // fall back to theme resolved from cookie/default
     }
   }
 

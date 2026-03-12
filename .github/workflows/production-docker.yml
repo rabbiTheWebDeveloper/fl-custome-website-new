@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - production
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -25,6 +26,7 @@ jobs:
 
             cd ${{ secrets.DOCKER_TARGET_DIR }}
             ls
+            #export GIT_TERMINAL_PROMPT=0
 
             echo "🔄 Pulling latest code"
             git checkout production

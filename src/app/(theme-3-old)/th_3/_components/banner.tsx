@@ -4,14 +4,11 @@ import Image from "next/image"
 import useEmblaCarousel from "embla-carousel-react"
 import { useEffect, useState, useCallback } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react" // Or use any icon library
-import { api } from "@/lib/api-client"
-import { useDomain } from "../store/domain"
-import { ISliderApiResponse, ISliderItem } from "../types/slides"
-
+import { ISliderItem } from "../types/slides"
 // Local fallback image
 const PLACEHOLDER_BANNER = "/placeholder.svg"
 
-export default function Banner() {
+export default function Banner({ slides }: { slides: ISliderItem[] }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     skipSnaps: false,
@@ -21,8 +18,6 @@ export default function Banner() {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [slideCount, setSlideCount] = useState(0)
   const [isPlaying, setIsPlaying] = useState(true)
-  const domain = useDomain((state) => state.domain)
-  const [slides, setSlides] = useState<ISliderItem[]>()
   // Navigation handlers
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev()
@@ -73,23 +68,6 @@ export default function Banner() {
   ) => {
     e.currentTarget.src = PLACEHOLDER_BANNER
   }
-  useEffect(() => {
-    const getBanners = async () => {
-      const res = await api.getTyped<
-        "/shops/media/content?type=slider",
-        ISliderApiResponse
-      >("/shops/media/content?type=slider", {
-        headers: {
-          "shop-id": String(domain?.shop_id) ?? "",
-        },
-      })
-
-      if (res.success) {
-        setSlides(res.data)
-      }
-    }
-    getBanners()
-  }, [domain?.shop_id])
   return (
     <section
       className="relative w-full mb-8 group"
