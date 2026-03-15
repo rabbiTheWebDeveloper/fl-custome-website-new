@@ -283,17 +283,22 @@ export function CheckoutForm() {
     return item.variants.map((v) => `${v.key}: ${v.value}`).join(", ")
   }
 
+  // status 1 = use API values (inside, outside, subarea); status 0 = use product response shipping cost
+  const useApiShipping = useMemo(
+    () => shippingSettings?.status === 1,
+    [shippingSettings?.status]
+  )
+
   // Helper function to get inside Dhaka price
   const getInsideDhakaPrice = useMemo(() => {
-    // Priority 1: Use API settings if available
-    if (shippingSettings && shippingSettings.inside) {
+    // status 1: Use API settings only
+    if (useApiShipping && shippingSettings?.inside) {
       const apiPrice = parseFloat(shippingSettings.inside)
-      if (!isNaN(apiPrice) && apiPrice > 0) {
-        return apiPrice
-      }
+      if (!isNaN(apiPrice)) return apiPrice
+      return 0
     }
 
-    // Priority 2: Use product data from cart items (metadata)
+    // status 0: Use product data from cart items (metadata)
     if (items.length > 0) {
       const prices = items
         .map((item) => {
@@ -302,26 +307,22 @@ export function CheckoutForm() {
         })
         .filter((price) => price > 0)
 
-      if (prices.length > 0) {
-        return Math.max(...prices)
-      }
+      if (prices.length > 0) return Math.max(...prices)
     }
 
-    // Priority 3: Default fallback
     return 0
-  }, [shippingSettings, items])
+  }, [shippingSettings, items, useApiShipping])
 
   // Helper function to get subarea price
   const getSubareaPrice = useMemo(() => {
-    // Priority 1: Use API settings if available
-    if (shippingSettings && shippingSettings.subarea) {
+    // status 1: Use API settings only
+    if (useApiShipping && shippingSettings?.subarea) {
       const apiPrice = parseFloat(shippingSettings.subarea)
-      if (!isNaN(apiPrice) && apiPrice > 0) {
-        return apiPrice
-      }
+      if (!isNaN(apiPrice)) return apiPrice
+      return 0
     }
 
-    // Priority 2: Use product data from cart items (metadata)
+    // status 0: Use product data from cart items (metadata)
     if (items.length > 0) {
       const prices = items
         .map((item) => {
@@ -330,26 +331,22 @@ export function CheckoutForm() {
         })
         .filter((price) => price > 0)
 
-      if (prices.length > 0) {
-        return Math.max(...prices)
-      }
+      if (prices.length > 0) return Math.max(...prices)
     }
 
-    // Priority 3: Default fallback
     return 0
-  }, [shippingSettings, items])
+  }, [shippingSettings, items, useApiShipping])
 
   // Helper function to get outside Dhaka price
   const getOutsideDhakaPrice = useMemo(() => {
-    // Priority 1: Use API settings if available
-    if (shippingSettings && shippingSettings.outside) {
+    // status 1: Use API settings only
+    if (useApiShipping && shippingSettings?.outside) {
       const apiPrice = parseFloat(shippingSettings.outside)
-      if (!isNaN(apiPrice) && apiPrice > 0) {
-        return apiPrice
-      }
+      if (!isNaN(apiPrice)) return apiPrice
+      return 0
     }
 
-    // Priority 2: Use product data from cart items (metadata)
+    // status 0: Use product data from cart items (metadata)
     if (items.length > 0) {
       const prices = items
         .map((item) => {
@@ -358,14 +355,46 @@ export function CheckoutForm() {
         })
         .filter((price) => price > 0)
 
-      if (prices.length > 0) {
-        return Math.max(...prices)
-      }
+      if (prices.length > 0) return Math.max(...prices)
     }
 
-    // Priority 3: Default fallback
     return 0
-  }, [shippingSettings, items])
+  }, [shippingSettings, items, useApiShipping])
+
+  // Available shipping options: hide options where value is 0 (when all are 0, show free delivery)
+  const availableShippingOptions = useMemo(() => {
+    const options: {
+      id: "inside-dhaka" | "subarea" | "outside-dhaka"
+      price: number
+      labelKey?: string
+    }[] = []
+    if (getInsideDhakaPrice > 0)
+      options.push({ id: "inside-dhaka", price: getInsideDhakaPrice })
+    if (getSubareaPrice > 0)
+      options.push({ id: "subarea", price: getSubareaPrice })
+    if (getOutsideDhakaPrice > 0)
+      options.push({ id: "outside-dhaka", price: getOutsideDhakaPrice })
+    if (options.length === 0) {
+      return [
+        { id: "inside-dhaka" as const, price: 0, labelKey: "freeDelivery" },
+      ]
+    }
+    return options
+  }, [getInsideDhakaPrice, getSubareaPrice, getOutsideDhakaPrice])
+
+  // Set default shipping method to first available option when loading completes
+  useEffect(() => {
+    if (loadingShippingSettings) return
+    const availableIds = availableShippingOptions.map((o) => o.id)
+    if (availableIds.length > 0 && !availableIds.includes(shippingMethod)) {
+      setValue("shippingMethod", availableIds[0])
+    }
+  }, [
+    loadingShippingSettings,
+    availableShippingOptions,
+    shippingMethod,
+    setValue,
+  ])
 
   // Calculate shipping cost based on selected method
   // Priority: API settings > Product data > Default fallback
@@ -962,71 +991,36 @@ export function CheckoutForm() {
                   }
                   className="gap-0 rounded-xl border overflow-hidden divide-y"
                 >
-                  <label
-                    htmlFor="inside-dhaka"
-                    className={cn(
-                      "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                      shippingMethod === "inside-dhaka" && "bg-primary/10"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <RadioGroupItem value="inside-dhaka" id="inside-dhaka" />
-                      <span className="text-muted-foreground">
-                        {tCheckout("insideDhaka")}
-                      </span>
-                    </div>
-                    <span className="font-semibold">
-                      ৳
-                      {loadingShippingSettings
-                        ? "0.00"
-                        : getInsideDhakaPrice.toFixed(2)}
-                    </span>
-                  </label>
-
-                  <label
-                    htmlFor="subarea"
-                    className={cn(
-                      "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                      shippingMethod === "subarea" && "bg-primary/10"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <RadioGroupItem value="subarea" id="subarea" />
-                      <span className="text-muted-foreground">
-                        {tCheckout("subarea")}
-                      </span>
-                    </div>
-                    <span className="font-semibold">
-                      ৳
-                      {loadingShippingSettings
-                        ? "0.00"
-                        : getSubareaPrice.toFixed(2)}
-                    </span>
-                  </label>
-
-                  <label
-                    htmlFor="outside-dhaka"
-                    className={cn(
-                      "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
-                      shippingMethod === "outside-dhaka" && "bg-primary/10"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <RadioGroupItem
-                        value="outside-dhaka"
-                        id="outside-dhaka"
-                      />
-                      <span className="text-muted-foreground">
-                        {tCheckout("outsideDhaka")}
-                      </span>
-                    </div>
-                    <span className="font-semibold">
-                      ৳
-                      {loadingShippingSettings
-                        ? "0.00"
-                        : getOutsideDhakaPrice.toFixed(2)}
-                    </span>
-                  </label>
+                  {availableShippingOptions.map((opt) => {
+                    const label = opt.labelKey
+                      ? tCheckout(opt.labelKey)
+                      : opt.id === "inside-dhaka"
+                        ? tCheckout("insideDhaka")
+                        : opt.id === "subarea"
+                          ? tCheckout("subarea")
+                          : tCheckout("outsideDhaka")
+                    return (
+                      <label
+                        key={opt.id}
+                        htmlFor={opt.id}
+                        className={cn(
+                          "px-4 py-2 flex items-center justify-between md:text-lg cursor-pointer text-sm",
+                          shippingMethod === opt.id && "bg-primary/10"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <RadioGroupItem value={opt.id} id={opt.id} />
+                          <span className="text-muted-foreground">{label}</span>
+                        </div>
+                        <span className="font-semibold">
+                          ৳
+                          {loadingShippingSettings
+                            ? "0.00"
+                            : opt.price.toFixed(2)}
+                        </span>
+                      </label>
+                    )
+                  })}
                 </RadioGroup>
                 {errors.shippingMethod && (
                   <p className="text-red-500 text-sm mt-1">
@@ -1189,9 +1183,11 @@ export function CheckoutForm() {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Place Order Button - sticky on mobile */}
-          <div className="md:sticky md:relative fixed bottom-0 left-0 right-0 z-40 bg-background p-4 md:p-0 border-t md:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none">
+        {/* Place Order Button - sticky on mobile, in flow on desktop */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:static md:z-auto md:mt-8 md:p-0 md:border-0 md:shadow-none md:pb-0">
+          <div className="container">
             <Button
               type="submit"
               className="w-full h-12 text-base rounded-2xl"
@@ -1202,7 +1198,7 @@ export function CheckoutForm() {
           </div>
         </div>
         {/* Spacer for fixed button on mobile */}
-        <div className="h-20 md:hidden" />
+        <div className="h-24 md:hidden" />
       </form>
 
       {/* OTP Modal */}

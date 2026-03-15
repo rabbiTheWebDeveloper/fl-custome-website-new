@@ -164,6 +164,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
   const items = useCartStore((state) => state.items)
   const cartTotals = useCartStore((state) => state.totals)
   const tValidation = useTranslations("Theme2.checkout.validation")
+  const tCheckout = useTranslations("Theme2.checkout")
   const domain = useDomain((state) => state.domain)
   const [timeLeft, setTimeLeft] = useState(0)
   const [shippingSettings, setShippingSettings] =
@@ -365,116 +366,134 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
       .join(", ")
   }
 
+  // status 1 = use API values (inside, outside, subarea); status 0 = use product response shipping cost
+  const useApiShipping = useMemo(
+    () => shippingSettings?.status === 1,
+    [shippingSettings?.status]
+  )
+
   // Helper function to get inside Dhaka price
   const getInsideDhakaPrice = useMemo(() => {
-    // Priority 1: Use API settings if available
-    if (shippingSettings && shippingSettings.inside) {
+    // status 1: Use API settings only
+    if (useApiShipping && shippingSettings?.inside) {
       const apiPrice = parseFloat(shippingSettings.inside)
-      if (!isNaN(apiPrice) && apiPrice > 0) {
-        return apiPrice
-      }
+      if (!isNaN(apiPrice)) return apiPrice
+      return 0
     }
 
-    // Priority 2: Use product data from cart items (metadata or cache)
+    // status 0: Use product data from cart items (metadata or cache)
     if (items.length > 0) {
       const prices = items
         .map((item) => {
-          // Try metadata first
           let price = item.metadata?.inside_dhaka as number | undefined
-
-          // If not in metadata, try cache
           if (!price || price === 0) {
             const productId = Number(item.productId)
             const cachedData = productDataCache.get(productId)
             price = cachedData?.inside_dhaka
           }
-
           return price && price > 0 ? price : 0
         })
         .filter((price) => price > 0)
 
-      if (prices.length > 0) {
-        return Math.max(...prices)
-      }
+      if (prices.length > 0) return Math.max(...prices)
     }
 
-    // Priority 3: Default fallback
     return 0
-  }, [shippingSettings, items, productDataCache])
+  }, [shippingSettings, items, productDataCache, useApiShipping])
 
   // Helper function to get subarea price
   const getSubareaPrice = useMemo(() => {
-    // Priority 1: Use API settings if available
-    if (shippingSettings && shippingSettings.subarea) {
+    // status 1: Use API settings only
+    if (useApiShipping && shippingSettings?.subarea) {
       const apiPrice = parseFloat(shippingSettings.subarea)
-      if (!isNaN(apiPrice) && apiPrice > 0) {
-        return apiPrice
-      }
+      if (!isNaN(apiPrice)) return apiPrice
+      return 0
     }
 
-    // Priority 2: Use product data from cart items (metadata or cache)
+    // status 0: Use product data from cart items (metadata or cache)
     if (items.length > 0) {
       const prices = items
         .map((item) => {
-          // Try metadata first
           let price = item.metadata?.sub_area_charge as number | undefined
-
-          // If not in metadata, try cache
           if (!price || price === 0) {
             const productId = Number(item.productId)
             const cachedData = productDataCache.get(productId)
             price = cachedData?.sub_area_charge
           }
-
           return price && price > 0 ? price : 0
         })
         .filter((price) => price > 0)
 
-      if (prices.length > 0) {
-        return Math.max(...prices)
-      }
+      if (prices.length > 0) return Math.max(...prices)
     }
 
-    // Priority 3: Default fallback
     return 0
-  }, [shippingSettings, items, productDataCache])
+  }, [shippingSettings, items, productDataCache, useApiShipping])
 
   // Helper function to get outside Dhaka price
   const getOutsideDhakaPrice = useMemo(() => {
-    // Priority 1: Use API settings if available
-    if (shippingSettings && shippingSettings.outside) {
+    // status 1: Use API settings only
+    if (useApiShipping && shippingSettings?.outside) {
       const apiPrice = parseFloat(shippingSettings.outside)
-      if (!isNaN(apiPrice) && apiPrice > 0) {
-        return apiPrice
-      }
+      if (!isNaN(apiPrice)) return apiPrice
+      return 0
     }
 
-    // Priority 2: Use product data from cart items (metadata or cache)
+    // status 0: Use product data from cart items (metadata or cache)
     if (items.length > 0) {
       const prices = items
         .map((item) => {
-          // Try metadata first
           let price = item.metadata?.outside_dhaka as number | undefined
-
-          // If not in metadata, try cache
           if (!price || price === 0) {
             const productId = Number(item.productId)
             const cachedData = productDataCache.get(productId)
             price = cachedData?.outside_dhaka
           }
-
           return price && price > 0 ? price : 0
         })
         .filter((price) => price > 0)
 
-      if (prices.length > 0) {
-        return Math.max(...prices)
-      }
+      if (prices.length > 0) return Math.max(...prices)
     }
 
-    // Priority 3: Default fallback
     return 0
-  }, [shippingSettings, items, productDataCache])
+  }, [shippingSettings, items, productDataCache, useApiShipping])
+
+  // Available shipping options: hide options where value is 0 (when all are 0, show free delivery)
+  const availableShippingOptions = useMemo(() => {
+    const options: {
+      id: "inside-dhaka" | "subarea" | "outside-dhaka"
+      price: number
+      labelKey?: string
+    }[] = []
+    if (getInsideDhakaPrice > 0)
+      options.push({ id: "inside-dhaka", price: getInsideDhakaPrice })
+    if (getSubareaPrice > 0)
+      options.push({ id: "subarea", price: getSubareaPrice })
+    if (getOutsideDhakaPrice > 0)
+      options.push({ id: "outside-dhaka", price: getOutsideDhakaPrice })
+    if (options.length === 0) {
+      return [
+        { id: "inside-dhaka" as const, price: 0, labelKey: "freeDelivery" },
+      ]
+    }
+    return options
+  }, [getInsideDhakaPrice, getSubareaPrice, getOutsideDhakaPrice])
+
+  // Set default shipping method to first available option when loading completes
+  useEffect(() => {
+    if (loadingShippingSettings) return
+    const availableIds = availableShippingOptions.map((o) => o.id)
+    if (availableIds.length > 0 && !availableIds.includes(shippingMethod)) {
+      setValue("shippingMethod", availableIds[0])
+    }
+  }, [
+    loadingShippingSettings,
+    availableShippingOptions,
+    shippingMethod,
+    setValue,
+  ])
+
   const shippingCost = useMemo(() => {
     if (loadingShippingSettings) {
       return 0 // Return 0 while loading to avoid showing incorrect values
@@ -812,41 +831,21 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
     await removeItem(itemId)
   }
 
-  const getInsideDhakaTotal = items.reduce(
-    (total, item) => total + Number(item.metadata?.inside_dhaka ?? 0),
-    0
+  const shippingMethods = useMemo(
+    () =>
+      availableShippingOptions.map((opt) => ({
+        id: opt.id,
+        label: opt.labelKey
+          ? tCheckout(opt.labelKey)
+          : opt.id === "inside-dhaka"
+            ? "Inside Dhaka"
+            : opt.id === "subarea"
+              ? "Sub Area"
+              : "Outside Dhaka",
+        price: loadingShippingSettings ? 0 : opt.price,
+      })),
+    [availableShippingOptions, loadingShippingSettings, tCheckout]
   )
-
-  const getOutsideDhakaTotal = items.reduce(
-    (total, item) => total + Number(item.metadata?.outside_dhaka ?? 0),
-    0
-  )
-
-  const getSubareaTotal = items.reduce(
-    (total, item) => total + Number(item.metadata?.sub_area_charge ?? 0),
-    0
-  )
-  const shippingMethods = [
-    {
-      id: "inside-dhaka",
-      label: "Inside Dhaka",
-      price: loadingShippingSettings
-        ? getInsideDhakaTotal
-        : getInsideDhakaPrice,
-    },
-    {
-      id: "outside-dhaka",
-      label: "Outside Dhaka",
-      price: loadingShippingSettings
-        ? getOutsideDhakaTotal
-        : getOutsideDhakaPrice,
-    },
-    {
-      id: "subarea",
-      label: "Sub Area",
-      price: loadingShippingSettings ? getSubareaTotal : getSubareaPrice,
-    },
-  ]
 
   const handleResendOtp = async () => {
     setResendLoading(true)

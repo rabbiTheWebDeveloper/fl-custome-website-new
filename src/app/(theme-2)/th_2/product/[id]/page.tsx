@@ -59,7 +59,7 @@ export default async function ProductPage({
 
   return (
     <main className="animate-in fade-in duration-300">
-      <div className="py-6 md:py-10 container">
+      <div className="container py-6 md:py-10">
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground mb-6">
           <Link href="/" className="hover:text-foreground transition-colors">
             Home
@@ -76,11 +76,13 @@ export default async function ProductPage({
             {product.product_name}
           </span>
         </nav>
-
-        <ProductDetailsClient product={product} videoUrls={videoUrls} />
       </div>
 
-      <ProductsCarousel title="You may also like" product={product} />
+      <ProductDetailsClient product={product} videoUrls={videoUrls} />
+
+      <div className="container py-6 md:py-10">
+        <ProductsCarousel title="You may also like" product={product} />
+      </div>
     </main>
   )
 }

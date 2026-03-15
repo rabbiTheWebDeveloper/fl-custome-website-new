@@ -12,8 +12,7 @@ type PageProps = {
 
 const Details = async ({ params }: PageProps) => {
   const { id: ulid } = await params
-  const validUlid =
-    ulid && ulid !== "undefined" && ulid !== "null" ? ulid : null
+  const validUlid = ulid && !["undefined", "null"].includes(ulid) ? ulid : null
 
   if (!validUlid) {
     notFound()

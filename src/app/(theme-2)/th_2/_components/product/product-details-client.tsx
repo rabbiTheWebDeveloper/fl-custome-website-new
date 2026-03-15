@@ -148,63 +148,72 @@ export function ProductDetailsClient({
 
   return (
     <>
-      <div className="grid md:grid-cols-7 gap-6 md:gap-12 lg:gap-24">
-        <div className="col-span-3">
-          <ProductImageCarousel images={images} videoUrls={videoUrls} />
-        </div>
-        <div className="overflow-hidden col-span-4">
-          <div>
-            {isStockOut && (
-              <span className="inline-block bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg mb-3">
-                STOCK OUT
-              </span>
-            )}
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[44px] font-semibold mt-1 leading-tight">
-              {product.product_name}
-            </h1>
-            <div className="flex items-center gap-3 mt-3">
-              {hasBaseDiscount ? (
-                <>
-                  <span className="text-lg text-muted-foreground line-through">
-                    ৳{product.price.toLocaleString()}
-                  </span>
-                  <span className="text-xl md:text-3xl font-semibold text-primary">
-                    ৳{product.discounted_price.toLocaleString()}
-                  </span>
-                  <span className="bg-[#FFA01C] text-black text-xs font-semibold px-2 py-1 rounded-md">
-                    {product.flat_discount_percent} OFF
-                  </span>
-                </>
-              ) : (
-                <span className="text-xl md:text-3xl font-semibold text-primary">
-                  ৳{selectedPrice.toLocaleString()}
+      {/* Mobile: full-width carousel outside container */}
+      <div className="w-full md:hidden">
+        <ProductImageCarousel images={images} videoUrls={videoUrls} />
+      </div>
+
+      {/* Desktop: grid layout | Mobile: details only */}
+      <div className="container py-0 pb-6 md:pb-12">
+        <div className="grid md:grid-cols-7 gap-6 md:gap-12 lg:gap-24">
+          {/* Desktop carousel - hidden on mobile */}
+          <div className="hidden md:block col-span-3 min-w-0">
+            <ProductImageCarousel images={images} videoUrls={videoUrls} />
+          </div>
+          <div className="overflow-hidden col-span-full md:col-span-4 px-4 sm:px-6 md:px-0">
+            <div>
+              {isStockOut && (
+                <span className="inline-block bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg mb-3">
+                  STOCK OUT
                 </span>
               )}
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[44px] font-semibold mt-1 leading-tight">
+                {product.product_name}
+              </h1>
+              <div className="flex items-center gap-3 mt-3">
+                {hasBaseDiscount ? (
+                  <>
+                    <span className="text-lg text-muted-foreground line-through">
+                      ৳{product.price.toLocaleString()}
+                    </span>
+                    <span className="text-xl md:text-3xl font-semibold text-primary">
+                      ৳{product.discounted_price.toLocaleString()}
+                    </span>
+                    <span className="bg-[#FFA01C] text-black text-xs font-semibold px-2 py-1 rounded-md">
+                      {product.flat_discount_percent} OFF
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xl md:text-3xl font-semibold text-primary">
+                    ৳{selectedPrice.toLocaleString()}
+                  </span>
+                )}
+              </div>
             </div>
+
+            <ProductCartControls
+              product={product}
+              selectedVariants={selectedVariants}
+              onVariantChange={handleVariantChange}
+              selectedVariation={selectedVariation}
+            />
+
+            <SocialShareButtons productName={product.product_name} />
+
+            {product.short_description && (
+              <div
+                className="mt-6 md:mt-8 prose prose-sm max-w-3xl wrap-break-word"
+                dangerouslySetInnerHTML={{ __html: product.short_description }}
+              />
+            )}
+
+            {product.long_description && (
+              <div
+                className="mt-6 md:mt-8 prose prose-sm max-w-3xl wrap-break-word"
+                dangerouslySetInnerHTML={{ __html: product.long_description }}
+              />
+            )}
           </div>
-
-          <ProductCartControls
-            product={product}
-            selectedVariants={selectedVariants}
-            onVariantChange={handleVariantChange}
-            selectedVariation={selectedVariation}
-          />
-
-          <SocialShareButtons productName={product.product_name} />
-
-          {product.short_description && (
-            <div
-              className="mt-6 md:mt-8 prose prose-sm max-w-3xl wrap-break-word"
-              dangerouslySetInnerHTML={{ __html: product.short_description }}
-            />
-          )}
-
-          {product.long_description && (
-            <div
-              className="mt-6 md:mt-8 prose prose-sm max-w-3xl wrap-break-word"
-              dangerouslySetInnerHTML={{ __html: product.long_description }}
-            />
-          )}
         </div>
       </div>
 

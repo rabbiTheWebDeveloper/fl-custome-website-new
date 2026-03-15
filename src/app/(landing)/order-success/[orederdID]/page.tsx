@@ -25,7 +25,6 @@ const OrderSuccessfullPage = async ({
   if (!orderDetails) {
     return <div className="p-4 text-center">Order details not found.</div>
   }
-  console.log(orderDetails)
 
   return (
     <>

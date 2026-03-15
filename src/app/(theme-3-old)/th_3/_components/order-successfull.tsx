@@ -50,7 +50,7 @@ const OrderSuccessfull = ({
 
     sessionStorage.setItem(purchaseKey, "true")
   }, [order_no])
-  console.log(order_details)
+
   return (
     <section className="w-full py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
       <div className="max-w-6xl mx-auto px-4">
