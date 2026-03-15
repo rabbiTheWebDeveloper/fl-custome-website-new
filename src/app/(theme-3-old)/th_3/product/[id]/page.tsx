@@ -11,12 +11,17 @@ type PageProps = {
 }
 
 const Details = async ({ params }: PageProps) => {
-  const { id } = await params
+  const { id: ulid } = await params
+  const validUlid =
+    ulid && ulid !== "undefined" && ulid !== "null" ? ulid : null
 
+  if (!validUlid) {
+    notFound()
+  }
   const cleanDomain = await getCleanDomain()
   const shopInfo = await getDomainInfo(cleanDomain)
 
-  if (!id || !shopInfo?.shop_id) {
+  if (!validUlid || !shopInfo?.shop_id) {
     notFound()
   }
 
@@ -24,7 +29,7 @@ const Details = async ({ params }: PageProps) => {
 
   try {
     const { data } = await api.get<{ data: IProduct }>(
-      `/customer/products/${id}`,
+      `/customer/products/${ulid}`,
       {
         headers: { "shop-id": shopInfo.shop_id },
       }

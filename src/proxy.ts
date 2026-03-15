@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { headerHostNname, hostDomain } from "./constant"
 import { getCleanDomain } from "./utils/domain"
 import { getDomainInfo } from "./utils/api-helpers"
 
@@ -125,10 +124,8 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/order-successfull/")) {
     return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
   }
-  if (pathname === "/online-payment-failed/") {
-    return NextResponse.rewrite(
-      new URL(`/${theme}/online-payment-failed/`, request.url)
-    )
+  if (pathname.startsWith("/online-payment-failed/")) {
+    return NextResponse.rewrite(new URL(`/${theme}${pathname}`, request.url))
   }
 
   if (pathname === "/") {
