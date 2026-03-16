@@ -15,6 +15,7 @@ import { getCleanDomain } from "@/utils/domain"
 import { IShopResponse } from "./th_3/types/shop"
 import { ICategory } from "./th_3/types/categories"
 import { DomainHydration } from "./th_3/_components/domain-hydration"
+import FloatingContact from "./th_3/_components/FloatingContact"
 
 const Header = dynamic(() => import("./th_3/_components/header"), { ssr: true })
 
@@ -131,6 +132,10 @@ export default async function RootLayout({
                       phone?: string | null
                     } | null
                   }
+                />
+                <FloatingContact
+                  whatsapp={shopInfo?.whatsapp as string | null | undefined}
+                  messenger={shopInfo?.fb_page_id as string | null | undefined}
                 />
               </div>
             </DomainHydration>
