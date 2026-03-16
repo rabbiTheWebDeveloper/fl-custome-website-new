@@ -59,20 +59,42 @@ export default function FloatingContact({ whatsapp, messenger }: Props) {
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-[999] flex flex-col gap-3 transition-all duration-300 ${
+      className={`fixed bottom-6 right-6 z-[999] flex flex-col gap-5 transition-all duration-300 ${
         isVisible
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-10 pointer-events-none"
       }`}
     >
+      {/* Welcome Bubble (Neumorphism style) */}
+      <div
+        className={`absolute bottom-full right-0 mb-3 transition-opacity duration-300 ${
+          showWelcome ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        aria-hidden="true"
+      >
+        <div
+          className="text-gray-600 text-sm px-5 py-2.5 rounded-2xl"
+          style={{
+            backgroundColor: "#e0e5ec",
+            boxShadow: "8px 8px 16px #b8bcc2, -8px -8px 16px #ffffff"
+          }}
+        >
+          👋 Hi! How can we help?
+        </div>
+      </div>
+
       {/* Messenger */}
       {messenger && (
-        <div className="relative">
+        <div className="relative group">
           <a
             href={messengerLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="block bg-blue-600 text-white p-3.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95"
+            className="block p-4 rounded-2xl transition-all duration-300 text-blue-500 hover:text-blue-600"
+            style={{
+              backgroundColor: "#e0e5ec",
+              boxShadow: "8px 8px 16px #b8bcc2, -8px -8px 16px #ffffff"
+            }}
             aria-label="Chat on Messenger"
             onMouseEnter={() => setIsHovering("messenger")}
             onMouseLeave={() => setIsHovering(null)}
@@ -81,25 +103,33 @@ export default function FloatingContact({ whatsapp, messenger }: Props) {
           </a>
 
           <span
-            className={`absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-blue-600 text-white text-sm px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 ${
+            className={`absolute right-full mr-4 top-1/2 -translate-y-1/2 text-gray-600 text-sm px-4 py-2 rounded-xl whitespace-nowrap transition-all duration-200 ${
               isHovering === "messenger"
                 ? "opacity-100 translate-x-0"
                 : "opacity-0 translate-x-2 pointer-events-none"
             }`}
+            style={{
+              backgroundColor: "#e0e5ec",
+              boxShadow: "5px 5px 10px #b8bcc2, -5px -5px 10px #ffffff"
+            }}
           >
-            Messenger
+            Chat on Messenger
           </span>
         </div>
       )}
 
       {/* WhatsApp */}
       {formattedWhatsApp && (
-        <div className="relative">
+        <div className="relative group">
           <a
             href={`https://wa.me/${formattedWhatsApp}?text=${message}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="block bg-green-500 text-white p-3.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95"
+            className="block p-4 rounded-2xl transition-all duration-300 text-emerald-500 hover:text-emerald-600"
+            style={{
+              backgroundColor: "#e0e5ec",
+              boxShadow: "8px 8px 16px #b8bcc2, -8px -8px 16px #ffffff"
+            }}
             aria-label="Chat on WhatsApp"
             onMouseEnter={() => setIsHovering("whatsapp")}
             onMouseLeave={() => setIsHovering(null)}
@@ -108,29 +138,20 @@ export default function FloatingContact({ whatsapp, messenger }: Props) {
           </a>
 
           <span
-            className={`absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-green-500 text-white text-sm px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 ${
+            className={`absolute right-full mr-4 top-1/2 -translate-y-1/2 text-gray-600 text-sm px-4 py-2 rounded-xl whitespace-nowrap transition-all duration-200 ${
               isHovering === "whatsapp"
                 ? "opacity-100 translate-x-0"
                 : "opacity-0 translate-x-2 pointer-events-none"
             }`}
+            style={{
+              backgroundColor: "#e0e5ec",
+              boxShadow: "5px 5px 10px #b8bcc2, -5px -5px 10px #ffffff"
+            }}
           >
-            WhatsApp
+            Chat on WhatsApp
           </span>
         </div>
       )}
-
-      {/* Welcome Bubble (decorative; hidden via opacity to avoid layout shift) */}
-      <div
-        className={`absolute bottom-full right-0 mb-4 transition-opacity duration-300 ${
-          showWelcome ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        aria-hidden="true"
-      >
-        <div className="bg-gray-800 text-white text-xs px-3 py-2 rounded-lg shadow-lg relative">
-          Chat with us!
-          <div className="absolute bottom-0 right-4 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800" />
-        </div>
-      </div>
     </div>
   )
 }

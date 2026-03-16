@@ -18,6 +18,7 @@ export const ProductCard = ({
   product_qty,
   product_code,
   slug,
+  variation_price_range,
   variations,
 }: IProduct) => {
   const t = useTranslations("Theme3.product")
@@ -78,6 +79,47 @@ export const ProductCard = ({
     }
   }
 
+  const priceRange = (() => {
+    if (!variation_price_range) return null
+
+    const toNum = (v: unknown) => {
+      const n = typeof v === "string" ? Number.parseFloat(v) : Number(v)
+      return Number.isFinite(n) ? n : null
+    }
+
+    if (Array.isArray(variation_price_range)) {
+      const nums = variation_price_range
+        .map((v) => toNum(v))
+        .filter((v): v is number => v !== null)
+      if (nums.length === 0) return null
+      const min = Math.min(...nums)
+      const max = Math.max(...nums)
+      return { min, max }
+    }
+
+    const min = toNum(variation_price_range.min_price)
+    const max = toNum(variation_price_range.max_price)
+    if (min === null && max === null) return null
+    return { min: min ?? max!, max: max ?? min! }
+  })()
+
+  const safeOriginalPrice = Number.isFinite(Number(originalPrice))
+    ? Number(originalPrice)
+    : 0
+  const safeDiscountedPrice = Number.isFinite(Number(discountedPrice))
+    ? Number(discountedPrice)
+    : safeOriginalPrice
+
+  const isVariablePrice =
+    priceRange !== null &&
+    Number.isFinite(priceRange.min) &&
+    Number.isFinite(priceRange.max) &&
+    priceRange.min !== priceRange.max
+
+  const mainPriceLabel = isVariablePrice
+    ? `৳${priceRange!.min} - ৳${priceRange!.max}`
+    : `৳${safeDiscountedPrice}`
+
   return (
     <>
       {/* Product Image */}
@@ -103,10 +145,10 @@ export const ProductCard = ({
 
         {/* Price */}
         <div className="flex justify-between items-center mb-2">
-          <span className="text-green-600 font-bold">৳{discountedPrice}</span>
-          {originalPrice > discountedPrice && (
+          <span className="text-green-600 font-bold">{mainPriceLabel}</span>
+          {!isVariablePrice && safeOriginalPrice > safeDiscountedPrice && (
             <span className="text-gray-400 dark:text-gray-500 line-through text-sm">
-              ৳{originalPrice}
+              ৳{safeOriginalPrice}
             </span>
           )}
         </div>

@@ -42,7 +42,10 @@ export interface IProduct {
   sub_area_charge: number
   default_delivery_location: string | null
   attributes: boolean | IAttributeValues[]
-  variation_price_range: number[]
+  variation_price_range:
+    | number[]
+    | { min_price?: number | string; max_price?: number | string }
+    | null
   variations: boolean | IVariation[]
   created_at: string // ISO date string
   main_image: string | null
