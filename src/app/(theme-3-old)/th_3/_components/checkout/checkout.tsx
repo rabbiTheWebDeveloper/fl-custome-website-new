@@ -158,6 +158,15 @@ const paymentMethods = [
   },
 ]
 
+type GatewayConfig = {
+  provider?: string
+  status?: string
+  full_payment?: boolean
+  delivery_charge_only?: boolean
+  percentage?: number
+  fixed_amount?: number
+}
+
 const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
   const gtmHead = shopInfo?.other_script?.gtm_head
   const { updateItem, removeItem, clearCart } = useCart()
@@ -351,6 +360,15 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
   const shippingMethod = watch("shippingMethod")
   const paymentMethod = watch("paymentMethod")
 
+  const selectedGateway = useMemo(() => {
+    const domainGateways = ((domain as unknown as { gateways?: unknown })?.gateways ??
+      null) as Array<GatewayConfig> | null
+    if (!domainGateways || domainGateways.length === 0) return null
+    return (
+      domainGateways.find((g) => g?.provider === paymentMethod) ?? null
+    )
+  }, [domain, paymentMethod])
+
   // Watch name and phone for incomplete order check
   const customerName = watch("fullName")
   const customerPhone = watch("phone")
@@ -527,6 +545,27 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
       total,
     }
   }, [cartTotals.subtotal, cartTotals.discount, cartTotals.tax, shippingCost])
+
+  const onlinePaymentAmount = useMemo(() => {
+    if (paymentMethod === "cash-on-delivery") return 0
+
+    const total = finalTotals.total
+    const shipping = finalTotals.shipping
+
+    if (!selectedGateway) return total
+
+    const fullPayment = Boolean(selectedGateway?.full_payment)
+    const fixedAmount = Number(selectedGateway?.fixed_amount ?? 0)
+    const percentage = Number(selectedGateway?.percentage ?? 0)
+    const deliveryChargeOnly = Boolean(selectedGateway?.delivery_charge_only)
+
+    if (fullPayment) return total
+    if (fixedAmount > 0) return fixedAmount
+    if (percentage > 0) return Math.round((total * percentage) / 100)
+    if (deliveryChargeOnly) return shipping
+
+    return total
+  }, [finalTotals.shipping, finalTotals.total, paymentMethod, selectedGateway])
 
   // Create incomplete order function (uses refs to read latest values without re-creating)
   const itemsRef = useRef(items)
@@ -849,7 +888,6 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
 
   const handleResendOtp = async () => {
     setResendLoading(true)
-    const headers = getDomainHeadersFromCookies()
     try {
       const res = await api.post(
         "/customer/resend-otp",
@@ -885,11 +923,14 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
     return () => clearInterval(intervalId)
   }, [show, timeLeft])
   const availablePaymentMethods = useMemo(() => {
-    if (!domain?.gateways || domain.gateways.length === 0) {
+    const domainGateways = ((domain as unknown as { gateways?: unknown })?.gateways ??
+      null) as Array<GatewayConfig> | null
+
+    if (!domainGateways || domainGateways.length === 0) {
       return paymentMethods.filter((m) => m.id === "cash-on-delivery")
     }
 
-    const activeProviders = domain.gateways
+    const activeProviders = domainGateways
       .filter((g) => g.status === "active")
       .map((g) => g.provider)
 
@@ -1349,6 +1390,19 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
                   </div>
 
                   {/* Divider and Total */}
+                  {paymentMethod !== "cash-on-delivery" && (
+                    <div className="border-t border-gray-200 pt-3 sm:pt-4">
+                      <div className="flex justify-between font-bold text-gray-900 text-base sm:text-lg">
+                        <span>
+                          Online Payment{" "}
+                          {selectedGateway?.provider
+                            ? `(${String(selectedGateway.provider)})`
+                            : ""}
+                        </span>
+                        <span>৳{onlinePaymentAmount.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="border-t border-gray-200 pt-3 sm:pt-4">
                     <div className="flex justify-between font-bold text-gray-900 text-base sm:text-lg">
                       <span>Total</span>
