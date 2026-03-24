@@ -361,12 +361,10 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
   const paymentMethod = watch("paymentMethod")
 
   const selectedGateway = useMemo(() => {
-    const domainGateways = ((domain as unknown as { gateways?: unknown })?.gateways ??
-      null) as Array<GatewayConfig> | null
+    const domainGateways = ((domain as unknown as { gateways?: unknown })
+      ?.gateways ?? null) as Array<GatewayConfig> | null
     if (!domainGateways || domainGateways.length === 0) return null
-    return (
-      domainGateways.find((g) => g?.provider === paymentMethod) ?? null
-    )
+    return domainGateways.find((g) => g?.provider === paymentMethod) ?? null
   }, [domain, paymentMethod])
 
   // Watch name and phone for incomplete order check
@@ -923,8 +921,8 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
     return () => clearInterval(intervalId)
   }, [show, timeLeft])
   const availablePaymentMethods = useMemo(() => {
-    const domainGateways = ((domain as unknown as { gateways?: unknown })?.gateways ??
-      null) as Array<GatewayConfig> | null
+    const domainGateways = ((domain as unknown as { gateways?: unknown })
+      ?.gateways ?? null) as Array<GatewayConfig> | null
 
     if (!domainGateways || domainGateways.length === 0) {
       return paymentMethods.filter((m) => m.id === "cash-on-delivery")
