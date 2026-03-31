@@ -80,6 +80,8 @@ const LandingOrder = ({
 }: LandingOrderProps) => {
   const [selectedPayment, setSelectedPayment] = useState<"cod" | "bkash">("cod")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isIncompleteOrderLoading, setIsIncompleteOrderLoading] =
+    useState(false)
   const router = useRouter()
   // OTP Modal State
   const [timeLeft, setTimeLeft] = useState(0)
@@ -496,9 +498,16 @@ const LandingOrder = ({
       return
     }
 
+    // Only create incomplete order if at least one item is selected
+    const items = getOrderItems()
+    if (items.length === 0) {
+      return
+    }
+
     const checkIncompleteOrderStatus = async () => {
       if (!shopId) return
 
+      setIsIncompleteOrderLoading(true)
       try {
         const response = await api.get(`/incomplete-order/status/${shopId}`, {
           headers: {
@@ -525,6 +534,8 @@ const LandingOrder = ({
         }
       } catch (error) {
         console.error("Error checking incomplete order status:", error)
+      } finally {
+        setIsIncompleteOrderLoading(false)
       }
 
       // Mark as done regardless of outcome — only fires once
@@ -534,7 +545,13 @@ const LandingOrder = ({
     // Debounce the check
     const timeoutId = setTimeout(checkIncompleteOrderStatus, 500)
     return () => clearTimeout(timeoutId)
-  }, [customerName, customerPhone, shopId, createIncompleteOrder])
+  }, [
+    customerName,
+    customerPhone,
+    shopId,
+    createIncompleteOrder,
+    getOrderItems,
+  ])
   // Handle form submission
   const onSubmit: SubmitHandler<OrderFormData> = async (formData) => {
     // Validate if any items are selected
@@ -1597,6 +1614,7 @@ const LandingOrder = ({
                   type="submit"
                   disabled={
                     isSubmitting ||
+                    isIncompleteOrderLoading ||
                     !isValid ||
                     (Array.isArray(product.variations) &&
                       product.variations.length > 0 &&
@@ -1613,6 +1631,11 @@ const LandingOrder = ({
                     <>
                       <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Order Processing...
+                    </>
+                  ) : isIncompleteOrderLoading ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Preparing Order...
                     </>
                   ) : (
                     <>
