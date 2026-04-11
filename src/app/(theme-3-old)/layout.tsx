@@ -16,6 +16,7 @@ import { IShopResponse } from "./th_3/types/shop"
 import { ICategory } from "./th_3/types/categories"
 import { DomainHydration } from "./th_3/_components/domain-hydration"
 import FloatingContact from "./th_3/_components/FloatingContact"
+import Analytics from "@/components/Analytics"
 
 const Header = dynamic(() => import("./th_3/_components/header"), { ssr: true })
 
@@ -112,6 +113,10 @@ export default async function RootLayout({
         data-gr-ext-installed=""
         cz-shortcut-listen="true"
       >
+        <Analytics
+          tiktokPixelId={shopInfo?.pixel_id as string | undefined}
+          clarityId={shopInfo?.ms_clarity_id as string | undefined}
+        />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
             <DomainHydration

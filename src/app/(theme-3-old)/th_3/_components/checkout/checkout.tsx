@@ -1201,7 +1201,7 @@ const Checkout = ({ shopInfo }: { shopInfo: DomainInfo | null }) => {
             {/* Right Column - Order Summary */}
             <div className="space-y-4 sm:space-y-6">
               {/* Order Summary */}
-              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 sticky top-4 sm:top-6">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 md:sticky top-4 sm:top-6">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">
                   Order Summary
                 </h2>

@@ -7,7 +7,9 @@ import { api } from "@/lib/api-client"
 import { IProductsApiResponse } from "./types/product"
 import { getDomainInfo, getSliderAndBannerData } from "@/utils/api-helpers"
 import { getCleanDomain } from "@/utils/domain"
+import { parsePageNumber } from "@/utils"
 import WebsiteTraffic from "./_components/website-traffic"
+import { redirect } from "next/navigation"
 export const dynamic = "force-dynamic"
 export default async function Home({
   searchParams,
@@ -26,7 +28,8 @@ export default async function Home({
     sliderAndBannerData = await getSliderAndBannerData(cleanDomain)
     const shopInfo = await getDomainInfo(cleanDomain)
     shopId = shopInfo?.shop_id || ""
-    const { page = "1" } = await searchParams
+    const rawParams = await searchParams
+    const page = parsePageNumber(rawParams.page)
     const { data: response } = await api.get<IProductsApiResponse>(
       `/customer/products?page=${page}`,
       undefined,
@@ -37,6 +40,10 @@ export default async function Home({
     )
     products = response.data
     totalPages = response.last_page
+
+    if (totalPages > 0 && page > totalPages) {
+      redirect(`/?page=${totalPages}`)
+    }
   } catch (err) {
     console.warn("[theme-3 Home] Failed to fetch products:", err)
   }

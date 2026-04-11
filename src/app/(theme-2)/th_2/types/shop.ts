@@ -8,6 +8,8 @@ export interface IShopResponse {
   shop_meta_title: string
   shop_meta_description: string
   domain_verify: string
+  pixel_id?: string | null
+  ms_clarity_id?: string | null
   fb_pixel: string | null
   c_api: string | null
   c_status: string

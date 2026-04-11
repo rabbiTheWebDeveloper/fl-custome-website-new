@@ -20,6 +20,7 @@ import { IShopResponse } from "./th_2/types/shop"
 import { ICategory } from "./th_2/types/categories"
 import { ISectionItem } from "./th_2/types/sections"
 import { Toaster } from "sonner"
+import Analytics from "@/components/Analytics"
 
 const inter = Inter({
   variable: "--font-sans",
@@ -82,6 +83,10 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="overflow-x-clip">
+        <Analytics
+          tiktokPixelId={initialDomain?.pixel_id as string | undefined}
+          clarityId={initialDomain?.ms_clarity_id as string | undefined}
+        />
         <NextIntlClientProvider
           locale={locale}
           messages={messages}

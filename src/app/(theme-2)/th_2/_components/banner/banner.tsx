@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useDomain } from "../../store/domain"
 import type { ThemeSettingsBannerSlide } from "../../types/shop"
+import WebsiteTraffic from "@/app/(theme-3-old)/th_3/_components/website-traffic"
 
 export const Banner = () => {
   const autoplayPlugin = useRef(
@@ -63,9 +64,10 @@ export const Banner = () => {
       </Link>
     )
   }
-
+  console.log("domain", domain)
   return (
     <div className="relative overflow-hidden group/banner">
+      {domain?.shop_id && <WebsiteTraffic shopId={domain.shop_id} />}
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
           {slides.map((slide, index) => (

@@ -7,6 +7,7 @@ import { IProduct } from "../../types/product"
 import { getDomainHeaders } from "@/lib/domain"
 import { notFound } from "next/navigation"
 import { ProductDetailsClient } from "../../_components/product/product-details-client"
+import { API_ENDPOINTS } from "@/config/ApiEndpoints"
 
 export default async function ProductPage({
   params,
@@ -50,6 +51,13 @@ export default async function ProductPage({
   if (!product) {
     notFound()
   }
+  void api
+    .get(`${API_ENDPOINTS.PRODUCT_WISE_VISITOR}/${product.id}`, {
+      headers: { "shop-id": product.shop_id.toString() },
+    })
+    .catch((err) => {
+      console.error("Failed to track product visit:", err)
+    })
   const rawVideoUrl = product.video_url as unknown
   const videoUrls: string[] = Array.isArray(rawVideoUrl)
     ? rawVideoUrl

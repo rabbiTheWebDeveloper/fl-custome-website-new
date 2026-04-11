@@ -4,9 +4,13 @@ import { API_ENDPOINTS } from "@/config/ApiEndpoints"
 import { BASE_URL_VISITOR } from "@/constant"
 import { useEffect, useRef } from "react"
 
-export default function WebsiteTraffic({ shopId }: { shopId: string }) {
+export default function WebsiteTraffic({
+  shopId,
+}: {
+  shopId: string | null | number
+}) {
   const hasTracked = useRef(false)
-
+  console.log("shopId", shopId)
   useEffect(() => {
     if (!shopId || hasTracked.current) return
 
@@ -23,7 +27,7 @@ export default function WebsiteTraffic({ shopId }: { shopId: string }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "shop-id": shopId,
+            "shop-id": shopId.toString(),
           },
           body: JSON.stringify({ type: "website" }),
         })
@@ -38,7 +42,7 @@ export default function WebsiteTraffic({ shopId }: { shopId: string }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "shop-id": shopId,
+            "shop-id": shopId.toString(),
           },
           body: JSON.stringify({
             shopId,
