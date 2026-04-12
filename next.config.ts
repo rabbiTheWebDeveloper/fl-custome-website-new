@@ -21,12 +21,26 @@ const nextConfig: NextConfig = {
         hostname: "zadwah.com",
         pathname: "/**",
       },
-    ],
-    domains: [
-      "eiclgroup.com",
-      "via.placeholder.com",
-      "images.unsplash.com",
-      "img.youtube.com",
+      {
+        protocol: "https",
+        hostname: "eiclgroup.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
+        pathname: "/**",
+      },
     ],
     unoptimized: true, // Set to true to disable all optimization
   },

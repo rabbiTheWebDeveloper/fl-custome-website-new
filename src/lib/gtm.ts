@@ -89,6 +89,25 @@ function pushToDataLayer(event: string, eventModel: GTMEventModel) {
   w.dataLayer.push({ event, eventModel })
 }
 
+function pushToTiktok(event: string, eventModel: GTMEventModel) {
+  if (typeof window === "undefined") return
+  const w = window as unknown as {
+    ttq?: { track: (e: string, p?: unknown) => void }
+  }
+  if (w.ttq && typeof w.ttq.track === "function") {
+    w.ttq.track(event, {
+      contents: eventModel.items.map((i) => ({
+        content_id: String(i.item_id),
+        content_name: i.item_name,
+        quantity: i.quantity,
+        price: i.price,
+      })),
+      value: eventModel.value,
+      currency: "BDT",
+    })
+  }
+}
+
 export async function trackAddToCart(product: {
   id: string | number
   name: string
@@ -105,15 +124,15 @@ export async function trackAddToCart(product: {
     },
   ]
 
-  pushToDataLayer(
-    "add_to_cart",
-    buildEventModel(
-      items,
-      product.price * product.quantity,
-      {},
-      { client_ip_address: ip }
-    )
+  const eventModel = buildEventModel(
+    items,
+    product.price * product.quantity,
+    {},
+    { client_ip_address: ip }
   )
+
+  pushToDataLayer("add_to_cart", eventModel)
+  pushToTiktok("AddToCart", eventModel)
 }
 
 export async function trackBeginCheckout(
@@ -135,13 +154,13 @@ export async function trackBeginCheckout(
     quantity: item.quantity,
   }))
 
-  pushToDataLayer(
-    "begin_checkout",
-    buildEventModel(items, totalValue, userData, {
-      shipping_method: shippingMethod,
-      client_ip_address: ip,
-    })
-  )
+  const eventModel = buildEventModel(items, totalValue, userData, {
+    shipping_method: shippingMethod,
+    client_ip_address: ip,
+  })
+
+  pushToDataLayer("begin_checkout", eventModel)
+  pushToTiktok("InitiateCheckout", eventModel)
 }
 
 export async function trackPurchase(
@@ -164,14 +183,14 @@ export async function trackPurchase(
     quantity: item.quantity,
   }))
 
-  pushToDataLayer(
-    "purchase",
-    buildEventModel(items, totalValue, userData, {
-      payment_method: paymentMethod,
-      shipping_method: shippingMethod,
-      client_ip_address: ip,
-    })
-  )
+  const eventModel = buildEventModel(items, totalValue, userData, {
+    payment_method: paymentMethod,
+    shipping_method: shippingMethod,
+    client_ip_address: ip,
+  })
+
+  pushToDataLayer("purchase", eventModel)
+  pushToTiktok("CompletePayment", eventModel)
 }
 
 export async function trackViewItem(
@@ -191,8 +210,13 @@ export async function trackViewItem(
     },
   ]
 
-  pushToDataLayer(
-    "view_item",
-    buildEventModel(items, selectedPrice, {}, { client_ip_address: ip })
+  const eventModel = buildEventModel(
+    items,
+    selectedPrice,
+    {},
+    { client_ip_address: ip }
   )
+
+  pushToDataLayer("view_item", eventModel)
+  pushToTiktok("ViewContent", eventModel)
 }

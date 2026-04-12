@@ -45,6 +45,8 @@ export interface DomainInfo {
     secondary_color?: string | null
   } | null
   fb_pixel?: string
+  pixel_id?: string
+  ms_clarity_id?: string
   other_script?: {
     gtm_head?: string
     [key: string]: string | undefined

@@ -6,6 +6,7 @@ import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google"
 import { getCleanDomain } from "@/utils/domain"
 import { getDomainInfo } from "@/utils/api-helpers"
 import { DynamicMeta } from "./_component/dynamic-meta"
+import Analytics from "@/components/Analytics"
 
 const inter = Inter({
   variable: "--font-sans",
@@ -38,6 +39,10 @@ export default async function RootLayout({
         }
       />
       <body suppressHydrationWarning>
+        <Analytics
+          tiktokPixelId={shopInfo?.pixel_id as string | undefined}
+          clarityId={shopInfo?.ms_clarity_id as string | undefined}
+        />
         <DynamicMeta domain={shopInfo} />
         <div style={{ display: "contents" }}>{children}</div>
       </body>
