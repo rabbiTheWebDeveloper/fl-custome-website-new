@@ -51,6 +51,7 @@ export default async function ProductPage({
   if (!product) {
     notFound()
   }
+
   void api
     .get(`${API_ENDPOINTS.PRODUCT_WISE_VISITOR}/${product.id}`, {
       headers: { "shop-id": product.shop_id.toString() },
@@ -58,6 +59,7 @@ export default async function ProductPage({
     .catch((err) => {
       console.error("Failed to track product visit:", err)
     })
+
   const rawVideoUrl = product.video_url as unknown
   const videoUrls: string[] = Array.isArray(rawVideoUrl)
     ? rawVideoUrl
