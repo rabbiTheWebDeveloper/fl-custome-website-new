@@ -5,6 +5,7 @@ import { ProductImageCarousel } from "./product-image-carousel"
 import { ProductCartControls } from "./product-cart-controls"
 import { SocialShareButtons } from "./social-share-buttons"
 import { StickyMobileBar } from "./sticky-mobile-bar"
+import { useTrackViewItem } from "@/lib/gtm-hooks"
 import type {
   IAttributeValues,
   IProduct,
@@ -145,6 +146,8 @@ export function ProductDetailsClient({
   const handleVariantChange = (key: string, value: string) => {
     setSelectedVariants((prev) => ({ ...prev, [key]: value }))
   }
+
+  useTrackViewItem(product, selectedPrice)
 
   return (
     <>

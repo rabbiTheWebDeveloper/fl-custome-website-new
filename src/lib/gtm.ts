@@ -173,3 +173,26 @@ export async function trackPurchase(
     })
   )
 }
+
+export async function trackViewItem(
+  product: {
+    id: string | number
+    name: string
+  },
+  selectedPrice: number
+) {
+  const ip = await getClientIp()
+  const items = [
+    {
+      item_id: String(product.id),
+      item_name: product.name,
+      price: selectedPrice,
+      quantity: 1,
+    },
+  ]
+
+  pushToDataLayer(
+    "view_item",
+    buildEventModel(items, selectedPrice, {}, { client_ip_address: ip })
+  )
+}

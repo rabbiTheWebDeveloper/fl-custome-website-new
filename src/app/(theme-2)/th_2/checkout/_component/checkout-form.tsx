@@ -24,6 +24,7 @@ import type { PaymentGateway } from "../../types/shop"
 import CheckoutOtp from "./checkout-otp"
 import { toast } from "sonner"
 import { trackBeginCheckout, trackPurchase } from "@/lib/gtm"
+import { useTrackBeginCheckout } from "@/lib/gtm-hooks"
 import {
   isValidBangladeshPhone,
   normalizePhoneValue,
@@ -433,6 +434,13 @@ export function CheckoutForm() {
       total,
     }
   }, [cartTotals.subtotal, cartTotals.discount, cartTotals.tax, shippingCost])
+
+  // Track begin_checkout event
+  useTrackBeginCheckout(
+    items,
+    finalTotals.total,
+    (domain?.other_script as { gtm_head?: string })?.gtm_head
+  )
 
   // Create incomplete order function (uses refs to read latest values without re-creating)
   const itemsRef = useRef(items)

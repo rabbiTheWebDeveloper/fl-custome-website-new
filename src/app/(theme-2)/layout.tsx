@@ -21,6 +21,7 @@ import { ICategory } from "./th_2/types/categories"
 import { ISectionItem } from "./th_2/types/sections"
 import { Toaster } from "sonner"
 import Analytics from "@/components/Analytics"
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google"
 
 const inter = Inter({
   variable: "--font-sans",
@@ -82,6 +83,15 @@ export default async function RootLayout({
       className={`${inter.variable} ${geistMono.variable} antialiased overflow-x-clip`}
       suppressHydrationWarning
     >
+      <GoogleTagManager
+        gtmId={
+          typeof (initialDomain?.other_script as { gtm_head?: string })
+            ?.gtm_head === "string"
+            ? (initialDomain?.other_script as { gtm_head?: string })?.gtm_head
+            : ""
+        }
+        gtmScriptUrl="https://www.googletagmanager.com/gtm.js"
+      />
       <body className="overflow-x-clip">
         <Analytics
           tiktokPixelId={initialDomain?.pixel_id as string | undefined}
@@ -109,6 +119,15 @@ export default async function RootLayout({
           </ThemeBrandProvider>
         </NextIntlClientProvider>
       </body>
+      <GoogleAnalytics
+        gaId={
+          typeof (initialDomain?.other_script as { google_analytics?: string })
+            ?.google_analytics === "string"
+            ? ((initialDomain?.other_script as { google_analytics?: string })
+                .google_analytics ?? "")
+            : ""
+        }
+      />
     </html>
   )
 }

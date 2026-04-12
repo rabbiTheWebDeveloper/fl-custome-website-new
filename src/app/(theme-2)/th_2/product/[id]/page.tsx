@@ -7,7 +7,7 @@ import { IProduct } from "../../types/product"
 import { getDomainHeaders } from "@/lib/domain"
 import { notFound } from "next/navigation"
 import { ProductDetailsClient } from "../../_components/product/product-details-client"
-import { API_ENDPOINTS } from "@/config/ApiEndpoints"
+import { ProductVisitTracker } from "../../_components/product/product-visit-tracker"
 
 export default async function ProductPage({
   params,
@@ -52,14 +52,6 @@ export default async function ProductPage({
     notFound()
   }
 
-  void api
-    .get(`${API_ENDPOINTS.PRODUCT_WISE_VISITOR}/${product.id}`, {
-      headers: { "shop-id": product.shop_id.toString() },
-    })
-    .catch((err) => {
-      console.error("Failed to track product visit:", err)
-    })
-
   const rawVideoUrl = product.video_url as unknown
   const videoUrls: string[] = Array.isArray(rawVideoUrl)
     ? rawVideoUrl
@@ -88,6 +80,7 @@ export default async function ProductPage({
         </nav>
       </div>
 
+      <ProductVisitTracker productId={product.id} shopId={product.shop_id} />
       <ProductDetailsClient product={product} videoUrls={videoUrls} />
 
       <div className="container py-6 md:py-10">
