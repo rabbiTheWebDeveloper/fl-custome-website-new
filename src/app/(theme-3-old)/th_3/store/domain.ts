@@ -19,23 +19,11 @@ export const defaultInitState: IDomainState = {
   domainAddress: "",
 }
 
-export const useDomain = create<DomainStore>()(
-  persist(
-    (set) => ({
-      domain: null,
-      domainAddress: "",
-      setDomain: (data) => set(() => ({ domain: data })),
-      setDomainAddress(address) {
-        return set(() => ({ domainAddress: address }))
-      },
-    }),
-    {
-      name: "domain",
-      storage: createJSONStorage(() =>
-        createCookieStorage({
-          sameSite: "strict",
-        })
-      ),
-    }
-  )
-)
+export const useDomain = create<DomainStore>()((set) => ({
+  domain: null,
+  domainAddress: "",
+  setDomain: (data) => set(() => ({ domain: data })),
+  setDomainAddress(address) {
+    return set(() => ({ domainAddress: address }))
+  },
+}))

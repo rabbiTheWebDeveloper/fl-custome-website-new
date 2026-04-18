@@ -100,7 +100,6 @@ export default async function RootLayout({
         <NextIntlClientProvider
           locale={locale}
           messages={messages}
-  
           timeZone="Asia/Dhaka"
         >
           <ThemeBrandProvider>

@@ -147,9 +147,9 @@ export function ProductCartControls({
         </div>
       )}
 
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="mt-2 md:mt-6 flex flex-col gap-4 sm:flex-row sm:items-center w-full">
         {/* Quantity Input */}
-        <div className="sm:w-36">
+        <div className="sm:w-36 w-full">
           <CartInputConnected
             product={product}
             variants={cartVariants}
@@ -160,25 +160,29 @@ export function ProductCartControls({
           />
         </div>
 
-        {/* Add to Cart */}
-        <AddToCartButton
-          product={product}
-          variants={cartVariants}
-          maxQuantity={product.product_qty}
-          selectedPrice={selectedPrice}
-          selectedImage={selectedImage}
-          selectedQuantity={effectiveSelectedQuantity}
-        />
+        <div className="flex flex-row items-center gap-3 w-full sm:w-auto sm:flex-1">
+          {/* Add to Cart */}
+          <div className="flex-1 w-full min-w-0">
+            <AddToCartButton
+              product={product}
+              variants={cartVariants}
+              maxQuantity={product.product_qty}
+              selectedPrice={selectedPrice}
+              selectedImage={selectedImage}
+              selectedQuantity={effectiveSelectedQuantity}
+            />
+          </div>
 
-        {/* Buy Now */}
-        <button
-          onClick={handleBuyNow}
-          disabled={product.product_qty <= 0}
-          className="flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-lg border-2 border-[#3BB77E] px-6 font-medium text-[#3BB77E] transition hover:bg-[#3BB77E] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#3BB77E]/50 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <CreditCard size={18} />
-          Buy Now
-        </button>
+          {/* Buy Now */}
+          <button
+            onClick={handleBuyNow}
+            disabled={product.product_qty <= 0}
+            className="flex h-11 flex-1 w-full min-w-0 items-center justify-center gap-2 rounded-lg border-2 border-[#3BB77E] px-2 sm:px-6 font-medium text-[#3BB77E] transition hover:bg-[#3BB77E] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#3BB77E]/50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <CreditCard size={18} className="hidden sm:block" />
+            Buy Now
+          </button>
+        </div>
       </div>
     </>
   )

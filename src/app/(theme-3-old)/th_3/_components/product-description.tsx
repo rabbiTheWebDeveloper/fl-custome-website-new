@@ -178,7 +178,7 @@ const ProductDescription = ({
   // Use product.relatedProducts if available, otherwise empty array
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-12">
+    <section className="max-w-7xl mx-auto px-4 py-2 md:py-12">
       {/* Product Main Section */}
       <div className="grid lg:grid-cols-2 gap-12">
         {/* Product Image with Badges */}
@@ -201,7 +201,7 @@ const ProductDescription = ({
         </div>
 
         {/* Product Details */}
-        <div className="space-y-6">
+        <div className="space-y-1 md:space-y-6 mt-1 md:mt-0">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <Link href="/" className="hover:text-[#3BB77E] transition">
@@ -218,13 +218,13 @@ const ProductDescription = ({
           </div>
 
           {/* Product Name */}
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
             {product.product_name}
           </h1>
 
           {/* Price */}
           <div className="flex items-baseline gap-3">
-            <span className="text-3xl font-bold text-[#3BB77E]">
+            <span className="text-2xl md:text-3xl font-bold text-[#3BB77E]">
               ৳ {selectedPrice.toLocaleString()}
             </span>
             {product.price > product.discounted_price && (
@@ -261,6 +261,13 @@ const ProductDescription = ({
             </h4>
           </div>
 
+          {/* Cart Controls */}
+          <ProductCartControls
+            product={product}
+            selectedVariants={selectedVariants}
+            onVariantChange={handleVariantChange}
+            selectedVariation={selectedVariation}
+          />
           {/* Short Description */}
           {product.short_description && (
             <div className="border-t border-b border-gray-200 dark:border-gray-700 py-4">
@@ -277,13 +284,6 @@ const ProductDescription = ({
               />
             </div>
           )}
-          {/* Cart Controls */}
-          <ProductCartControls
-            product={product}
-            selectedVariants={selectedVariants}
-            onVariantChange={handleVariantChange}
-            selectedVariation={selectedVariation}
-          />
           {/* Social Share */}
           <ShareButtons title={product?.product_name} />
           {/* Product Meta */}

@@ -122,14 +122,14 @@ export function ProductImageCarousel({
           {slides.map((slide, index) => (
             <div
               key={slide.type === "image" ? slide.src : slide.youtubeId}
-              className="relative min-w-0 flex-[0_0_100%] aspect-4/5 md:aspect-auto md:h-[620px]"
+              className="relative min-w-0 flex-[0_0_100%] h-[200px] md:h-[500px] lg:h-[620px]"
             >
               {slide.type === "image" ? (
                 <Image
                   src={slide.src}
                   alt={`Product image ${index + 1}`}
                   fill
-                  className="object-cover"
+                  className="object-contain md:object-cover"
                   priority={index === 0}
                 />
               ) : (
@@ -147,7 +147,7 @@ export function ProductImageCarousel({
       </div>
 
       {/* Thumbnail Carousel */}
-      <div className="overflow-hidden" ref={thumbViewportRef}>
+      <div className="hidden md:block overflow-hidden" ref={thumbViewportRef}>
         <div className="flex gap-3">
           {slides.map((slide, index) => (
             <button

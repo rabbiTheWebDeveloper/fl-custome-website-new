@@ -108,11 +108,7 @@ export default async function RootLayout({
         }
         gtmScriptUrl="https://www.googletagmanager.com/gtm.js"
       />
-      <body
-        data-new-gr-c-s-check-loaded="14.1271.0"
-        data-gr-ext-installed=""
-        cz-shortcut-listen="true"
-      >
+      <body suppressHydrationWarning>
         <Analytics
           tiktokPixelId={shopInfo?.pixel_id as string | undefined}
           clarityId={shopInfo?.ms_clarity_id as string | undefined}
