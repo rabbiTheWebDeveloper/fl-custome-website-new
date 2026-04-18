@@ -36,19 +36,23 @@ const OrderSuccessfull = ({
   }
   const orderData = { order_details }
 
+  const hasFired = useRef(false)
+
   useEffect(() => {
-    if (!order_no || !order_details?.length) return
+    if (!order_no || !order_details?.length || hasFired.current) return
 
     const purchaseKey = `purchase_fired_${order_no}`
 
     // Stop if already fired for this order
     if (sessionStorage.getItem(purchaseKey)) {
+      hasFired.current = true
       return
     }
 
-    purchaseTagManagerEventForPurchase("purchase", customerDataInfo, orderData)
-
+    hasFired.current = true
     sessionStorage.setItem(purchaseKey, "true")
+
+    purchaseTagManagerEventForPurchase("purchase", customerDataInfo, orderData)
   }, [order_no])
 
   return (

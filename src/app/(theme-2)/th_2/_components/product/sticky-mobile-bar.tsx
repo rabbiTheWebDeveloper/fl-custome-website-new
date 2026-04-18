@@ -47,7 +47,7 @@ export function StickyMobileBar({
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsVisible(window.scrollY > 400)
+      setIsVisible(window.scrollY > 150)
     }
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)

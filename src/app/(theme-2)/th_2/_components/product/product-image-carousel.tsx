@@ -122,7 +122,7 @@ export function ProductImageCarousel({
           {slides.map((slide, index) => (
             <div
               key={slide.type === "image" ? slide.src : slide.youtubeId}
-              className="relative min-w-0 flex-[0_0_100%] aspect-4/5 md:aspect-auto md:h-[620px]"
+              className="relative min-w-0 flex-[0_0_100%] aspect-square md:aspect-auto md:h-[620px]"
             >
               {slide.type === "image" ? (
                 <Image

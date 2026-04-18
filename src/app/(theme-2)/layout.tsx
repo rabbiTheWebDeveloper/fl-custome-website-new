@@ -92,7 +92,7 @@ export default async function RootLayout({
         }
         gtmScriptUrl="https://www.googletagmanager.com/gtm.js"
       />
-      <body className="overflow-x-clip">
+      <body className="overflow-x-clip" suppressHydrationWarning>
         <Analytics
           tiktokPixelId={initialDomain?.pixel_id as string | undefined}
           clarityId={initialDomain?.ms_clarity_id as string | undefined}
@@ -100,6 +100,7 @@ export default async function RootLayout({
         <NextIntlClientProvider
           locale={locale}
           messages={messages}
+  
           timeZone="Asia/Dhaka"
         >
           <ThemeBrandProvider>

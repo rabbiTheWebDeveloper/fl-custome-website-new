@@ -140,9 +140,9 @@ export function ProductCartControls({
           />
         </div>
       )}
-      <div className="mt-8 w-full">
-        <div className="flex items-center gap-5 flex-wrap">
-          <div className="flex-1 min-w-0">
+      <div className="mt-6 md:mt-8 w-full">
+        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-5">
+          <div className="w-full md:w-auto md:flex-1 min-w-0">
             <CartInputConnected
               product={product}
               variants={cartVariants}
@@ -152,22 +152,26 @@ export function ProductCartControls({
               }
             />
           </div>
-          <Button
-            size="lg"
-            className="h-13 rounded-xl text-base font-medium md:flex-1 min-w-0"
-            onClick={handleBuyNow}
-            disabled={maxQty <= 0}
-          >
-            {t("buyNow")}
-          </Button>
-          <AddToCartButton
-            product={product}
-            variants={cartVariants}
-            maxQuantity={maxQty}
-            selectedPrice={selectedPrice}
-            selectedImage={selectedImage}
-            selectedQuantity={effectiveSelectedQuantity}
-          />
+          <div className="flex flex-row items-center gap-3 w-full md:w-auto md:flex-[2]">
+            <Button
+              size="lg"
+              className="w-full h-13 rounded-xl text-base font-medium flex-1 min-w-0"
+              onClick={handleBuyNow}
+              disabled={maxQty <= 0}
+            >
+              {t("buyNow")}
+            </Button>
+            <div className="w-full flex-1 min-w-0">
+              <AddToCartButton
+                product={product}
+                variants={cartVariants}
+                maxQuantity={maxQty}
+                selectedPrice={selectedPrice}
+                selectedImage={selectedImage}
+                selectedQuantity={effectiveSelectedQuantity}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </>
