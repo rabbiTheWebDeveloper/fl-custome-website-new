@@ -32,7 +32,7 @@ export function FooterBrandLogo() {
 
       {domain?.shop_meta_description && (
         <p className="text-muted-foreground mb-4">
-          {domain?.shop_meta_description}
+          {domain?.shop_meta_description.slice(0, 100) + "..."}
         </p>
       )}
 

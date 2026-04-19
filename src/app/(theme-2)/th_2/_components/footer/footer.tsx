@@ -6,33 +6,7 @@ import { FooterBrandLogo } from "./footer-brand-logo"
 import { FooterCopyright } from "./footer-copyright"
 import { FooterSocials } from "./footer-socials"
 import { FooterCategories } from "./footer-categories"
-
-const paymentMethods = [
-  { name: "bKash", color: "text-[#E2136E]" },
-  { name: "Nagad", color: "text-[#F6921E]" },
-  { name: "Visa", color: "text-[#1A1F71]" },
-  { name: "COD", color: "text-[#2E7D32]" },
-]
-
-function PaymentIcons() {
-  return (
-    <div className="flex items-center gap-3 mt-6">
-      <span className="text-xs text-muted-foreground uppercase tracking-wide">
-        Accepting:
-      </span>
-      <div className="flex items-center gap-2">
-        {paymentMethods.map((method) => (
-          <span
-            key={method.name}
-            className={`text-[10px] font-bold px-2 py-1 bg-background border rounded ${method.color}`}
-          >
-            {method.name}
-          </span>
-        ))}
-      </div>
-    </div>
-  )
-}
+import Image from "next/image"
 
 export async function Footer() {
   const t = await getTranslations("Theme2.footer")
@@ -45,7 +19,6 @@ export async function Footer() {
           <div>
             <FooterBrandLogo />
             <FooterSocials />
-            <PaymentIcons />
           </div>
 
           <div>
@@ -84,6 +57,16 @@ export async function Footer() {
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+        <div className="w-full flex items-center justify-center py-6">
+          <div className="w-full max-w-2xl px-4 md:px-0">
+            <img
+              src="https://gadgetbd.com/wp-content/uploads/2020/03/SSLCommerz-Pay-With-logo-All-Size-01-2048x330.png"
+              alt="Secure Payment Methods"
+              className="w-full h-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+              loading="lazy"
+            />
           </div>
         </div>
 

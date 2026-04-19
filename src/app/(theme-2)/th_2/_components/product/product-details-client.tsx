@@ -148,7 +148,7 @@ export function ProductDetailsClient({
   }
 
   useTrackViewItem(product, selectedPrice)
-
+  console.log("product", product?.long_description)
   return (
     <>
       {/* Mobile: full-width carousel outside container */}
@@ -203,19 +203,29 @@ export function ProductDetailsClient({
 
             <SocialShareButtons productName={product.product_name} />
 
-            {product.short_description && (
-              <div
-                className="mt-6 md:mt-8 prose prose-sm max-w-3xl wrap-break-word"
-                dangerouslySetInnerHTML={{ __html: product.short_description }}
-              />
-            )}
+            {product.short_description &&
+              product.short_description
+                .replace(/<[^>]*>/g, "")
+                .trim()
+                .toLowerCase() !== "null" && (
+                <div
+                  className="mt-6 md:mt-8 prose prose-sm max-w-3xl wrap-break-word"
+                  dangerouslySetInnerHTML={{
+                    __html: product.short_description,
+                  }}
+                />
+              )}
 
-            {product.long_description && (
-              <div
-                className="mt-6 md:mt-8 prose prose-sm max-w-3xl wrap-break-word"
-                dangerouslySetInnerHTML={{ __html: product.long_description }}
-              />
-            )}
+            {product?.long_description &&
+              product.long_description
+                .replace(/<[^>]*>/g, "")
+                .trim()
+                .toLowerCase() !== "null" && (
+                <div
+                  className="mt-6 md:mt-8 prose prose-sm max-w-3xl break-words"
+                  dangerouslySetInnerHTML={{ __html: product.long_description }}
+                />
+              )}
           </div>
         </div>
       </div>
