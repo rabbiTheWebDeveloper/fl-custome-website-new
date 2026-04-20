@@ -10,6 +10,8 @@ export interface IBannerItem {
   id: number
   image: string
   link: string
+  title?: string
+  description?: string
   shop_id: string
   user_id: string
   created_at: string

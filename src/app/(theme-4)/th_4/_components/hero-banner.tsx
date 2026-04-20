@@ -5,14 +5,14 @@ import Autoplay from "embla-carousel-autoplay"
 import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
-import { IBanner } from "../types/banner"
+import { IBannerItem } from "../types/banner"
 
 export default function HeroBanner({
   banners,
   slides,
 }: {
-  banners?: IBanner[]
-  slides?: IBanner[]
+  banners?: IBannerItem[]
+  slides?: IBannerItem[]
 }) {
   const items = banners || slides || []
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, duration: 60 }, [

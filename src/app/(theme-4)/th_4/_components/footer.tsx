@@ -15,8 +15,10 @@ export default function FooterUI({
 }: {
   domainInfo: Record<string, unknown> | null
 }) {
-  const shopName = domainInfo?.name || "Premium."
-  console.log(domainInfo, "shopName")
+  const shopName: string = (domainInfo?.name as string) || "Premium."
+  const shopAddress: string = (domainInfo?.address as string) || ""
+  const shopPhone: string = (domainInfo?.phone as string) || ""
+  const shopEmail: string = (domainInfo?.email as string) || ""
   const isLongName = shopName.length > 15
   const displayShopName = isLongName
     ? shopName.substring(0, 13) + "."
@@ -119,30 +121,28 @@ export default function FooterUI({
               Get in Touch
             </h4>
             <div className="flex flex-col gap-4 text-zinc-400">
-              {domainInfo?.address && (
+              {shopAddress && (
                 <div className="flex items-start gap-3">
                   <MapPin size={15} className="shrink-0 text-zinc-600 mt-0.5" />
-                  <span className="text-sm leading-relaxed">
-                    {domainInfo.address}
-                  </span>
+                  <span className="text-sm leading-relaxed">{shopAddress}</span>
                 </div>
               )}
-              {domainInfo?.phone && (
+              {shopPhone && (
                 <a
-                  href={`tel:${domainInfo.phone}`}
+                  href={`tel:${shopPhone}`}
                   className="flex items-center gap-3 hover:text-white transition-colors group"
                 >
                   <Phone size={15} className="shrink-0 text-zinc-600" />
-                  <span className="text-sm">{domainInfo.phone}</span>
+                  <span className="text-sm">{shopPhone}</span>
                 </a>
               )}
-              {domainInfo?.email && (
+              {shopEmail && (
                 <a
-                  href={`mailto:${domainInfo.email}`}
+                  href={`mailto:${shopEmail}`}
                   className="flex items-center gap-3 hover:text-white transition-colors group"
                 >
                   <Mail size={15} className="shrink-0 text-zinc-600" />
-                  <span className="text-sm">{domainInfo.email}</span>
+                  <span className="text-sm">{shopEmail}</span>
                 </a>
               )}
             </div>
