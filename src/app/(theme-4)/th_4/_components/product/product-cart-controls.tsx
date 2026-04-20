@@ -1,0 +1,188 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
+import { VariantSelector } from "./variant-selector"
+import { useCart, generateCartItemId } from "@/lib/cart"
+import { useCartStore } from "@/lib/cart"
+import type { IProduct, IVariation } from "../../types/product"
+import { ArrowRight } from "lucide-react"
+import AddToCartButton from "../carts/add-to-cart-button"
+import { CartInputConnected } from "../carts/cart-input-connected"
+import { trackAddToCart } from "@/lib/gtm"
+import { toast } from "sonner"
+
+interface ProductCartControlsProps {
+  product: IProduct
+  selectedVariants?: Record<string, string>
+  onVariantChange?: (key: string, value: string) => void
+  selectedVariation?: IVariation | null
+}
+
+/**
+ * Product cart controls component
+ * Manages cart input and add to cart button with variant support
+ */
+export function ProductCartControls({
+  product,
+  selectedVariants = {},
+  onVariantChange = () => {},
+  selectedVariation,
+}: ProductCartControlsProps) {
+  const router = useRouter()
+  const { addItem } = useCart()
+  const [selectedQuantityBeforeFirstAdd, setSelectedQuantityBeforeFirstAdd] =
+    useState(1)
+  const items = useCartStore((state) => state.items)
+  const cartVariants = useMemo(() => {
+    const variations = Array.isArray(product.variations)
+      ? product.variations
+      : []
+
+    return Object.entries(selectedVariants)
+      .filter(([, value]) => value)
+      .map(([key, value]) => {
+        const matchedVariation = variations.find(
+          (variation) => variation.variant === value
+        )
+        const resolvedVariationId =
+          selectedVariation?.id ?? matchedVariation?.id
+
+        return {
+          key,
+          value,
+          variationId: resolvedVariationId,
+          variantId: resolvedVariationId,
+          attributeId: resolvedVariationId,
+        }
+      })
+  }, [product.variations, selectedVariants, selectedVariation?.id])
+
+  const currentCartItem = useMemo(() => {
+    const itemId = generateCartItemId(product.id, cartVariants)
+    return items.find((item) => item.id === itemId)
+  }, [items, product.id, cartVariants])
+
+  const currentQuantity = currentCartItem?.quantity ?? 0
+  const maxQty = selectedVariation?.quantity ?? product.product_qty
+  const selectedPrice = selectedVariation?.price ?? product.discounted_price
+  const selectedImage = selectedVariation?.media || product.main_image
+  const effectivePrice = selectedPrice ?? product.discounted_price
+  const effectiveImage = selectedImage ?? product.main_image
+  const effectiveSelectedQuantity =
+    currentQuantity > 0 ? currentQuantity : selectedQuantityBeforeFirstAdd
+
+  const showVariants =
+    Array.isArray(product.variations) &&
+    Array.isArray(product.attributes) &&
+    product.variations.length > 0 &&
+    product.attributes.length > 0
+
+  const handleBuyNow = async () => {
+    try {
+      const requestedQuantity = Math.max(
+        1,
+        Math.floor(effectiveSelectedQuantity || 1)
+      )
+      const quantityToAdd = currentQuantity === 0 ? requestedQuantity : 1
+
+      if (maxQty === 0) {
+        toast.error("Sorry, this product is currently out of stock.")
+        return
+      }
+      if (currentQuantity + quantityToAdd > maxQty) {
+        toast.warning(
+          `You can only add up to ${maxQty} of this product to your cart.`
+        )
+        return
+      }
+      if (currentQuantity === 0) {
+        await addItem({
+          productId: product.id,
+          name: product.product_name,
+          price: effectivePrice,
+          discountedPrice: effectivePrice,
+          quantity: quantityToAdd,
+          variants: cartVariants,
+          metadata: {
+            image: effectiveImage,
+            sku: product.product_code,
+            maxQuantity: maxQty,
+            ulid: product.ulid,
+            inside_dhaka: product.inside_dhaka,
+            outside_dhaka: product.outside_dhaka,
+            sub_area_charge: product.sub_area_charge,
+          },
+          mergeIfExists: true,
+          maxQuantity: maxQty,
+        })
+        trackAddToCart({
+          id: product.id,
+          name: product.product_name,
+          price: effectivePrice,
+          quantity: quantityToAdd,
+        })
+      }
+
+      router.push("/checkout")
+    } catch (error) {
+      console.error("Failed to add item to cart:", error)
+      toast.error("Failed to add item to cart. Please try again.")
+    }
+  }
+
+  return (
+    <>
+      {showVariants && (
+        <div className="mt-8">
+          <VariantSelector
+            product={product}
+            selectedVariants={selectedVariants}
+            onVariantChange={onVariantChange}
+          />
+        </div>
+      )}
+
+      <div className="mt-2 md:mt-6 flex flex-col gap-3 w-full">
+        {/* Row: Qty + Buttons */}
+        <div className="flex flex-col sm:flex-row items-stretch gap-3 w-full">
+          {/* Quantity Input */}
+          <div className="sm:w-36 w-full">
+            <CartInputConnected
+              product={product}
+              variants={cartVariants}
+              maxQuantity={maxQty}
+              onValuePreview={(quantity) =>
+                setSelectedQuantityBeforeFirstAdd(quantity)
+              }
+            />
+          </div>
+
+          <div className="flex flex-row items-stretch gap-2.5 w-full sm:flex-1">
+            {/* Add to Cart */}
+            <div className="flex-1 min-w-0">
+              <AddToCartButton
+                product={product}
+                variants={cartVariants}
+                maxQuantity={product.product_qty}
+                selectedPrice={selectedPrice}
+                selectedImage={selectedImage}
+                selectedQuantity={effectiveSelectedQuantity}
+              />
+            </div>
+
+            {/* Buy Now */}
+            <button
+              onClick={handleBuyNow}
+              disabled={product.product_qty <= 0}
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 py-3.5 px-5 rounded-full bg-gray-900 dark:bg-white text-white dark:text-black font-black text-xs uppercase tracking-widest hover:bg-black dark:hover:bg-zinc-100 hover:scale-[1.02] transition-all active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+            >
+              Buy Now
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}

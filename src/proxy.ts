@@ -19,6 +19,7 @@ export async function proxy(request: NextRequest) {
     "202": "th_3",
     theme_1: "th_3",
     theme_2: "th_2",
+    theme_4: "th_4",
   }
 
   const resolveTheme = (name: string) => THEME_MAP[name] || name
@@ -84,7 +85,12 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (pathname === "/default" || pathname === "/th_2" || pathname === "/th_3") {
+  if (
+    pathname === "/default" ||
+    pathname === "/th_2" ||
+    pathname === "/th_3" ||
+    pathname === "/th_4"
+  ) {
     return NextResponse.redirect(new URL("/", request.url))
   }
 
