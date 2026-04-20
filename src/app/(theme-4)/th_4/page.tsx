@@ -1,7 +1,10 @@
 import HeroBanner from "./_components/hero-banner"
 import CategorySlider from "./_components/category-slider"
 import FeaturedProducts from "./_components/featured-products"
-// import MiddleBanner from "./_components/middle-banner" // Can be easily added if needed
+import TopSelling from "./_components/top-selling"
+import NewArrival from "./_components/new-arrival"
+import FlashSale from "./_components/flash-sale"
+import AllFeaturedProducts from "./_components/all-featured-products"
 import Scroll from "./_components/Scroll"
 import { api } from "@/lib/api-client"
 import { IProductsApiResponse } from "./types/product"
@@ -43,7 +46,6 @@ export default async function Home({
     products = response.data
     totalPages = response.last_page
 
-    // Handling paginated redirect internally if requested page is out of bounds
     if (totalPages > 0 && page > totalPages) {
       redirect(`/?page=${totalPages}`)
     }
@@ -63,7 +65,22 @@ export default async function Home({
           slides={sliderAndBannerData?.slider}
           banners={sliderAndBannerData?.banner}
         />
+
         <CategorySlider />
+
+        {/* Top Selling — /customer/top_selling_products_for_website */}
+        {shopId && <TopSelling shopId={shopId} />}
+
+        {/* New Arrivals — /customer/new_arrival */}
+        {shopId && <NewArrival shopId={shopId} />}
+
+        {/* Flash Sale — /customer/flash_products */}
+        {shopId && <FlashSale shopId={shopId} />}
+
+        {/* Featured Products — /customer/featured_products */}
+        {shopId && <AllFeaturedProducts shopId={shopId} />}
+
+        {/* All Products (paginated) */}
         <FeaturedProducts products={products} totalPages={totalPages} />
       </main>
 
