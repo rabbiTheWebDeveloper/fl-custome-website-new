@@ -52,7 +52,7 @@ export default async function Th5HomePage() {
       {shopId && <Th5TopSelling shopId={shopId} />}
 
       {/* ⑨ Category grid (Backpack / Shoulder / Handbags) */}
-      <CategoryGrid />
+      {shopId && <CategoryGrid shopId={shopId} />}
 
       {/* ⑩ Luxe Leather editorial black section */}
       <LuxeLeatherBanner banners={sliderAndBannerData?.banner} />

@@ -1,5 +1,4 @@
-// Shared product types for theme-5
-// Mirrors src/app/(theme-4)/th_4/types/product.ts
+import { ICategory } from "./categories"
 
 export interface IProductsApiResponse {
   message: string
@@ -48,7 +47,7 @@ export interface IProduct {
     | { min_price?: number | string; max_price?: number | string }
     | null
   variations: boolean | IVariation[]
-  created_at: string
+  created_at: string // ISO date string
   main_image: string | null
   wp_product_image_url: string | null
   short_description: string | null
@@ -57,6 +56,7 @@ export interface IProduct {
   related_products?: IProduct[]
   other_images: string[]
   video_url: string[]
+  category?: ICategory
   tags?: { name: string }[]
 }
 

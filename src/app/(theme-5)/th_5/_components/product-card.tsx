@@ -59,19 +59,19 @@ export default function Th5ProductCard({ product }: { product: IProduct }) {
   return (
     <Link
       href={`/product/${product.ulid}?${product.slug}`}
-      className="group flex flex-col rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300"
+      className="group flex flex-col bg-white transition-opacity duration-300 hover:opacity-90"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {/* Image */}
-      <div className="relative aspect-[3/4] w-full bg-[#f8f8f8] overflow-hidden">
+      <div className="relative aspect-[4/5] w-full bg-gray-50 overflow-hidden">
         {hasDiscount && (
-          <div className="absolute top-2 left-2 z-20 bg-[#b8860b] text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+          <div className="absolute top-2 left-2 z-20 bg-black text-white text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest">
             -{discountPct}%
           </div>
         )}
         {isOutOfStock && (
-          <div className="absolute top-2 left-2 z-20 bg-gray-800 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+          <div className="absolute top-2 left-2 z-20 bg-gray-500 text-white text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest">
             Sold Out
           </div>
         )}
@@ -117,16 +117,16 @@ export default function Th5ProductCard({ product }: { product: IProduct }) {
       </div>
 
       {/* Product Info */}
-      <div className="flex flex-col gap-1 px-2.5 pt-2.5 pb-1">
-        <h3 className="text-[11px] sm:text-xs font-semibold text-gray-900 leading-snug uppercase line-clamp-2">
+      <div className="flex flex-col gap-1 pt-3 pb-1 text-center">
+        <h3 className="text-[10px] font-bold text-gray-900 leading-snug uppercase tracking-widest line-clamp-2">
           {product.product_name}
         </h3>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-sm font-bold text-gray-900">
+        <div className="flex items-center justify-center gap-2 mt-1">
+          <span className="text-[11px] font-bold text-gray-900">
             ৳{displayPrice.toLocaleString()}
           </span>
           {hasDiscount && (
-            <span className="text-[11px] text-gray-400 line-through">
+            <span className="text-[10px] text-gray-400 line-through">
               ৳{rawPrice.toLocaleString()}
             </span>
           )}
@@ -137,14 +137,14 @@ export default function Th5ProductCard({ product }: { product: IProduct }) {
       <button
         onClick={handleAddToCart}
         disabled={isOutOfStock || adding}
-        className={`sm:hidden mx-2.5 mb-2.5 rounded-xl py-2.5 text-[11px] font-bold uppercase tracking-wide flex items-center justify-center gap-1.5 touch-manipulation ${
+        className={`sm:hidden mt-2 border border-gray-200 py-2.5 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 touch-manipulation transition-colors ${
           isOutOfStock
             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-            : "bg-black text-white active:bg-gray-800"
+            : "bg-white text-black hover:bg-black hover:text-white"
         }`}
       >
         {adding ? (
-          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          <div className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin" />
         ) : null}
         {isOutOfStock ? "Sold Out" : "Add to Cart"}
       </button>

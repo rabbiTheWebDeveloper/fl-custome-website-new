@@ -13,18 +13,19 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useDomain } from "@/app/(theme-4)/th_4/store/domain"
-import { useCategories } from "@/app/(theme-4)/th_4/store/categories"
+import { useDomain } from "@/app/(theme-5)/th_5/store/domain"
+import { useCategories } from "@/app/(theme-5)/th_5/store/categories"
 import { api } from "@/lib/api-client"
-import { IShopResponse } from "@/app/(theme-4)/th_4/types/shop"
-import { CartPopover } from "@/app/(theme-4)/th_4/_components/carts/cart-popover"
+import { IShopResponse } from "@/app/(theme-5)/th_5/types/shop"
+
 import { useRouter, usePathname } from "next/navigation"
 import {
   IProductsApiResponse,
   IProduct,
-} from "@/app/(theme-4)/th_4/types/product"
+} from "@/app/(theme-5)/th_5/types/product"
 import CountdownBar from "./countdown-bar"
 import AnnouncementBar from "./announcement-bar"
+import { CartPopover } from "./carts/cart-popover"
 
 const NAV_LINKS = [
   { label: "Bags", href: "/shop?category=Bags" },
@@ -225,13 +226,6 @@ export default function Th5Header({
             >
               <Search size={20} />
             </button>
-            <Link
-              href="/account"
-              className="p-2.5 text-gray-700 hover:text-black hidden sm:block touch-manipulation"
-              aria-label="Account"
-            >
-              <User size={20} />
-            </Link>
             <CartPopover
               isCartOpen={isCartOpen}
               setIsCartOpen={setIsCartOpen}

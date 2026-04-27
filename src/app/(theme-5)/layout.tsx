@@ -4,18 +4,18 @@ import { NextIntlClientProvider } from "next-intl"
 import "./globals.css"
 import Th5Footer from "./th_5/_components/footer"
 import dynamic from "next/dynamic"
-import { Providers } from "@/app/(theme-4)/th_4/providers"
+import { Providers } from "@/app/(theme-5)/th_5/providers"
 import { cookies } from "next/headers"
-import { DynamicMeta } from "@/app/(theme-4)/th_4/_components/dynamic-meta"
+import { DynamicMeta } from "@/app/(theme-5)/th_5/_components/dynamic-meta"
 import { getDomainMeta } from "@/lib/domain"
 import { Toaster } from "sonner"
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google"
 import { getShopDomainData, getCategoriesData } from "@/utils/api-helpers"
 import { getCleanDomain } from "@/utils/domain"
-import { IShopResponse } from "@/app/(theme-4)/th_4/types/shop"
-import { ICategory } from "@/app/(theme-4)/th_4/types/categories"
-import { DomainHydration } from "@/app/(theme-4)/th_4/_components/domain-hydration"
-import FloatingContact from "@/app/(theme-4)/th_4/_components/FloatingContact"
+import { IShopResponse } from "@/app/(theme-5)/th_5/types/shop"
+import { ICategory } from "@/app/(theme-5)/th_5/types/categories"
+import { DomainHydration } from "@/app/(theme-5)/th_5/_components/domain-hydration"
+import FloatingContact from "@/app/(theme-5)/th_5/_components/FloatingContact"
 import Analytics from "@/components/Analytics"
 
 const Header = dynamic(() => import("./th_5/_components/header"), { ssr: true })
@@ -114,8 +114,8 @@ export default async function RootLayout({
           tiktokPixelId={shopInfo?.pixel_id as string | undefined}
           clarityId={shopInfo?.ms_clarity_id as string | undefined}
         />
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <Providers>
+        <Providers>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <DomainHydration
               initialDomain={initialDomain}
               initialCategories={initialCategories}
@@ -141,8 +141,8 @@ export default async function RootLayout({
                 />
               </div>
             </DomainHydration>
-          </Providers>
-        </NextIntlClientProvider>
+          </NextIntlClientProvider>
+        </Providers>
       </body>
       <GoogleAnalytics
         gaId={

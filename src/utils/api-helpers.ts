@@ -13,7 +13,9 @@ export const getOtherData = async (shopId: string, typeOfPage: string) => {
     }
   )
 
-  const { data }: any = response
+  console.log(response, "response")
+  const data = (response as any)?.data?.data || []
+  console.log(data, "datadatadata")
   return data
 }
 
